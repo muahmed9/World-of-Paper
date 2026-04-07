@@ -11,7 +11,7 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
         body {
             font-family: 'Cairo', sans-serif;
             background-color: #f1f5f9;
@@ -19,10 +19,9 @@
             padding: 0;
         }
         
-        /* إعدادات صارمة لقياس A4 لمنع طفرة الصفحة الثانية */
         .a4-wrapper {
             width: 210mm;
-            height: 296mm; /* تحديد الارتفاع بدقة */
+            height: 296mm;
             background-color: white;
             margin: 0 auto;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
@@ -30,47 +29,38 @@
             padding: 15mm;
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* لمنع أي عنصر من تمديد الصفحة */
+            overflow: hidden;
             position: relative;
         }
 
-        /* تنسيقات الجدول المطابقة للصورة */
         .invoice-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
-            border: 2px solid #94a3b8;
+            margin-top: 15px;
+            border: 2px solid #334155;
             border-radius: 8px;
         }
         .invoice-table th, .invoice-table td {
             border: 1px solid #cbd5e1;
-            padding: 8px;
+            padding: 10px;
             text-align: center;
         }
         .invoice-table th {
-            color: #64748b;
-            font-weight: 700;
-            padding: 12px 8px;
+            color: #475569;
+            font-weight: 800;
+            background-color: #f8fafc;
         }
 
         @media print {
             .no-print { display: none !important; }
             body { background-color: white; }
             #app-root { display: block !important; padding: 0; }
-            
-            /* إزالة هوامش المتصفح الافتراضية لمنع الصفحة الإضافية */
-            @page { 
-                size: A4; 
-                margin: 0; 
-            }
-            
+            @page { size: A4; margin: 0; }
             .a4-wrapper { 
                 box-shadow: none; 
                 margin: 0; 
                 width: 100%; 
                 height: 100vh;
-                page-break-after: avoid;
-                page-break-inside: avoid;
             }
         }
     </style>
@@ -94,16 +84,20 @@
                 customerName: '',
                 customerPhone: '',
                 items: [{ id: '1', description: '', quantity: 1, price: 0 }],
-                invoiceType: 'sale', // 'sale' = قائمة بيع | 'receipt' = سند قبض
-                paymentStatus: 'paid' // 'paid' = واصل | 'unpaid' = غير مدفوع
+                invoiceType: 'sale', // 'sale' أو 'receipt'
+                paidAmount: '', // المبلغ المدفوع / الواصل
+                notes: 'البضاعة المباعة لا ترد ولا تستبدل بعد 24 ساعة.' // الملاحظات الافتراضية
             });
 
-            // حساب المجموع الكلي
+            // المجاميع
             const subtotal = useMemo(() => {
                 return invoice.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.price)), 0);
             }, [invoice.items]);
 
-            // تكملة الصفوف الفارغة ليكون الجدول دائماً 7 صفوف كما في الصورة
+            const paid = Number(invoice.paidAmount) || 0;
+            const dueAmount = Math.max(0, subtotal - paid);
+
+            // تكملة الصفوف الفارغة ليكون الجدول دائماً 7 صفوف
             const paddedItems = useMemo(() => {
                 const arr = [...invoice.items];
                 while (arr.length < 7) {
@@ -121,50 +115,58 @@
                     
                     {/* ─── لوحة التحكم والإدخال (تختفي عند الطباعة) ─── */}
                     <div className="w-full md:w-[30%] space-y-6 no-print bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <h1 className="text-xl font-bold border-b pb-4">إعدادات الفاتورة</h1>
+                        <h1 className="text-xl font-black border-b pb-4 text-slate-800">إعدادات الفاتورة</h1>
                         
                         <div className="space-y-4">
                             <div className="space-y-1">
                                 <label className="text-xs font-bold text-slate-500">نوع الوصل</label>
-                                <select value={invoice.invoiceType} onChange={e => setInvoice(prev => ({...prev, invoiceType: e.target.value}))} className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                                <select value={invoice.invoiceType} onChange={e => setInvoice(prev => ({...prev, invoiceType: e.target.value}))} className="w-full p-2.5 border-2 rounded-xl focus:ring-0 focus:border-blue-500 outline-none font-bold">
                                     <option value="sale">قائمة بيع</option>
                                     <option value="receipt">سند قبض</option>
                                 </select>
                             </div>
 
-                            {invoice.invoiceType === 'sale' && (
-                                <div className="space-y-1">
-                                    <label className="text-xs font-bold text-slate-500">حالة الدفع</label>
-                                    <select value={invoice.paymentStatus} onChange={e => setInvoice(prev => ({...prev, paymentStatus: e.target.value}))} className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                                        <option value="paid">واصل</option>
-                                        <option value="unpaid">غير مدفوع</option>
-                                    </select>
+                            <div className="grid grid-cols-2 gap-3">
+                                <input type="text" placeholder="رقم الوصل" value={invoice.invoiceNumber} onChange={e => setInvoice(prev => ({ ...prev, invoiceNumber: e.target.value }))} className="w-full p-2.5 border-2 rounded-xl focus:border-blue-500 outline-none" />
+                                <input type="date" value={invoice.date} onChange={e => setInvoice(prev => ({ ...prev, date: e.target.value }))} className="w-full p-2.5 border-2 rounded-xl focus:border-blue-500 outline-none" />
+                            </div>
+
+                            <input type="text" placeholder="اسم الزبون" value={invoice.customerName} onChange={e => setInvoice(prev => ({ ...prev, customerName: e.target.value }))} className="w-full p-2.5 border-2 rounded-xl focus:border-blue-500 outline-none" />
+                            <input type="text" placeholder="رقم الهاتف" value={invoice.customerPhone} onChange={e => setInvoice(prev => ({ ...prev, customerPhone: e.target.value }))} className="w-full p-2.5 border-2 rounded-xl focus:border-blue-500 outline-none" />
+                            
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-slate-500">{invoice.invoiceType === 'sale' ? 'المبلغ المدفوع (مقدم)' : 'مبلغ السند'}</label>
+                                <input type="number" placeholder="أدخل المبلغ..." value={invoice.paidAmount} onChange={e => setInvoice(prev => ({ ...prev, paidAmount: e.target.value }))} className="w-full p-2.5 border-2 rounded-xl focus:border-blue-500 outline-none font-bold text-blue-700 bg-blue-50" />
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold text-slate-500">الملاحظات</label>
+                                <textarea value={invoice.notes} onChange={e => setInvoice(prev => ({ ...prev, notes: e.target.value }))} className="w-full p-2.5 border-2 rounded-xl focus:border-blue-500 outline-none resize-none h-20" placeholder="اكتب ملاحظاتك هنا..."></textarea>
+                            </div>
+                        </div>
+
+                        {/* إظهار قائمة المواد فقط إذا كانت قائمة بيع */}
+                        {invoice.invoiceType === 'sale' && (
+                            <>
+                                <div className="flex justify-between items-center pt-4 border-t border-slate-200">
+                                    <h2 className="font-bold text-slate-800">المواد</h2>
+                                    <button onClick={addItem} className="flex gap-1 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 text-sm font-bold"><Icons.Plus/> إضافة</button>
                                 </div>
-                            )}
 
-                            <input type="text" placeholder="رقم الوصل" value={invoice.invoiceNumber} onChange={e => setInvoice(prev => ({ ...prev, invoiceNumber: e.target.value }))} className="w-full p-2 border rounded-lg" />
-                            <input type="date" value={invoice.date} onChange={e => setInvoice(prev => ({ ...prev, date: e.target.value }))} className="w-full p-2 border rounded-lg" />
-                            <input type="text" placeholder="اسم الزبون" value={invoice.customerName} onChange={e => setInvoice(prev => ({ ...prev, customerName: e.target.value }))} className="w-full p-2 border rounded-lg" />
-                            <input type="text" placeholder="رقم الهاتف" value={invoice.customerPhone} onChange={e => setInvoice(prev => ({ ...prev, customerPhone: e.target.value }))} className="w-full p-2 border rounded-lg" />
-                        </div>
-
-                        <div className="flex justify-between items-center pt-4 border-t">
-                            <h2 className="font-bold">المواد</h2>
-                            <button onClick={addItem} className="flex gap-1 px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"><Icons.Plus/> إضافة</button>
-                        </div>
-
-                        <div className="space-y-2 max-h-[30vh] overflow-y-auto">
-                            {invoice.items.map(item => (
-                                <div key={item.id} className="flex gap-2 bg-slate-50 p-2 rounded border">
-                                    <input placeholder="المادة" value={item.description} onChange={e => updateItem(item.id, 'description', e.target.value)} className="w-full p-1 border rounded text-sm" />
-                                    <input type="number" placeholder="كمية" value={item.quantity} onChange={e => updateItem(item.id, 'quantity', e.target.value)} className="w-16 p-1 border rounded text-sm" />
-                                    <input type="number" placeholder="سعر" value={item.price} onChange={e => updateItem(item.id, 'price', e.target.value)} className="w-20 p-1 border rounded text-sm" />
-                                    <button onClick={() => removeItem(item.id)} className="text-red-500"><Icons.Trash/></button>
+                                <div className="space-y-2 max-h-[30vh] overflow-y-auto pr-1">
+                                    {invoice.items.map(item => (
+                                        <div key={item.id} className="flex gap-2 bg-slate-50 p-2 rounded-xl border-2 border-slate-100">
+                                            <input placeholder="المادة" value={item.description} onChange={e => updateItem(item.id, 'description', e.target.value)} className="w-full p-2 border rounded-lg text-sm outline-none" />
+                                            <input type="number" placeholder="كمية" value={item.quantity} onChange={e => updateItem(item.id, 'quantity', e.target.value)} className="w-16 p-2 border rounded-lg text-sm outline-none" />
+                                            <input type="number" placeholder="سعر" value={item.price} onChange={e => updateItem(item.id, 'price', e.target.value)} className="w-24 p-2 border rounded-lg text-sm outline-none" />
+                                            <button onClick={() => removeItem(item.id)} className="text-red-500 px-1 hover:scale-110 transition-transform"><Icons.Trash/></button>
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
+                            </>
+                        )}
 
-                        <button onClick={() => window.print()} className="w-full flex justify-center gap-2 py-3 bg-slate-900 text-white rounded-xl font-bold shadow-lg mt-4 hover:bg-slate-800">
+                        <button onClick={() => window.print()} className="w-full flex justify-center gap-2 py-4 bg-slate-900 text-white rounded-xl font-bold shadow-lg mt-6 hover:bg-slate-800 transition-colors">
                             <Icons.Printer /> طباعة الوصل
                         </button>
                     </div>
@@ -175,21 +177,20 @@
                             
                             {/* 1. الهيدر: الشعار والاسم */}
                             <div className="flex justify-between items-start mb-6">
-                                {/* الشعار: تم استخدام الملف المحلي logo.PNG */}
-                                <img src="logo.PNG" alt="عالم ورق الكاشير" className="h-20 object-contain" />
+                                {/* تم تكبير الشعار بشكل ملحوظ باستخدام h-32 */}
+                                <img src="logo.PNG" alt="عالم ورق الكاشير" className="h-32 object-contain" />
                                 
-                                <div className="text-left mt-2">
-                                    <h1 className="text-3xl font-black text-blue-900 tracking-tight" style={{fontFamily: "'Cairo', sans-serif"}}>عالم ورق الكاشير</h1>
-                                    <p className="text-blue-700 font-bold text-sm mt-1">الجودة التي تستحقها تجارتكم</p>
+                                <div className="text-left mt-4">
+                                    <h1 className="text-4xl font-black text-blue-900 tracking-tight" style={{fontFamily: "'Cairo', sans-serif"}}>عالم ورق الكاشير</h1>
+                                    <p className="text-blue-700 font-bold mt-1 text-lg">الجودة التي تستحقها تجارتكم</p>
                                 </div>
                             </div>
 
                             {/* 2. عنوان الوصل */}
                             <div className="flex justify-center mb-6">
-                                <div className="border-[3px] border-slate-700 rounded-xl px-10 py-1">
-                                    <h2 className="text-2xl font-black text-slate-800">
-                                        {invoice.invoiceType === 'receipt' ? 'سند قبض' : 
-                                         invoice.invoiceType === 'sale' && invoice.paymentStatus === 'paid' ? 'قائمة بيع - واصل' : 'قائمة بيع'}
+                                <div className="border-[3px] border-slate-700 rounded-2xl px-12 py-2 bg-slate-50">
+                                    <h2 className="text-3xl font-black text-slate-800 tracking-wide">
+                                        {invoice.invoiceType === 'receipt' ? 'سند قبض' : 'قائمة بيع'}
                                     </h2>
                                 </div>
                             </div>
@@ -199,17 +200,17 @@
                                 <div className="w-1/2 space-y-3">
                                     <div className="flex items-end">
                                         <span className="font-bold text-slate-700 ml-2">السيد/ة:</span>
-                                        <span className="flex-1 border-b border-slate-400 font-bold text-lg text-center pb-1">{invoice.customerName}</span>
+                                        <span className="flex-1 border-b-[1.5px] border-slate-400 font-bold text-lg text-center pb-1">{invoice.customerName}</span>
                                     </div>
                                     <div className="flex items-end">
                                         <span className="font-bold text-slate-700 ml-2">الهاتف:</span>
-                                        <span className="flex-1 border-b border-slate-400 font-bold text-lg text-center pb-1 tracking-wider" dir="ltr">{invoice.customerPhone}</span>
+                                        <span className="flex-1 border-b-[1.5px] border-slate-400 font-bold text-lg text-center pb-1 tracking-wider" dir="ltr">{invoice.customerPhone}</span>
                                     </div>
                                 </div>
                                 <div className="w-1/3 space-y-3 text-left">
                                     <div className="flex justify-end items-end">
                                         <span className="font-bold text-slate-700 ml-3">رقم الوصل:</span>
-                                        <span className="font-bold text-lg">{invoice.invoiceNumber}</span>
+                                        <span className="font-black text-xl">{invoice.invoiceNumber}</span>
                                     </div>
                                     <div className="flex justify-end items-end">
                                         <span className="font-bold text-slate-700 ml-3">التاريخ:</span>
@@ -218,65 +219,112 @@
                                 </div>
                             </div>
 
-                            {/* 4. الجدول */}
-                            <table className="invoice-table">
-                                <thead>
-                                    <tr className="bg-slate-50">
-                                        <th className="w-10">#</th>
-                                        <th className="w-1/2">المادة</th>
-                                        <th className="w-24">الكمية</th>
-                                        <th className="w-32">السعر</th>
-                                        <th className="w-32">المجموع</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {paddedItems.map((item, index) => (
-                                        <tr key={index} className="h-10">
-                                            <td className="font-bold text-slate-500">{!item.isEmpty ? index + 1 : ''}</td>
-                                            <td className="font-bold text-slate-800 text-right pr-4">{item.description}</td>
-                                            <td className="font-bold text-slate-800">{item.quantity}</td>
-                                            <td className="font-bold text-slate-800">{item.price ? Number(item.price).toLocaleString() : ''}</td>
-                                            <td className="font-bold text-slate-800">
-                                                {!item.isEmpty && item.quantity && item.price ? (Number(item.quantity) * Number(item.price)).toLocaleString() : ''}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                            {/* 4. المحتوى المتغير (جدول البيع أو صيغة القبض) */}
+                            {invoice.invoiceType === 'sale' ? (
+                                <>
+                                    {/* جدول المبيعات */}
+                                    <table className="invoice-table">
+                                        <thead>
+                                            <tr>
+                                                <th className="w-12">#</th>
+                                                <th className="w-1/2">المادة</th>
+                                                <th className="w-24">الكمية</th>
+                                                <th className="w-32">السعر</th>
+                                                <th className="w-32">المجموع</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {paddedItems.map((item, index) => (
+                                                <tr key={index} className="h-10">
+                                                    <td className="font-bold text-slate-500">{!item.isEmpty ? index + 1 : ''}</td>
+                                                    <td className="font-bold text-slate-800 text-right pr-4">{item.description}</td>
+                                                    <td className="font-bold text-slate-800">{item.quantity}</td>
+                                                    <td className="font-bold text-slate-800">{item.price ? Number(item.price).toLocaleString() : ''}</td>
+                                                    <td className="font-black text-slate-800">
+                                                        {!item.isEmpty && item.quantity && item.price ? (Number(item.quantity) * Number(item.price)).toLocaleString() : ''}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
 
-                            {/* 5. المجموع والملاحظات */}
-                            <div className="flex justify-between items-end mt-4 px-2">
-                                <div className="text-right">
-                                    <p className="font-bold text-slate-800">ملاحظات:</p>
-                                    <p className="text-sm font-bold text-slate-500">البضاعة المباعة لا ترد ولا تستبدل بعد 24 ساعة.</p>
-                                </div>
-                                <div className="flex items-center gap-4 bg-slate-50 px-6 py-2 rounded-lg border border-slate-200">
-                                    <span className="font-bold text-slate-500">المجموع الكلي:</span>
-                                    <span className="text-2xl font-black text-slate-800">{subtotal.toLocaleString()} د.ع</span>
-                                </div>
-                            </div>
-
-                            {/* دفع المحتوى الباقي للأسفل لضمان ثبات التواقيع */}
-                            <div className="flex-grow"></div>
-
-                            {/* 6. التواقيع والفوتر */}
-                            <div>
-                                <div className="flex justify-between px-12 mb-8 mt-12">
-                                    <div className="text-center w-40">
-                                        <div className="border-b-2 border-slate-300 h-8 mb-2"></div>
-                                        <p className="font-bold text-slate-500 text-sm">توقيع المستلم</p>
+                                    {/* الملاحظات والمجاميع */}
+                                    <div className="flex justify-between items-start mt-6 px-2 gap-8">
+                                        {/* قسم الملاحظات */}
+                                        <div className="w-1/2 pt-2">
+                                            <p className="font-black text-slate-800 mb-1">ملاحظات:</p>
+                                            <p className="text-sm font-bold text-slate-600 leading-relaxed bg-slate-50 p-4 border border-slate-200 rounded-xl min-h-[80px]">
+                                                {invoice.notes || 'لا توجد ملاحظات.'}
+                                            </p>
+                                        </div>
+                                        
+                                        {/* قسم تفصيل الدفع (مطابق للصورة تماماً) */}
+                                        <div className="w-1/2 border-[3px] border-slate-800 rounded-xl overflow-hidden mt-2">
+                                            <div className="flex justify-between items-center p-3 border-b-2 border-slate-300 bg-slate-50">
+                                                <span className="font-bold text-xl text-slate-800">{subtotal.toLocaleString()} د.ع</span>
+                                                <div className="text-right leading-tight">
+                                                    <div className="font-black text-slate-800 text-lg">المجموع الكلي</div>
+                                                    <div className="font-bold text-slate-500 text-xs tracking-wider">Total Amount</div>
+                                                </div>
+                                            </div>
+                                            <div className="flex justify-between items-center p-3 border-b-2 border-slate-300">
+                                                <span className="font-bold text-xl text-slate-800">{paid.toLocaleString()} د.ع</span>
+                                                <div className="text-right leading-tight">
+                                                    <div className="font-black text-slate-800 text-lg">مدفوع</div>
+                                                    <div className="font-bold text-slate-500 text-xs tracking-wider">Paid</div>
+                                                </div>
+                                            </div>
+                                            <div className="flex justify-between items-center p-4 bg-slate-900 text-white">
+                                                <span className="font-black text-2xl text-green-400">{dueAmount.toLocaleString()} د.ع</span>
+                                                <div className="text-right leading-tight">
+                                                    <div className="font-black text-white text-lg">الرصيد المستحق</div>
+                                                    <div className="font-bold text-slate-400 text-xs tracking-wider">Due Amount</div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="text-center w-40">
-                                        <div className="border-b-2 border-slate-300 h-8 mb-2"></div>
-                                        <p className="font-bold text-slate-500 text-sm">توقيع المحاسب</p>
+                                </>
+                            ) : (
+                                /* صيغة سند القبض (بدون جدول) */
+                                <div className="flex-grow flex flex-col justify-center px-8">
+                                    <div className="border-[3px] border-slate-800 rounded-2xl p-10 bg-slate-50 relative overflow-hidden shadow-sm">
+                                        <div className="absolute top-0 left-0 w-2 h-full bg-blue-600"></div>
+                                        <div className="space-y-10 text-2xl leading-loose font-bold text-slate-800">
+                                            <p className="flex items-end">
+                                                <span className="w-40 flex-shrink-0">استلمنا من السيد/ة:</span> 
+                                                <span className="flex-1 border-b-2 border-slate-400 pb-1 text-blue-900 px-4">{invoice.customerName}</span>
+                                            </p>
+                                            <p className="flex items-end">
+                                                <span className="w-40 flex-shrink-0">مبلغاً وقدره:</span> 
+                                                <span className="flex-1 border-b-2 border-slate-400 pb-1 text-blue-900 px-4 font-black">{paid.toLocaleString()} دينار عراقي فقط</span>
+                                            </p>
+                                            <p className="flex items-end">
+                                                <span className="w-40 flex-shrink-0">وذلك عن:</span> 
+                                                <span className="flex-1 border-b-2 border-slate-400 pb-1 text-blue-900 px-4 text-lg">{invoice.notes}</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* 5. التواقيع والفوتر (تدفع للأسفل دائماً) */}
+                            <div className="mt-auto pt-10">
+                                <div className="flex justify-between px-16 mb-8">
+                                    <div className="text-center w-48">
+                                        <div className="border-b-[3px] border-slate-400 h-10 mb-3"></div>
+                                        <p className="font-black text-slate-700 text-lg">توقيع المستلم</p>
+                                    </div>
+                                    <div className="text-center w-48">
+                                        <div className="border-b-[3px] border-slate-400 h-10 mb-3"></div>
+                                        <p className="font-black text-slate-700 text-lg">توقيع المحاسب</p>
                                     </div>
                                 </div>
 
-                                <div className="flex justify-between items-center border-t border-slate-200 pt-4 text-sm font-bold text-slate-600">
+                                <div className="flex justify-between items-center border-t-2 border-slate-200 pt-5 text-sm font-bold text-slate-600">
                                     <div className="flex items-center gap-2" dir="ltr">
                                         <span>📞</span> +964 786 848 3823
                                     </div>
-                                    <div className="flex items-center gap-2 text-red-500">
+                                    <div className="flex items-center gap-2 text-red-600">
                                         بغداد - زيونة <span>📍</span>
                                     </div>
                                 </div>
