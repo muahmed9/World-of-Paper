@@ -11,42 +11,46 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
 
         *, *::before, *::after { box-sizing: border-box; }
-        body { font-family: 'Cairo', sans-serif; background: #eef2f7; margin: 0; padding: 0; direction: rtl; }
+        html, body { font-family: 'Cairo', sans-serif; background: #eef2f7; margin: 0; padding: 0; direction: rtl; }
 
-        /* ─── A4 preview on screen ─── */
-        .a4-wrapper {
-            width: 794px;          /* 210mm @ 96dpi */
-            height: 1123px;        /* 297mm @ 96dpi */
+        /*
+          A4 sheet: fixed at exactly 794×1123px (210mm×297mm @ 96dpi)
+          The preview column uses JS to scale it to fit.
+        */
+        #invoice-sheet {
+            width: 794px;
+            height: 1123px;
             min-height: 1123px;
             max-height: 1123px;
             background: #fff;
-            margin: 0 auto;
-            padding: 42px 49px;    /* ~11mm 13mm */
+            padding: 40px 50px 34px 50px;
             display: flex;
             flex-direction: column;
             overflow: hidden;
             position: relative;
             font-family: 'Cairo', sans-serif;
             direction: rtl;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.12);
-            transform-origin: top center;
         }
 
         .inv-table { width: 100%; border-collapse: collapse; font-family: 'Cairo', sans-serif; }
         .inv-table th, .inv-table td {
-            border: 1px solid #d1d5db; padding: 7px 9px;
-            text-align: center; font-family: 'Cairo', sans-serif;
+            border: 1px solid #d1d5db;
+            padding: 6px 8px;
+            text-align: center;
+            font-family: 'Cairo', sans-serif;
         }
         .inv-table thead tr { background: #1e3a5f; color: #fff; }
         .inv-table thead th { font-weight: 800; font-size: 12px; }
         .inv-table tbody tr:nth-child(even) { background: #f8fafc; }
-        .inv-table tbody td { font-size: 12px; color: #1e293b; font-weight: 600; }
+        .inv-table tbody td { font-size: 11.5px; color: #1e293b; font-weight: 600; }
 
+        /* Loading overlay */
         #loading-overlay {
             display: none; position: fixed; inset: 0;
             background: rgba(15,23,42,0.75); z-index: 9999;
@@ -57,6 +61,7 @@
         .spin { width: 44px; height: 44px; border: 4px solid rgba(255,255,255,.25); border-top-color: #fff; border-radius: 50%; animation: rot .7s linear infinite; }
         @keyframes rot { to { transform: rotate(360deg); } }
 
+        /* Toast */
         #toast {
             position: fixed; bottom: 24px; left: 50%;
             transform: translateX(-50%) translateY(60px);
@@ -70,32 +75,15 @@
         #toast.err  { background: #dc2626; }
         #toast.ok   { background: #16a34a; }
 
-        /* ─── Print: real A4 ─── */
-        @media print {
-            .no-print { display: none !important; }
-            body { background: white !important; margin: 0; padding: 0; }
-            @page { size: A4; margin: 0; }
-            .a4-wrapper {
-                box-shadow: none !important;
-                width: 210mm !important;
-                height: 297mm !important;
-                min-height: 297mm !important;
-                max-height: 297mm !important;
-                padding: 11mm 13mm !important;
-                transform: none !important;
-                margin: 0 !important;
-            }
-            .print-col { width: 100% !important; padding: 0 !important; }
-        }
-
+        /* Modal */
         .modal-bg  { position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 8000; display: flex; align-items: center; justify-content: center; padding: 16px; }
         .modal-box { background: #fff; border-radius: 20px; padding: 24px; width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto; font-family: 'Cairo', sans-serif; }
 
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-
-        input:focus, textarea:focus, select:focus { border-color: #2563eb !important; }
+        input:focus, textarea:focus, select:focus { border-color: #2563eb !important; outline: none; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
     </style>
 </head>
 <body>
@@ -105,18 +93,14 @@
 <div id="root"></div>
 
 <script type="text/babel">
-const { useState, useMemo, useRef, useCallback } = React;
+const { useState, useMemo, useRef, useEffect } = React;
 
-/* ══════════════════════════════════════════
-   Supabase – مباشر بدون إعدادات يدوية
-══════════════════════════════════════════ */
+/* ══ Supabase ══ */
 const SB_URL = 'https://xjekrdmtewopugoklfza.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhqZWtyZG10ZXdvcHVnb2tsZnphIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyNjMxMDgsImV4cCI6MjA5MzgzOTEwOH0.Y-V3vHx0InzRm-8S5aQVpzWJYKy8Iqo7Ll6C3zSLHIY';
 const sbClient = supabase.createClient(SB_URL, SB_KEY);
 
-/* ══════════════════════════════════════════
-   Helpers
-══════════════════════════════════════════ */
+/* ══ Helpers ══ */
 function showLoading(t='جاري المعالجة...') {
     document.getElementById('loading-text').textContent = t;
     document.getElementById('loading-overlay').classList.add('on');
@@ -127,334 +111,379 @@ let _tt;
 function toast(msg, type='') {
     const el = document.getElementById('toast');
     el.textContent = msg;
-    el.className = 'show ' + (type==='error' ? 'err' : type==='success' ? 'ok' : '');
+    el.className = 'show ' + (type==='error'?'err':type==='success'?'ok':'');
     clearTimeout(_tt);
-    _tt = setTimeout(() => { el.className = ''; }, 3200);
+    _tt = setTimeout(()=>{ el.className=''; }, 3200);
 }
 
 function toWA(phone) {
-    let p = phone.replace(/\D/g, '');
-    if (p.startsWith('00')) p = p.slice(2);
-    if (p.startsWith('0'))  p = '964' + p.slice(1);
-    if (!p.startsWith('964')) p = '964' + p;
+    let p = phone.replace(/\D/g,'');
+    if(p.startsWith('00')) p=p.slice(2);
+    if(p.startsWith('0'))  p='964'+p.slice(1);
+    if(!p.startsWith('964')) p='964'+p;
     return p;
 }
 
-/* ══════════════════════════════════════════
-   Icons
-══════════════════════════════════════════ */
-const I = {
-    Plus:    () => <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
-    Trash:   () => <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>,
-    Print:   () => <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>,
-    WA:      () => <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>,
-    Save:    () => <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>,
-    History: () => <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
-    X:       () => <svg width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
-    Eye:     () => <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
-};
-
-const F = { fontFamily: "'Cairo', sans-serif" };
-
-/* ══════════════════════════════════════════
-   حفظ في Supabase
-══════════════════════════════════════════ */
-async function saveToSupabase(inv, subtotal, paid, due, silent = false) {
+async function saveToSupabase(inv, subtotal, paid, due) {
     try {
         const { error } = await sbClient.from('invoices').insert({
-            invoice_number: inv.invoiceNumber,
-            date:           inv.date,
-            customer_name:  inv.customerName,
-            customer_phone: inv.customerPhone,
-            invoice_type:   inv.invoiceType,
-            items:          inv.items,
-            subtotal,
-            paid_amount:    paid,
-            due_amount:     due,
-            notes:          inv.notes
+            invoice_number: inv.invoiceNumber, date: inv.date,
+            customer_name: inv.customerName, customer_phone: inv.customerPhone,
+            invoice_type: inv.invoiceType, items: inv.items,
+            subtotal, paid_amount: paid, due_amount: due, notes: inv.notes
         });
-        if (error) throw error;
-        if (!silent) toast('تم الحفظ في قاعدة البيانات ✓', 'success');
-    } catch (e) {
-        console.error('Supabase save error:', e);
-        if (!silent) toast('تعذّر الحفظ: ' + (e.message || 'خطأ'), 'error');
-    }
+        if(error) throw error;
+    } catch(e) { console.error('Supabase save error:', e); }
 }
 
-/* ══════════════════════════════════════════
+/* ══ Icons ══ */
+const I = {
+    Plus:    ()=><svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+    Trash:   ()=><svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>,
+    WA:      ()=><svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>,
+    Save:    ()=><svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>,
+    History: ()=><svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+    X:       ()=><svg width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+    Eye:     ()=><svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
+    PDF:     ()=><svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>,
+};
+
+const F = { fontFamily:"'Cairo', sans-serif" };
+
+/* ══════════════════════════════════════
    App
-══════════════════════════════════════════ */
+══════════════════════════════════════ */
 function App() {
-    const invoiceRef = useRef(null);
+    const sheetRef  = useRef(null);
+    const scalerRef = useRef(null);
+    const colRef    = useRef(null);
 
     const [inv, setInv] = useState({
         invoiceNumber: '8743',
         date: new Date().toISOString().split('T')[0],
         customerName: '', customerPhone: '',
-        items: [{ id: '1', description: '', quantity: 1, price: 0 }],
+        items: [{ id:'1', description:'', quantity:1, price:0 }],
         invoiceType: 'sale', paidAmount: '',
         notes: 'البضاعة المباعة لا ترد ولا تستبدل بعد 24 ساعة.'
     });
 
-    const [showHistory, setShowHistory] = useState(false);
-    const [historyList, setHistoryList] = useState([]);
+    const [showHistory,    setShowHistory]    = useState(false);
+    const [historyList,    setHistoryList]    = useState([]);
     const [historyLoading, setHistoryLoading] = useState(false);
 
-    const subtotal = useMemo(() => inv.items.reduce((s, it) => s + (Number(it.quantity) * Number(it.price)), 0), [inv.items]);
-    const paid = Number(inv.paidAmount) || 0;
-    const due  = Math.max(0, subtotal - paid);
+    const subtotal = useMemo(()=> inv.items.reduce((s,it)=>s+(Number(it.quantity)*Number(it.price)),0), [inv.items]);
+    const paid     = Number(inv.paidAmount) || 0;
+    const due      = Math.max(0, subtotal - paid);
 
-    const paddedItems = useMemo(() => {
+    /* ── Scale sheet to fit preview column ── */
+    useEffect(()=>{
+        const resize = ()=>{
+            if(!scalerRef.current || !colRef.current) return;
+            const avail = colRef.current.clientWidth - 32;
+            const scale = Math.min(1, avail / 794);
+            scalerRef.current.style.transform = `scale(${scale})`;
+            // shrink the wrapper height so page doesn't scroll weirdly
+            scalerRef.current.style.height = `${1123 * scale}px`;
+        };
+        resize();
+        const ro = new ResizeObserver(resize);
+        if(colRef.current) ro.observe(colRef.current);
+        return ()=> ro.disconnect();
+    }, []);
+
+    const paddedItems = useMemo(()=>{
         const a = [...inv.items];
-        while (a.length < 7) a.push({ id: Math.random().toString(), description: '', quantity: '', price: '', isEmpty: true });
+        while(a.length < 7) a.push({id:Math.random().toString(), description:'', quantity:'', price:'', isEmpty:true});
         return a;
     }, [inv.items]);
 
-    const addItem    = () => setInv(p => ({ ...p, items: [...p.items, { id: Date.now().toString(), description: '', quantity: 1, price: 0 }] }));
-    const removeItem = id => setInv(p => ({ ...p, items: p.items.filter(i => i.id !== id) }));
-    const updateItem = (id, f, v) => setInv(p => ({ ...p, items: p.items.map(i => i.id === id ? { ...i, [f]: v } : i) }));
+    const addItem    = ()=> setInv(p=>({...p, items:[...p.items,{id:Date.now().toString(),description:'',quantity:1,price:0}]}));
+    const removeItem = id=> setInv(p=>({...p, items:p.items.filter(i=>i.id!==id)}));
+    const updateItem = (id,f,v)=> setInv(p=>({...p, items:p.items.map(i=>i.id===id?{...i,[f]:v}:i)}));
 
-    /* ─── طباعة + حفظ تلقائي ─── */
-    const handlePrint = async () => {
-        showLoading('جاري الحفظ والطباعة...');
-        await saveToSupabase(inv, subtotal, paid, due, true);
+    /* ══ تصدير PDF + حفظ ══ */
+    const handlePDF = async ()=>{
+        showLoading('جاري إنشاء ملف PDF...');
+        try {
+            await saveToSupabase(inv, subtotal, paid, due);
+            const el = sheetRef.current;
+            // Temporarily remove scale transform so html2pdf captures at full size
+            const saved = scalerRef.current.style.transform;
+            scalerRef.current.style.transform = 'none';
+            await new Promise(r=>setTimeout(r,80));
+
+            await html2pdf().set({
+                margin: 0,
+                filename: `فاتورة-${inv.invoiceNumber}.pdf`,
+                image: { type:'jpeg', quality:0.98 },
+                html2canvas: { scale:2, useCORS:true, logging:false, backgroundColor:'#ffffff' },
+                jsPDF: { unit:'mm', format:'a4', orientation:'portrait' }
+            }).from(el).save();
+
+            scalerRef.current.style.transform = saved;
+            toast('تم الحفظ وتصدير PDF ✓','success');
+        } catch(e){
+            console.error(e);
+            toast('حدث خطأ أثناء التصدير','error');
+        }
         hideLoading();
-        toast('تم الحفظ ✓  —  جاري الطباعة', 'success');
-        setTimeout(() => window.print(), 400);
     };
 
-    /* ─── واتساب + حفظ تلقائي ─── */
-    const handleWhatsApp = async () => {
-        if (!inv.customerPhone) { toast('أدخل رقم هاتف الزبون أولاً', 'error'); return; }
+    /* ══ واتساب + حفظ ══ */
+    const handleWhatsApp = async ()=>{
+        if(!inv.customerPhone){ toast('أدخل رقم هاتف الزبون أولاً','error'); return; }
         showLoading('جاري تجهيز صورة الفاتورة...');
         try {
             await document.fonts.ready;
-            const el = invoiceRef.current;
-            const dataUrl = await domtoimage.toPng(el, {
-                quality: 1, bgcolor: '#ffffff',
-                width: el.offsetWidth, height: el.offsetHeight,
-                style: { direction: 'rtl', fontFamily: "'Cairo', sans-serif" }
-            });
+            await saveToSupabase(inv, subtotal, paid, due);
 
-            /* حفظ تلقائي في الخلفية */
-            saveToSupabase(inv, subtotal, paid, due, true);
+            const el = sheetRef.current;
+            const saved = scalerRef.current.style.transform;
+            scalerRef.current.style.transform = 'none';
+            await new Promise(r=>setTimeout(r,80));
+
+            const dataUrl = await domtoimage.toPng(el,{
+                quality:1, bgcolor:'#ffffff',
+                width:794, height:1123,
+                style:{ direction:'rtl', fontFamily:"'Cairo', sans-serif" }
+            });
+            scalerRef.current.style.transform = saved;
 
             const res  = await fetch(dataUrl);
             const blob = await res.blob();
-            const file = new File([blob], `فاتورة-${inv.invoiceNumber}.png`, { type: 'image/png' });
+            const file = new File([blob],`فاتورة-${inv.invoiceNumber}.png`,{type:'image/png'});
             const wa   = toWA(inv.customerPhone);
             hideLoading();
 
-            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                await navigator.share({ files: [file], title: 'فاتورة عالم ورق الكاشير' });
-                toast('تم الإرسال والحفظ ✓', 'success');
+            if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+                await navigator.share({files:[file], title:'فاتورة عالم ورق الكاشير'});
+                toast('تم الإرسال والحفظ ✓','success');
             } else {
                 const url = URL.createObjectURL(blob);
-                const a   = document.createElement('a');
-                a.href = url; a.download = `فاتورة-${inv.invoiceNumber}.png`;
+                const a = document.createElement('a');
+                a.href=url; a.download=`فاتورة-${inv.invoiceNumber}.png`;
                 document.body.appendChild(a); a.click(); document.body.removeChild(a);
-                setTimeout(() => URL.revokeObjectURL(url), 1000);
+                setTimeout(()=>URL.revokeObjectURL(url),1000);
                 const msg = encodeURIComponent(`مرحباً ${inv.customerName}،\nفاتورة رقم ${inv.invoiceNumber} من عالم ورق الكاشير.\n(الصورة محفوظة على جهازك)`);
-                setTimeout(() => window.open(`https://wa.me/${wa}?text=${msg}`, '_blank'), 800);
-                toast('تم الحفظ والتنزيل ✓', 'success');
+                setTimeout(()=>window.open(`https://wa.me/${wa}?text=${msg}`,'_blank'),800);
+                toast('تم الحفظ والتنزيل ✓','success');
             }
-        } catch (e) {
+        } catch(e){
             hideLoading();
-            if (e.name !== 'AbortError') { toast('حدث خطأ أثناء التجهيز', 'error'); console.error(e); }
+            if(e.name!=='AbortError'){ toast('حدث خطأ أثناء التجهيز','error'); console.error(e); }
         }
     };
 
-    /* ─── حفظ يدوي ─── */
-    const handleSave = async () => {
+    /* ══ حفظ يدوي ══ */
+    const handleSave = async ()=>{
         showLoading('جاري الحفظ...');
-        await saveToSupabase(inv, subtotal, paid, due, false);
+        await saveToSupabase(inv, subtotal, paid, due);
         hideLoading();
+        toast('تم الحفظ في قاعدة البيانات ✓','success');
     };
 
-    /* ─── تحميل السجل ─── */
-    const loadHistory = async () => {
+    /* ══ سجل الفواتير ══ */
+    const loadHistory = async ()=>{
         setShowHistory(true); setHistoryLoading(true);
         try {
-            const { data, error } = await sbClient.from('invoices').select('*').order('created_at', { ascending: false }).limit(40);
-            if (error) throw error;
-            setHistoryList(data || []);
-        } catch (e) { toast('فشل تحميل السجل', 'error'); }
+            const {data,error} = await sbClient.from('invoices').select('*').order('created_at',{ascending:false}).limit(40);
+            if(error) throw error;
+            setHistoryList(data||[]);
+        } catch(e){ toast('فشل تحميل السجل','error'); }
         finally { setHistoryLoading(false); }
     };
 
-    const loadInvoice = row => {
+    const loadInvoice = row=>{
         setInv({
             invoiceNumber: row.invoice_number, date: row.date,
-            customerName: row.customer_name || '', customerPhone: row.customer_phone || '',
-            items: row.items || [{ id: '1', description: '', quantity: 1, price: 0 }],
-            invoiceType: row.invoice_type || 'sale',
-            paidAmount: row.paid_amount?.toString() || '', notes: row.notes || ''
+            customerName: row.customer_name||'', customerPhone: row.customer_phone||'',
+            items: row.items||[{id:'1',description:'',quantity:1,price:0}],
+            invoiceType: row.invoice_type||'sale',
+            paidAmount: row.paid_amount?.toString()||'', notes: row.notes||''
         });
-        setShowHistory(false); toast('تم تحميل الفاتورة', 'success');
+        setShowHistory(false); toast('تم تحميل الفاتورة','success');
     };
 
-    /* ═══════════════════════════════════════
-       فاتورة A4
-    ═══════════════════════════════════════ */
-    const Sheet = () => (
-        <div className="a4-wrapper" ref={invoiceRef}>
+    /* ══════════════════════════════════════
+       ورقة الفاتورة A4 — 794×1123px ثابتة
+    ══════════════════════════════════════ */
+    const Sheet = ()=>(
+        <div id="invoice-sheet" ref={sheetRef}>
 
             {/* هيدر */}
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', borderBottom:'3px solid #1e3a5f', paddingBottom:'8mm', marginBottom:'6mm' }}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',borderBottom:'3px solid #1e3a5f',paddingBottom:'24px',marginBottom:'18px'}}>
                 <div>
-                    <div style={{ fontSize:'28px', fontWeight:900, color:'#1e3a5f', lineHeight:1.1, ...F }}>عالم ورق الكاشير</div>
-                    <div style={{ fontSize:'13px', fontWeight:700, color:'#2563eb', marginTop:'3px', ...F }}>الجودة التي تستحقها تجارتكم</div>
+                    <div style={{fontSize:'30px',fontWeight:900,color:'#1e3a5f',lineHeight:1.1,...F}}>عالم ورق الكاشير</div>
+                    <div style={{fontSize:'13px',fontWeight:700,color:'#2563eb',marginTop:'4px',...F}}>الجودة التي تستحقها تجارتكم</div>
                 </div>
-                <img src="logo.PNG" alt="شعار" style={{ height:'68px', objectFit:'contain' }} />
+                <img src="logo.PNG" alt="" style={{height:'70px',objectFit:'contain'}} onError={e=>e.target.style.display='none'}/>
             </div>
 
-            {/* عنوان الوصل */}
-            <div style={{ display:'flex', justifyContent:'center', marginBottom:'6mm' }}>
-                <div style={{ border:'2.5px solid #1e3a5f', borderRadius:'12px', padding:'3px 36px', background:'#f8fafc' }}>
-                    <span style={{ fontSize:'21px', fontWeight:900, color:'#1e3a5f', ...F }}>
-                        {inv.invoiceType === 'receipt' ? 'سند قبض' : 'قائمة بيع'}
+            {/* نوع الوصل */}
+            <div style={{display:'flex',justifyContent:'center',marginBottom:'18px'}}>
+                <div style={{border:'2.5px solid #1e3a5f',borderRadius:'12px',padding:'4px 42px',background:'#f8fafc'}}>
+                    <span style={{fontSize:'22px',fontWeight:900,color:'#1e3a5f',...F}}>
+                        {inv.invoiceType==='receipt'?'سند قبض':'قائمة بيع'}
                     </span>
                 </div>
             </div>
 
             {/* بيانات */}
-            <div style={{ display:'flex', justifyContent:'space-between', background:'#f8fafc', border:'1.5px solid #e2e8f0', borderRadius:'10px', padding:'9px 14px', marginBottom:'5mm' }}>
-                <div style={{ display:'flex', flexDirection:'column', gap:'7px', width:'55%' }}>
-                    {[['السيد/ة:', inv.customerName], ['الهاتف:', inv.customerPhone]].map(([lbl, val], i) => (
-                        <div key={i} style={{ display:'flex', alignItems:'flex-end', gap:'8px' }}>
-                            <span style={{ fontWeight:700, color:'#64748b', fontSize:'12px', whiteSpace:'nowrap', ...F }}>{lbl}</span>
-                            <span style={{ flex:1, borderBottom:'1.5px solid #94a3b8', fontWeight:800, fontSize:'13px', color:'#0f172a', paddingBottom:'2px', direction:i===1?'ltr':'rtl', ...F }}>{val}</span>
+            <div style={{display:'flex',justifyContent:'space-between',background:'#f8fafc',border:'1.5px solid #e2e8f0',borderRadius:'10px',padding:'10px 16px',marginBottom:'18px'}}>
+                <div style={{display:'flex',flexDirection:'column',gap:'8px',width:'55%'}}>
+                    {[['السيد/ة:',inv.customerName],['الهاتف:',inv.customerPhone]].map(([lbl,val],i)=>(
+                        <div key={i} style={{display:'flex',alignItems:'flex-end',gap:'8px'}}>
+                            <span style={{fontWeight:700,color:'#64748b',fontSize:'12px',whiteSpace:'nowrap',...F}}>{lbl}</span>
+                            <span style={{flex:1,borderBottom:'1.5px solid #94a3b8',fontWeight:800,fontSize:'13px',color:'#0f172a',paddingBottom:'2px',direction:i===1?'ltr':'rtl',...F}}>{val}</span>
                         </div>
                     ))}
                 </div>
-                <div style={{ display:'flex', flexDirection:'column', gap:'7px' }}>
-                    {[['رقم الوصل:', inv.invoiceNumber, '18px', 900], ['التاريخ:', inv.date, '13px', 700]].map(([lbl, val, sz, fw], i) => (
-                        <div key={i} style={{ display:'flex', alignItems:'center', gap:'6px' }}>
-                            <span style={{ fontWeight:700, color:'#64748b', fontSize:'12px', ...F }}>{lbl}</span>
-                            <span style={{ fontWeight:fw, fontSize:sz, color:'#1e3a5f', direction:'ltr', ...F }}>{val}</span>
+                <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+                    {[['رقم الوصل:',inv.invoiceNumber,'19px',900],['التاريخ:',inv.date,'13px',700]].map(([lbl,val,sz,fw],i)=>(
+                        <div key={i} style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                            <span style={{fontWeight:700,color:'#64748b',fontSize:'12px',...F}}>{lbl}</span>
+                            <span style={{fontWeight:fw,fontSize:sz,color:'#1e3a5f',direction:'ltr',...F}}>{val}</span>
                         </div>
                     ))}
                 </div>
             </div>
 
-            {/* المحتوى */}
-            {inv.invoiceType === 'sale' ? (
+            {/* محتوى */}
+            {inv.invoiceType==='sale' ? (
                 <>
                     <table className="inv-table">
                         <thead><tr>
-                            <th style={{ width:'30px' }}>#</th>
+                            <th style={{width:'28px'}}>#</th>
                             <th>المادة</th>
-                            <th style={{ width:'65px' }}>الكمية</th>
-                            <th style={{ width:'85px' }}>السعر</th>
-                            <th style={{ width:'95px' }}>المجموع</th>
+                            <th style={{width:'60px'}}>الكمية</th>
+                            <th style={{width:'80px'}}>السعر</th>
+                            <th style={{width:'90px'}}>المجموع</th>
                         </tr></thead>
                         <tbody>
-                            {paddedItems.map((item, i) => (
-                                <tr key={i} style={{ height:'30px' }}>
-                                    <td style={{ fontWeight:800, color:'#64748b', ...F }}>{!item.isEmpty ? i+1 : ''}</td>
-                                    <td style={{ textAlign:'right', paddingRight:'10px', ...F }}>{item.description}</td>
-                                    <td style={F}>{item.quantity}</td>
-                                    <td style={F}>{item.price ? Number(item.price).toLocaleString() : ''}</td>
-                                    <td style={{ fontWeight:800, ...F }}>{!item.isEmpty && item.quantity && item.price ? (Number(item.quantity)*Number(item.price)).toLocaleString() : ''}</td>
+                            {paddedItems.map((item,i)=>(
+                                <tr key={i} style={{height:'28px'}}>
+                                    <td style={{fontWeight:800,color:'#64748b',...F}}>{!item.isEmpty?i+1:''}</td>
+                                    <td style={{textAlign:'right',paddingRight:'10px',...F}}>{item.description}</td>
+                                    <td style={F}>{item.isEmpty?'':item.quantity}</td>
+                                    <td style={F}>{item.price&&!item.isEmpty?Number(item.price).toLocaleString():''}</td>
+                                    <td style={{fontWeight:800,...F}}>
+                                        {!item.isEmpty&&item.quantity&&item.price?(Number(item.quantity)*Number(item.price)).toLocaleString():''}
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
 
-                    <div style={{ display:'flex', gap:'10px', marginTop:'8px', flex:1 }}>
+                    <div style={{display:'flex',gap:'10px',marginTop:'10px',alignItems:'flex-start'}}>
                         {/* ملاحظات */}
-                        <div style={{ flex:1 }}>
-                            <div style={{ fontWeight:900, color:'#1e3a5f', fontSize:'12px', marginBottom:'4px', ...F }}>ملاحظات:</div>
-                            <div style={{ background:'#f8fafc', border:'1px solid #e2e8f0', borderRadius:'8px', padding:'8px 10px', fontSize:'11px', fontWeight:600, color:'#475569', lineHeight:1.8, minHeight:'72px', ...F }}>
-                                {inv.notes || 'لا توجد ملاحظات.'}
+                        <div style={{flex:1}}>
+                            <div style={{fontWeight:900,color:'#1e3a5f',fontSize:'12px',marginBottom:'4px',...F}}>ملاحظات:</div>
+                            <div style={{background:'#f8fafc',border:'1px solid #e2e8f0',borderRadius:'8px',padding:'8px 10px',fontSize:'11px',fontWeight:600,color:'#475569',lineHeight:1.9,minHeight:'80px',...F}}>
+                                {inv.notes||'لا توجد ملاحظات.'}
                             </div>
                         </div>
-                        {/* مجاميع */}
-                        <div style={{ width:'44%', border:'2px solid #1e3a5f', borderRadius:'10px', overflow:'hidden', alignSelf:'flex-start' }}>
-                            {[
-                                [subtotal, 'المجموع الكلي',     'Total Amount', '#f8fafc', '#1e3a5f', false],
-                                [paid,     'مدفوع',             'Paid',         '#fff',    '#0f172a', false],
-                                [due,      'الرصيد المستحق',    'Due Amount',   '#1e3a5f', '#4ade80', true ]
-                            ].map(([val, ar, en, bg, col, last], i) => (
-                                <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'7px 10px', borderBottom:last?'none':'1px solid #cbd5e1', background:bg }}>
-                                    <span style={{ fontWeight:800, fontSize:last?'17px':'14px', color:col, ...F }}>{val.toLocaleString()} <small style={{ fontSize:'10px' }}>د.ع</small></span>
-                                    <div style={{ textAlign:'right' }}>
-                                        <div style={{ fontWeight:900, fontSize:'12px', color:col, ...F }}>{ar}</div>
-                                        <div style={{ fontSize:'9px', color:'#94a3b8', ...F }}>{en}</div>
-                                    </div>
+
+                        {/* مجاميع — الرصيد يظهر دائماً */}
+                        <div style={{width:'44%',border:'2px solid #1e3a5f',borderRadius:'10px',overflow:'hidden'}}>
+                            {/* المجموع */}
+                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 12px',borderBottom:'1px solid #cbd5e1',background:'#f8fafc'}}>
+                                <span style={{fontWeight:800,fontSize:'14px',color:'#1e3a5f',...F}}>{subtotal.toLocaleString()} <small style={{fontSize:'10px'}}>د.ع</small></span>
+                                <div style={{textAlign:'right'}}>
+                                    <div style={{fontWeight:900,fontSize:'12px',color:'#1e3a5f',...F}}>المجموع الكلي</div>
+                                    <div style={{fontSize:'9px',color:'#94a3b8',...F}}>Total Amount</div>
                                 </div>
-                            ))}
+                            </div>
+                            {/* مدفوع */}
+                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 12px',borderBottom:'1px solid #cbd5e1',background:'#fff'}}>
+                                <span style={{fontWeight:800,fontSize:'14px',color:'#0f172a',...F}}>{paid.toLocaleString()} <small style={{fontSize:'10px'}}>د.ع</small></span>
+                                <div style={{textAlign:'right'}}>
+                                    <div style={{fontWeight:900,fontSize:'12px',color:'#0f172a',...F}}>مدفوع</div>
+                                    <div style={{fontSize:'9px',color:'#94a3b8',...F}}>Paid</div>
+                                </div>
+                            </div>
+                            {/* الرصيد المستحق — أحمر عند وجود رصيد، أخضر عند صفر */}
+                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px',background:due>0?'#dc2626':'#1e3a5f'}}>
+                                <span style={{fontWeight:900,fontSize:'19px',color:due>0?'#fff':'#4ade80',...F}}>
+                                    {due.toLocaleString()} <small style={{fontSize:'10px'}}>د.ع</small>
+                                </span>
+                                <div style={{textAlign:'right'}}>
+                                    <div style={{fontWeight:900,fontSize:'13px',color:'#fff',...F}}>الرصيد المستحق</div>
+                                    <div style={{fontSize:'9px',color:'rgba(255,255,255,.65)',...F}}>Due Amount</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </>
             ) : (
-                <div style={{ flex:1, display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 8mm' }}>
-                    <div style={{ border:'2.5px solid #1e3a5f', borderRadius:'14px', padding:'28px', background:'#f8fafc', position:'relative', overflow:'hidden' }}>
-                        <div style={{ position:'absolute', top:0, right:0, width:'5px', height:'100%', background:'#2563eb' }}></div>
+                <div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'center',padding:'0 30px'}}>
+                    <div style={{border:'2.5px solid #1e3a5f',borderRadius:'14px',padding:'32px',background:'#f8fafc',position:'relative',overflow:'hidden'}}>
+                        <div style={{position:'absolute',top:0,right:0,width:'5px',height:'100%',background:'#2563eb'}}></div>
                         {[
                             ['استلمنا من السيد/ة:', inv.customerName],
                             ['مبلغاً وقدره:', `${paid.toLocaleString()} دينار عراقي فقط`],
                             ['وذلك عن:', inv.notes]
-                        ].map(([lbl, val], i) => (
-                            <div key={i} style={{ display:'flex', alignItems:'flex-end', gap:'8px', marginBottom:i<2?'22px':'0', fontSize:'18px', fontWeight:700, color:'#0f172a', ...F }}>
-                                <span style={{ whiteSpace:'nowrap', color:'#475569', fontSize:'15px', ...F }}>{lbl}</span>
-                                <span style={{ flex:1, borderBottom:'2px solid #94a3b8', paddingBottom:'3px', color:'#1e3a5f', fontWeight:900, ...F }}>{val}</span>
+                        ].map(([lbl,val],i)=>(
+                            <div key={i} style={{display:'flex',alignItems:'flex-end',gap:'8px',marginBottom:i<2?'26px':'0',fontSize:'18px',fontWeight:700,color:'#0f172a',...F}}>
+                                <span style={{whiteSpace:'nowrap',color:'#475569',fontSize:'15px',...F}}>{lbl}</span>
+                                <span style={{flex:1,borderBottom:'2px solid #94a3b8',paddingBottom:'3px',color:'#1e3a5f',fontWeight:900,...F}}>{val}</span>
                             </div>
                         ))}
                     </div>
                 </div>
             )}
 
-            {/* توقيعات */}
-            <div style={{ marginTop:'auto', paddingTop:'6mm' }}>
-                <div style={{ display:'flex', justifyContent:'space-between', padding:'0 36px', marginBottom:'6mm' }}>
-                    {['توقيع المستلم', 'توقيع المحاسب'].map(t => (
-                        <div key={t} style={{ textAlign:'center', width:'120px' }}>
-                            <div style={{ borderBottom:'2.5px solid #94a3b8', height:'34px', marginBottom:'6px' }}></div>
-                            <div style={{ fontWeight:900, color:'#374151', fontSize:'12px', ...F }}>{t}</div>
+            {/* توقيعات + فوتر — ملصقة في الأسفل */}
+            <div style={{marginTop:'auto',paddingTop:'20px'}}>
+                <div style={{display:'flex',justifyContent:'space-between',padding:'0 50px',marginBottom:'20px'}}>
+                    {['توقيع المستلم','توقيع المحاسب'].map(t=>(
+                        <div key={t} style={{textAlign:'center',width:'130px'}}>
+                            <div style={{borderBottom:'2.5px solid #94a3b8',height:'38px',marginBottom:'7px'}}></div>
+                            <div style={{fontWeight:900,color:'#374151',fontSize:'12px',...F}}>{t}</div>
                         </div>
                     ))}
                 </div>
 
-                {/* فوتر */}
-                <div style={{ background:'#1e3a5f', borderRadius:'10px', padding:'8px 16px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                    <div style={{ display:'flex', alignItems:'center', gap:'6px', direction:'ltr' }}>
-                        <span style={{ fontSize:'13px' }}>📞</span>
-                        <span style={{ fontWeight:800, color:'#fff', fontSize:'13px', direction:'ltr', letterSpacing:'0.5px', ...F }}>+964 786 848 3823</span>
+                <div style={{background:'#1e3a5f',borderRadius:'10px',padding:'10px 18px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:'6px',direction:'ltr'}}>
+                        <span style={{fontSize:'14px'}}>📞</span>
+                        <span style={{fontWeight:800,color:'#fff',fontSize:'13px',direction:'ltr',letterSpacing:'0.5px',...F}}>+964 786 848 3823</span>
                     </div>
-                    <div style={{ fontWeight:900, color:'#93c5fd', fontSize:'12px', ...F }}>عالم ورق الكاشير</div>
-                    <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
-                        <span style={{ fontWeight:800, color:'#fff', fontSize:'13px', ...F }}>بغداد — زيونة</span>
-                        <span style={{ fontSize:'13px' }}>📍</span>
+                    <div style={{fontWeight:900,color:'#93c5fd',fontSize:'13px',...F}}>عالم ورق الكاشير</div>
+                    <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                        <span style={{fontWeight:800,color:'#fff',fontSize:'13px',...F}}>بغداد — زيونة</span>
+                        <span style={{fontSize:'14px'}}>📍</span>
                     </div>
                 </div>
             </div>
         </div>
     );
 
-    /* ═══════════════════════════════════════
-       Modal السجل
-    ═══════════════════════════════════════ */
-    const HistoryModal = () => (
-        <div className="modal-bg" onClick={e => e.target===e.currentTarget && setShowHistory(false)}>
+    /* ══ Modal السجل ══ */
+    const HistoryModal = ()=>(
+        <div className="modal-bg" onClick={e=>e.target===e.currentTarget&&setShowHistory(false)}>
             <div className="modal-box">
-                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'14px' }}>
-                    <h2 style={{ fontWeight:900, fontSize:'17px', color:'#1e3a5f', margin:0 }}>سجل الفواتير</h2>
-                    <button onClick={() => setShowHistory(false)} style={{ background:'none', border:'none', cursor:'pointer', color:'#64748b', display:'flex' }}><I.X/></button>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'14px'}}>
+                    <h2 style={{fontWeight:900,fontSize:'17px',color:'#1e3a5f',margin:0}}>سجل الفواتير</h2>
+                    <button onClick={()=>setShowHistory(false)} style={{background:'none',border:'none',cursor:'pointer',color:'#64748b',display:'flex'}}><I.X/></button>
                 </div>
                 {historyLoading ? (
-                    <div style={{ textAlign:'center', padding:'40px', color:'#94a3b8', fontWeight:700, ...F }}>جاري التحميل...</div>
-                ) : historyList.length === 0 ? (
-                    <div style={{ textAlign:'center', padding:'40px', color:'#94a3b8', fontWeight:700, ...F }}>لا توجد فواتير محفوظة</div>
+                    <div style={{textAlign:'center',padding:'40px',color:'#94a3b8',fontWeight:700,...F}}>جاري التحميل...</div>
+                ) : historyList.length===0 ? (
+                    <div style={{textAlign:'center',padding:'40px',color:'#94a3b8',fontWeight:700,...F}}>لا توجد فواتير محفوظة</div>
                 ) : (
-                    <div style={{ display:'flex', flexDirection:'column', gap:'7px' }}>
-                        {historyList.map(row => (
-                            <div key={row.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', background:'#f8fafc', border:'1px solid #e2e8f0', borderRadius:'10px', padding:'9px 12px' }}>
+                    <div style={{display:'flex',flexDirection:'column',gap:'7px'}}>
+                        {historyList.map(row=>(
+                            <div key={row.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'#f8fafc',border:'1px solid #e2e8f0',borderRadius:'10px',padding:'9px 12px'}}>
                                 <div>
-                                    <div style={{ fontWeight:800, fontSize:'14px', color:'#0f172a', ...F }}>#{row.invoice_number} — {row.customer_name||'بدون اسم'}</div>
-                                    <div style={{ fontSize:'11px', color:'#64748b', ...F }}>{row.date} · {row.invoice_type==='receipt'?'سند قبض':'قائمة بيع'} · {Number(row.subtotal||0).toLocaleString()} د.ع</div>
+                                    <div style={{fontWeight:800,fontSize:'14px',color:'#0f172a',...F}}>#{row.invoice_number} — {row.customer_name||'بدون اسم'}</div>
+                                    <div style={{fontSize:'11px',color:'#64748b',...F}}>
+                                        {row.date} · {row.invoice_type==='receipt'?'سند قبض':'قائمة بيع'} · {Number(row.subtotal||0).toLocaleString()} د.ع
+                                        {Number(row.due_amount||0)>0 &&
+                                            <span style={{color:'#dc2626',fontWeight:800}}> · باقي: {Number(row.due_amount).toLocaleString()} د.ع</span>
+                                        }
+                                    </div>
                                 </div>
-                                <button onClick={() => loadInvoice(row)} style={{ background:'#1e3a5f', color:'#fff', border:'none', borderRadius:'8px', padding:'6px 10px', cursor:'pointer', fontWeight:700, fontSize:'12px', display:'flex', alignItems:'center', gap:'4px', ...F }}>
+                                <button onClick={()=>loadInvoice(row)} style={{background:'#1e3a5f',color:'#fff',border:'none',borderRadius:'8px',padding:'6px 10px',cursor:'pointer',fontWeight:700,fontSize:'12px',display:'flex',alignItems:'center',gap:'4px',...F}}>
                                     <I.Eye/> تحميل
                                 </button>
                             </div>
@@ -465,125 +494,123 @@ function App() {
         </div>
     );
 
-    /* ═══════════════════════════════════════
-       Render
-    ═══════════════════════════════════════ */
+    /* ══ Render ══ */
     return (
-        <div style={{ minHeight:'100vh', padding:'16px' }}>
+        <div style={{minHeight:'100vh',padding:'16px'}}>
             {showHistory && <HistoryModal/>}
 
-            <div style={{ display:'flex', gap:'20px', alignItems:'flex-start' }}>
+            <div style={{display:'flex',gap:'20px',alignItems:'flex-start'}}>
 
-                {/* ── لوحة التحكم ── */}
-                <div className="no-print" style={{ width:'285px', flexShrink:0, background:'#fff', borderRadius:'20px', padding:'18px', boxShadow:'0 2px 12px rgba(0,0,0,.07)', border:'1px solid #e2e8f0', display:'flex', flexDirection:'column', gap:'12px' }}>
+                {/* لوحة التحكم */}
+                <div style={{width:'285px',flexShrink:0,background:'#fff',borderRadius:'20px',padding:'18px',boxShadow:'0 2px 12px rgba(0,0,0,.07)',border:'1px solid #e2e8f0',display:'flex',flexDirection:'column',gap:'12px'}}>
 
-                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', borderBottom:'1px solid #e2e8f0', paddingBottom:'10px' }}>
-                        <h1 style={{ fontWeight:900, fontSize:'16px', color:'#1e3a5f', margin:0, ...F }}>إعدادات الفاتورة</h1>
-                        <button onClick={loadHistory} title="السجل" style={{ background:'#f1f5f9', border:'none', borderRadius:'8px', padding:'6px', cursor:'pointer', color:'#475569', display:'flex' }}><I.History/></button>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',borderBottom:'1px solid #e2e8f0',paddingBottom:'10px'}}>
+                        <h1 style={{fontWeight:900,fontSize:'16px',color:'#1e3a5f',margin:0,...F}}>إعدادات الفاتورة</h1>
+                        <button onClick={loadHistory} title="السجل" style={{background:'#f1f5f9',border:'none',borderRadius:'8px',padding:'6px',cursor:'pointer',color:'#475569',display:'flex'}}><I.History/></button>
                     </div>
 
-                    {/* نوع الوصل */}
                     <div>
-                        <label style={{ fontSize:'11px', fontWeight:700, color:'#94a3b8', display:'block', marginBottom:'3px', ...F }}>نوع الوصل</label>
-                        <select value={inv.invoiceType} onChange={e => setInv(p => ({ ...p, invoiceType: e.target.value }))}
-                            style={{ width:'100%', padding:'9px', border:'2px solid #e2e8f0', borderRadius:'11px', outline:'none', fontWeight:700, fontSize:'14px', background:'#fff', ...F }}>
+                        <label style={{fontSize:'11px',fontWeight:700,color:'#94a3b8',display:'block',marginBottom:'3px',...F}}>نوع الوصل</label>
+                        <select value={inv.invoiceType} onChange={e=>setInv(p=>({...p,invoiceType:e.target.value}))}
+                            style={{width:'100%',padding:'9px',border:'2px solid #e2e8f0',borderRadius:'11px',fontWeight:700,fontSize:'14px',background:'#fff',...F}}>
                             <option value="sale">قائمة بيع</option>
                             <option value="receipt">سند قبض</option>
                         </select>
                     </div>
 
-                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'7px' }}>
-                        <input value={inv.invoiceNumber} onChange={e => setInv(p => ({ ...p, invoiceNumber: e.target.value }))} placeholder="رقم الوصل"
-                            style={{ padding:'9px', border:'2px solid #e2e8f0', borderRadius:'11px', outline:'none', fontWeight:700, fontSize:'14px', ...F }}/>
-                        <input type="date" value={inv.date} onChange={e => setInv(p => ({ ...p, date: e.target.value }))}
-                            style={{ padding:'9px', border:'2px solid #e2e8f0', borderRadius:'11px', outline:'none', fontSize:'12px', ...F }}/>
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'7px'}}>
+                        <input value={inv.invoiceNumber} onChange={e=>setInv(p=>({...p,invoiceNumber:e.target.value}))} placeholder="رقم الوصل"
+                            style={{padding:'9px',border:'2px solid #e2e8f0',borderRadius:'11px',fontWeight:700,fontSize:'14px',...F}}/>
+                        <input type="date" value={inv.date} onChange={e=>setInv(p=>({...p,date:e.target.value}))}
+                            style={{padding:'9px',border:'2px solid #e2e8f0',borderRadius:'11px',fontSize:'12px',...F}}/>
                     </div>
 
-                    <input value={inv.customerName} onChange={e => setInv(p => ({ ...p, customerName: e.target.value }))} placeholder="اسم الزبون"
-                        style={{ padding:'9px', border:'2px solid #e2e8f0', borderRadius:'11px', outline:'none', fontWeight:600, fontSize:'14px', ...F }}/>
+                    <input value={inv.customerName} onChange={e=>setInv(p=>({...p,customerName:e.target.value}))} placeholder="اسم الزبون"
+                        style={{padding:'9px',border:'2px solid #e2e8f0',borderRadius:'11px',fontWeight:600,fontSize:'14px',...F}}/>
 
-                    <input type="tel" value={inv.customerPhone} onChange={e => setInv(p => ({ ...p, customerPhone: e.target.value }))} placeholder="رقم هاتف الزبون" dir="ltr"
-                        style={{ padding:'9px', border:'2px solid #e2e8f0', borderRadius:'11px', outline:'none', fontSize:'14px', ...F }}/>
+                    <input type="tel" value={inv.customerPhone} onChange={e=>setInv(p=>({...p,customerPhone:e.target.value}))} placeholder="رقم هاتف الزبون" dir="ltr"
+                        style={{padding:'9px',border:'2px solid #e2e8f0',borderRadius:'11px',fontSize:'14px',...F}}/>
 
                     <div>
-                        <label style={{ fontSize:'11px', fontWeight:700, color:'#94a3b8', display:'block', marginBottom:'3px', ...F }}>
-                            {inv.invoiceType === 'sale' ? 'المبلغ المدفوع (مقدم)' : 'مبلغ السند'}
+                        <label style={{fontSize:'11px',fontWeight:700,color:'#94a3b8',display:'block',marginBottom:'3px',...F}}>
+                            {inv.invoiceType==='sale'?'المبلغ المدفوع (مقدم)':'مبلغ السند'}
                         </label>
-                        <input type="number" value={inv.paidAmount} onChange={e => setInv(p => ({ ...p, paidAmount: e.target.value }))} placeholder="0"
-                            style={{ width:'100%', padding:'9px', border:'2px solid #bfdbfe', borderRadius:'11px', outline:'none', fontWeight:800, fontSize:'15px', color:'#1d4ed8', background:'#eff6ff', ...F }}/>
+                        <input type="number" value={inv.paidAmount} onChange={e=>setInv(p=>({...p,paidAmount:e.target.value}))} placeholder="0"
+                            style={{width:'100%',padding:'9px',border:'2px solid #bfdbfe',borderRadius:'11px',fontWeight:800,fontSize:'15px',color:'#1d4ed8',background:'#eff6ff',...F}}/>
                     </div>
 
                     <div>
-                        <label style={{ fontSize:'11px', fontWeight:700, color:'#94a3b8', display:'block', marginBottom:'3px', ...F }}>الملاحظات</label>
-                        <textarea value={inv.notes} onChange={e => setInv(p => ({ ...p, notes: e.target.value }))} rows={3}
-                            style={{ width:'100%', padding:'9px', border:'2px solid #e2e8f0', borderRadius:'11px', outline:'none', resize:'none', fontSize:'12px', ...F }}/>
+                        <label style={{fontSize:'11px',fontWeight:700,color:'#94a3b8',display:'block',marginBottom:'3px',...F}}>الملاحظات</label>
+                        <textarea value={inv.notes} onChange={e=>setInv(p=>({...p,notes:e.target.value}))} rows={3}
+                            style={{width:'100%',padding:'9px',border:'2px solid #e2e8f0',borderRadius:'11px',resize:'none',fontSize:'12px',...F}}/>
                     </div>
 
-                    {inv.invoiceType === 'sale' && (
+                    {inv.invoiceType==='sale' && (
                         <div>
-                            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'7px' }}>
-                                <span style={{ fontWeight:800, fontSize:'13px', color:'#1e3a5f', ...F }}>المواد</span>
-                                <button onClick={addItem} style={{ display:'flex', alignItems:'center', gap:'4px', padding:'5px 10px', background:'#2563eb', color:'#fff', border:'none', borderRadius:'9px', cursor:'pointer', fontWeight:700, fontSize:'12px', ...F }}>
+                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'7px'}}>
+                                <span style={{fontWeight:800,fontSize:'13px',color:'#1e3a5f',...F}}>المواد</span>
+                                <button onClick={addItem} style={{display:'flex',alignItems:'center',gap:'4px',padding:'5px 10px',background:'#2563eb',color:'#fff',border:'none',borderRadius:'9px',cursor:'pointer',fontWeight:700,fontSize:'12px',...F}}>
                                     <I.Plus/> إضافة
                                 </button>
                             </div>
-                            <div style={{ display:'flex', flexDirection:'column', gap:'5px', maxHeight:'200px', overflowY:'auto' }}>
-                                {inv.items.map(item => (
-                                    <div key={item.id} style={{ display:'flex', gap:'5px', background:'#f8fafc', padding:'7px', borderRadius:'9px', border:'1px solid #e2e8f0' }}>
-                                        <input placeholder="المادة" value={item.description} onChange={e => updateItem(item.id, 'description', e.target.value)}
-                                            style={{ flex:1, padding:'5px 7px', border:'1px solid #e2e8f0', borderRadius:'7px', fontSize:'12px', outline:'none', ...F }}/>
-                                        <input type="number" placeholder="ك" value={item.quantity} onChange={e => updateItem(item.id, 'quantity', e.target.value)}
-                                            style={{ width:'44px', padding:'5px', border:'1px solid #e2e8f0', borderRadius:'7px', fontSize:'12px', outline:'none', textAlign:'center' }}/>
-                                        <input type="number" placeholder="سعر" value={item.price} onChange={e => updateItem(item.id, 'price', e.target.value)}
-                                            style={{ width:'62px', padding:'5px', border:'1px solid #e2e8f0', borderRadius:'7px', fontSize:'12px', outline:'none', textAlign:'center' }}/>
-                                        <button onClick={() => removeItem(item.id)} style={{ background:'none', border:'none', cursor:'pointer', color:'#ef4444', display:'flex', alignItems:'center' }}><I.Trash/></button>
+                            <div style={{display:'flex',flexDirection:'column',gap:'5px',maxHeight:'200px',overflowY:'auto'}}>
+                                {inv.items.map(item=>(
+                                    <div key={item.id} style={{display:'flex',gap:'5px',background:'#f8fafc',padding:'7px',borderRadius:'9px',border:'1px solid #e2e8f0'}}>
+                                        <input placeholder="المادة" value={item.description} onChange={e=>updateItem(item.id,'description',e.target.value)}
+                                            style={{flex:1,padding:'5px 7px',border:'1px solid #e2e8f0',borderRadius:'7px',fontSize:'12px',...F}}/>
+                                        <input type="number" placeholder="ك" value={item.quantity} onChange={e=>updateItem(item.id,'quantity',e.target.value)}
+                                            style={{width:'44px',padding:'5px',border:'1px solid #e2e8f0',borderRadius:'7px',fontSize:'12px',textAlign:'center'}}/>
+                                        <input type="number" placeholder="سعر" value={item.price} onChange={e=>updateItem(item.id,'price',e.target.value)}
+                                            style={{width:'62px',padding:'5px',border:'1px solid #e2e8f0',borderRadius:'7px',fontSize:'12px',textAlign:'center'}}/>
+                                        <button onClick={()=>removeItem(item.id)} style={{background:'none',border:'none',cursor:'pointer',color:'#ef4444',display:'flex',alignItems:'center'}}><I.Trash/></button>
                                     </div>
                                 ))}
                             </div>
                         </div>
                     )}
 
-                    {/* ─── مجاميع سريعة ─── */}
-                    {inv.invoiceType === 'sale' && (
-                        <div style={{ background:'#f8fafc', borderRadius:'12px', padding:'10px 12px', border:'1px solid #e2e8f0', fontSize:'13px' }}>
-                            {[
-                                ['المجموع:', subtotal],
-                                ['مدفوع:',   paid],
-                                ['المتبقي:',  due]
-                            ].map(([lbl, val], i) => (
-                                <div key={i} style={{ display:'flex', justifyContent:'space-between', color: i===2 && due>0 ? '#dc2626' : '#1e3a5f', fontWeight: i===2 ? 900 : 700, marginBottom: i<2 ? '4px' : 0 }}>
+                    {/* ملخص */}
+                    {inv.invoiceType==='sale' && (
+                        <div style={{background:'#f8fafc',borderRadius:'12px',padding:'10px 12px',border:'1px solid #e2e8f0',fontSize:'13px'}}>
+                            {[['المجموع:',subtotal,'#1e3a5f'],['مدفوع:',paid,'#0f172a'],['المتبقي:',due,due>0?'#dc2626':'#16a34a']].map(([lbl,val,col],i)=>(
+                                <div key={i} style={{display:'flex',justifyContent:'space-between',color:col,fontWeight:i===2?900:700,marginBottom:i<2?'4px':0}}>
                                     <span style={F}>{lbl}</span>
-                                    <span style={{ direction:'ltr', ...F }}>{val.toLocaleString()} د.ع</span>
+                                    <span style={{direction:'ltr',...F}}>{val.toLocaleString()} د.ع</span>
                                 </div>
                             ))}
                         </div>
                     )}
 
-                    {/* أزرار */}
-                    <div style={{ display:'flex', flexDirection:'column', gap:'7px', paddingTop:'2px' }}>
-                        <button onClick={handlePrint} style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'7px', padding:'12px', background:'#1e3a5f', color:'#fff', border:'none', borderRadius:'13px', fontWeight:800, fontSize:'14px', cursor:'pointer', ...F }}>
-                            <I.Print/> طباعة + حفظ
+                    {/* أزرار الإجراءات */}
+                    <div style={{display:'flex',flexDirection:'column',gap:'7px',paddingTop:'2px'}}>
+                        <button onClick={handlePDF} style={{display:'flex',justifyContent:'center',alignItems:'center',gap:'7px',padding:'12px',background:'#1e3a5f',color:'#fff',border:'none',borderRadius:'13px',fontWeight:800,fontSize:'14px',cursor:'pointer',...F}}>
+                            <I.PDF/> تصدير PDF + حفظ
                         </button>
-                        <button onClick={handleWhatsApp} style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'7px', padding:'12px', background:'#16a34a', color:'#fff', border:'none', borderRadius:'13px', fontWeight:800, fontSize:'14px', cursor:'pointer', ...F }}>
+                        <button onClick={handleWhatsApp} style={{display:'flex',justifyContent:'center',alignItems:'center',gap:'7px',padding:'12px',background:'#16a34a',color:'#fff',border:'none',borderRadius:'13px',fontWeight:800,fontSize:'14px',cursor:'pointer',...F}}>
                             <I.WA/> واتساب + حفظ
                         </button>
-                        <button onClick={handleSave} style={{ display:'flex', justifyContent:'center', alignItems:'center', gap:'7px', padding:'12px', background:'#7c3aed', color:'#fff', border:'none', borderRadius:'13px', fontWeight:800, fontSize:'14px', cursor:'pointer', ...F }}>
+                        <button onClick={handleSave} style={{display:'flex',justifyContent:'center',alignItems:'center',gap:'7px',padding:'12px',background:'#7c3aed',color:'#fff',border:'none',borderRadius:'13px',fontWeight:800,fontSize:'14px',cursor:'pointer',...F}}>
                             <I.Save/> حفظ في قاعدة البيانات
                         </button>
                     </div>
 
                     {/* مؤشر الاتصال */}
-                    <div style={{ display:'flex', alignItems:'center', gap:'6px', justifyContent:'center', fontSize:'11px', color:'#16a34a', fontWeight:700, ...F }}>
-                        <div style={{ width:'7px', height:'7px', borderRadius:'50%', background:'#16a34a', animation:'pulse 2s infinite' }}></div>
+                    <div style={{display:'flex',alignItems:'center',gap:'6px',justifyContent:'center',fontSize:'11px',color:'#16a34a',fontWeight:700,...F}}>
+                        <div style={{width:'7px',height:'7px',borderRadius:'50%',background:'#16a34a',animation:'pulse 2s infinite'}}></div>
                         متصل بقاعدة البيانات
                     </div>
-                    <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}`}</style>
                 </div>
 
-                {/* ── معاينة الفاتورة ── */}
-                <div className="print-col" style={{ flex:1, overflowX:'auto', display:'flex', justifyContent:'center', paddingBottom:'40px' }}>
-                    <Sheet/>
+                {/* معاينة الفاتورة */}
+                <div ref={colRef} style={{flex:1,overflow:'hidden',paddingBottom:'40px'}}>
+                    {/* Scaler: transform-origin top-right for RTL */}
+                    <div ref={scalerRef} style={{transformOrigin:'top right',display:'inline-block'}}>
+                        <div style={{boxShadow:'0 4px 28px rgba(0,0,0,.15)',borderRadius:'2px'}}>
+                            <Sheet/>
+                        </div>
+                    </div>
                 </div>
+
             </div>
         </div>
     );
