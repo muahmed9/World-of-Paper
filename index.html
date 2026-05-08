@@ -152,11 +152,22 @@
             const captureInvoice = async () => {
                 const el = invoiceRef.current;
                 if (!el) return null;
+                // انتظار تحميل الخطوط بالكامل (يحل مشكلة الحروف المقطوعة)
+                await document.fonts.ready;
                 return await html2canvas(el, {
                     scale: 2,
                     useCORS: true,
+                    allowTaint: true,
                     backgroundColor: '#ffffff',
-                    logging: false
+                    logging: false,
+                    foreignObjectRendering: false,
+                    onclone: (clonedDoc) => {
+                        const clonedEl = clonedDoc.querySelector('.a4-wrapper');
+                        if (clonedEl) {
+                            clonedEl.style.direction = 'rtl';
+                            clonedEl.style.fontFamily = "'Cairo', sans-serif";
+                        }
+                    }
                 });
             };
 
@@ -466,11 +477,13 @@
                                 </div>
 
                                 <div className="flex justify-between items-center border-t-2 border-slate-200 pt-5 text-sm font-bold text-slate-600">
-                                    <div className="flex items-center gap-2" dir="ltr">
-                                        <span>📞</span> +964 766 848 3823
+                                    <div className="flex items-center gap-2">
+                                        <span>📍</span>
+                                        <span className="text-red-600">بغداد - زيونة</span>
                                     </div>
-                                    <div className="flex items-center gap-2 text-red-600">
-                                        بغداد - زيونة <span>📍</span>
+                                    <div className="flex items-center gap-2" dir="ltr">
+                                        <span>📞</span>
+                                        <span>+964 786 848 3823</span>
                                     </div>
                                 </div>
                             </div>
