@@ -25,6 +25,7 @@
             --green: #16a34a;
             --red: #dc2626;
             --amber: #d97706;
+            --purple: #7c3aed;
             --bg: #f0f4f8;
             --panel: #ffffff;
             --border: #d1d9e6;
@@ -35,7 +36,7 @@
             --input-bg: #ffffff;
             --input-focus: #eff6ff;
             --header-h: 54px;
-            --sidebar-w: 320px;
+            --sidebar-w: 330px;
         }
 
         html, body {
@@ -46,7 +47,6 @@
             overflow: hidden;
         }
 
-        /* ══ Layout ══ */
         #root { height: 100vh; display: flex; flex-direction: column; }
 
         .app-header {
@@ -60,113 +60,57 @@
             border-bottom: 2px solid rgba(255,255,255,.08);
         }
 
-        .app-logo {
-            font-weight: 900;
-            font-size: 17px;
-            color: #fff;
-            white-space: nowrap;
-        }
+        .app-logo { font-weight: 900; font-size: 17px; color: #fff; white-space: nowrap; }
         .app-logo span { color: #93c5fd; font-size: 12px; font-weight: 600; display: block; margin-top: -3px; }
 
         .header-tabs {
-            display: flex;
-            gap: 2px;
+            display: flex; gap: 2px;
             background: rgba(255,255,255,.08);
-            border-radius: 10px;
-            padding: 3px;
+            border-radius: 10px; padding: 3px;
         }
         .header-tab {
-            padding: 6px 16px;
-            border: none;
-            background: transparent;
-            color: rgba(255,255,255,.6);
-            border-radius: 7px;
-            font-family: 'Cairo', sans-serif;
-            font-weight: 700;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all .15s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            white-space: nowrap;
+            padding: 6px 16px; border: none; background: transparent;
+            color: rgba(255,255,255,.6); border-radius: 7px;
+            font-family: 'Cairo', sans-serif; font-weight: 700; font-size: 13px;
+            cursor: pointer; transition: all .15s;
+            display: flex; align-items: center; gap: 6px; white-space: nowrap;
         }
         .header-tab.active { background: #fff; color: var(--navy); }
         .header-tab:not(.active):hover { background: rgba(255,255,255,.12); color: #fff; }
 
         .header-spacer { flex: 1; }
-
         .header-badge {
-            background: rgba(255,255,255,.1);
-            border: 1px solid rgba(255,255,255,.15);
-            border-radius: 8px;
-            padding: 5px 12px;
-            color: rgba(255,255,255,.8);
-            font-size: 12px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
+            border-radius: 8px; padding: 5px 12px; color: rgba(255,255,255,.8);
+            font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px;
         }
         .pulse-dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; animation: pulse 2s infinite; }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-        /* ══ Main body ══ */
-        .app-body {
-            flex: 1;
-            overflow: hidden;
-            display: flex;
-        }
+        .app-body { flex: 1; overflow: hidden; display: flex; }
 
-        /* ══ Create Tab Layout ══ */
-        .create-layout {
-            display: flex;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-        }
+        .create-layout { display: flex; width: 100%; height: 100%; overflow: hidden; }
 
-        /* Left sidebar */
         .sidebar {
-            width: var(--sidebar-w);
-            flex-shrink: 0;
-            background: var(--navy2);
-            display: flex;
-            flex-direction: column;
-            border-left: 1px solid rgba(255,255,255,.07);
-            overflow-y: auto;
+            width: var(--sidebar-w); flex-shrink: 0;
+            background: var(--navy2); display: flex; flex-direction: column;
+            border-left: 1px solid rgba(255,255,255,.07); overflow-y: auto;
         }
         .sidebar::-webkit-scrollbar { width: 4px; }
         .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 4px; }
 
-        .sidebar-section {
-            padding: 14px 16px;
-            border-bottom: 1px solid rgba(255,255,255,.06);
-        }
+        .sidebar-section { padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,.06); }
         .sidebar-label {
-            font-size: 10px;
-            font-weight: 800;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: rgba(255,255,255,.35);
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            font-size: 10px; font-weight: 800; letter-spacing: 1px;
+            text-transform: uppercase; color: rgba(255,255,255,.35);
+            margin-bottom: 7px; display: flex; align-items: center; gap: 6px;
         }
 
         .sb-input {
-            width: 100%;
-            padding: 8px 11px;
-            background: rgba(255,255,255,.07);
-            border: 1.5px solid rgba(255,255,255,.1);
-            border-radius: 9px;
-            color: #fff;
-            font-family: 'Cairo', sans-serif;
-            font-size: 13px;
-            font-weight: 600;
-            transition: all .15s;
-            outline: none;
+            width: 100%; padding: 8px 11px;
+            background: rgba(255,255,255,.07); border: 1.5px solid rgba(255,255,255,.1);
+            border-radius: 9px; color: #fff; font-family: 'Cairo', sans-serif;
+            font-size: 13px; font-weight: 600; transition: all .15s; outline: none;
         }
         .sb-input::placeholder { color: rgba(255,255,255,.3); }
         .sb-input:focus { border-color: rgba(99,179,255,.5); background: rgba(255,255,255,.1); }
@@ -175,312 +119,155 @@
         .sb-row { display: flex; gap: 8px; }
 
         .sb-stat {
-            flex: 1;
-            background: rgba(255,255,255,.05);
+            flex: 1; background: rgba(255,255,255,.05);
             border: 1px solid rgba(255,255,255,.08);
-            border-radius: 10px;
-            padding: 10px 12px;
-            text-align: center;
+            border-radius: 10px; padding: 9px 10px; text-align: center;
         }
-        .sb-stat-val { font-size: 16px; font-weight: 900; color: #fff; }
-        .sb-stat-lbl { font-size: 10px; font-weight: 700; color: rgba(255,255,255,.4); margin-top: 2px; }
+        .sb-stat-val { font-size: 14px; font-weight: 900; color: #fff; }
+        .sb-stat-lbl { font-size: 9px; font-weight: 700; color: rgba(255,255,255,.4); margin-top: 2px; }
 
         .sb-btn {
-            width: 100%;
-            padding: 11px;
-            border: none;
-            border-radius: 11px;
-            font-family: 'Cairo', sans-serif;
-            font-weight: 800;
-            font-size: 13px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 7px;
-            transition: all .15s;
+            width: 100%; padding: 11px; border: none; border-radius: 11px;
+            font-family: 'Cairo', sans-serif; font-weight: 800; font-size: 13px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            gap: 7px; transition: all .15s;
         }
         .sb-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
         .sb-btn:active { transform: translateY(0); }
-        .btn-primary   { background: #2563eb; color: #fff; }
-        .btn-green     { background: #16a34a; color: #fff; }
-        .btn-purple    { background: #7c3aed; color: #fff; }
+        .btn-primary { background: #2563eb; color: #fff; }
+        .btn-green   { background: #16a34a; color: #fff; }
+        .btn-purple  { background: #7c3aed; color: #fff; }
 
         .due-box {
             background: linear-gradient(135deg, #1e40af, #2563eb);
-            border-radius: 12px;
-            padding: 12px 14px;
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
+            border-radius: 12px; padding: 10px 14px; color: #fff;
+            display: flex; flex-direction: column; gap: 3px;
         }
         .due-box.red { background: linear-gradient(135deg, #991b1b, #dc2626); }
         .due-box-lbl { font-size: 10px; font-weight: 700; opacity: .7; }
-        .due-box-val { font-size: 22px; font-weight: 900; }
+        .due-box-val { font-size: 20px; font-weight: 900; }
         .due-box-sub { font-size: 10px; opacity: .6; }
 
-        /* ══ Main content area ══ */
-        .main-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            background: var(--bg);
+        /* Discount toggle */
+        .disc-toggle {
+            display: flex; background: rgba(255,255,255,.07);
+            border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,.1);
         }
+        .disc-toggle button {
+            flex: 1; padding: 7px; border: none; background: transparent;
+            color: rgba(255,255,255,.5); font-family: 'Cairo', sans-serif;
+            font-weight: 800; font-size: 13px; cursor: pointer; transition: all .15s;
+        }
+        .disc-toggle button.active { background: var(--amber); color: #fff; }
 
-        /* Toolbar */
+        .main-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--bg); }
+
         .toolbar {
-            height: 42px;
-            background: var(--panel);
+            height: 42px; background: var(--panel);
             border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            padding: 0 12px;
-            gap: 6px;
-            flex-shrink: 0;
+            display: flex; align-items: center; padding: 0 12px; gap: 6px; flex-shrink: 0;
         }
 
         .tb-btn {
-            padding: 5px 12px;
-            border: 1px solid var(--border);
-            background: #fff;
-            border-radius: 7px;
-            font-family: 'Cairo', sans-serif;
-            font-weight: 700;
-            font-size: 12px;
-            cursor: pointer;
-            color: var(--muted);
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: all .12s;
-            white-space: nowrap;
+            padding: 5px 12px; border: 1px solid var(--border);
+            background: #fff; border-radius: 7px;
+            font-family: 'Cairo', sans-serif; font-weight: 700; font-size: 12px;
+            cursor: pointer; color: var(--muted);
+            display: flex; align-items: center; gap: 5px; transition: all .12s; white-space: nowrap;
         }
         .tb-btn:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
         .tb-sep { width: 1px; height: 22px; background: var(--border); margin: 0 2px; }
 
-        /* ══ Invoice Grid ══ */
-        .grid-wrap {
-            flex: 1;
-            overflow: auto;
-            padding: 12px;
-        }
+        .grid-wrap { flex: 1; overflow: auto; padding: 12px; }
 
         .invoice-grid {
-            width: 100%;
-            border-collapse: collapse;
-            background: var(--panel);
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0,0,0,.06);
+            width: 100%; border-collapse: collapse; background: var(--panel);
+            border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.06);
             border: 1px solid var(--border);
         }
 
-        .invoice-grid thead tr {
-            background: var(--navy);
-            height: 38px;
-        }
+        .invoice-grid thead tr { background: var(--navy); height: 38px; }
         .invoice-grid thead th {
-            color: rgba(255,255,255,.85);
-            font-weight: 800;
-            font-size: 12px;
-            padding: 0 10px;
-            text-align: center;
-            border-left: 1px solid rgba(255,255,255,.07);
-            white-space: nowrap;
-            user-select: none;
+            color: rgba(255,255,255,.85); font-weight: 800; font-size: 12px;
+            padding: 0 10px; text-align: center;
+            border-left: 1px solid rgba(255,255,255,.07); white-space: nowrap; user-select: none;
         }
         .invoice-grid thead th:first-child { border-left: none; }
         .invoice-grid thead th.col-name { text-align: right; }
 
-        .invoice-grid tbody tr {
-            height: 36px;
-            border-bottom: 1px solid var(--border);
-            transition: background .08s;
-        }
+        .invoice-grid tbody tr { height: 36px; border-bottom: 1px solid var(--border); transition: background .08s; }
         .invoice-grid tbody tr:nth-child(even) { background: var(--row-even); }
         .invoice-grid tbody tr:hover { background: var(--row-hover); }
         .invoice-grid tbody tr.active-row { background: #eff6ff !important; }
 
-        .invoice-grid tbody td {
-            padding: 0;
-            border-left: 1px solid var(--border);
-            position: relative;
-        }
+        .invoice-grid tbody td { padding: 0; border-left: 1px solid var(--border); position: relative; }
         .invoice-grid tbody td:first-child { border-left: none; }
 
-        /* Row number */
-        .col-num {
-            width: 38px;
-            text-align: center;
-            font-size: 12px;
-            font-weight: 800;
-            color: var(--muted);
-        }
+        .col-num { width: 38px; text-align: center; font-size: 12px; font-weight: 800; color: var(--muted); }
 
-        /* Grid cell input */
         .cell-input {
-            width: 100%;
-            height: 36px;
-            padding: 0 10px;
-            border: none;
-            background: transparent;
-            font-family: 'Cairo', sans-serif;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text);
-            outline: none;
-            text-align: center;
+            width: 100%; height: 36px; padding: 0 10px; border: none;
+            background: transparent; font-family: 'Cairo', sans-serif;
+            font-size: 13px; font-weight: 600; color: var(--text); outline: none; text-align: center;
         }
         .cell-input.name-input { text-align: right; padding: 0 12px; }
-        .cell-input:focus {
-            background: #dbeafe;
-            box-shadow: inset 0 0 0 2px #2563eb;
-        }
-        .cell-input[readonly] {
-            background: transparent;
-            color: var(--muted);
-            cursor: default;
-            font-weight: 700;
-        }
-        .cell-input.computed {
-            color: var(--navy);
-            font-weight: 800;
-        }
+        .cell-input:focus { background: #dbeafe; box-shadow: inset 0 0 0 2px #2563eb; }
+        .cell-input[readonly] { background: transparent; color: var(--muted); cursor: default; font-weight: 700; }
+        .cell-input.computed { color: var(--navy); font-weight: 800; }
         .cell-input.price-filled { color: #16a34a; font-weight: 800; }
         .cell-input.total-cell { color: var(--navy); font-weight: 900; font-size: 14px; }
 
-        /* Delete btn */
         .del-btn {
-            width: 100%;
-            height: 36px;
-            border: none;
-            background: transparent;
-            color: #cbd5e1;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all .1s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 100%; height: 36px; border: none; background: transparent;
+            color: #cbd5e1; cursor: pointer; font-size: 14px; transition: all .1s;
+            display: flex; align-items: center; justify-content: center;
         }
         .del-btn:hover { color: var(--red); background: #fef2f2; }
 
-        /* Autocomplete dropdown */
         .ac-dropdown {
-            position: fixed;
-            z-index: 99999;
-            background: #fff;
-            border: 2px solid #2563eb;
-            border-radius: 10px;
-            box-shadow: 0 12px 40px rgba(37,99,235,.22);
-            overflow: hidden;
-            min-width: 320px;
+            position: fixed; z-index: 99999; background: #fff;
+            border: 2px solid #2563eb; border-radius: 10px;
+            box-shadow: 0 12px 40px rgba(37,99,235,.22); overflow: hidden; min-width: 320px;
         }
-        .ac-header {
-            padding: 5px 12px;
-            font-size: 10px;
-            font-weight: 800;
-            color: #2563eb;
-            background: #eff6ff;
-            border-bottom: 1px solid #bfdbfe;
-            letter-spacing: .5px;
-        }
+        .ac-header { padding: 5px 12px; font-size: 10px; font-weight: 800; color: #2563eb; background: #eff6ff; border-bottom: 1px solid #bfdbfe; letter-spacing: .5px; }
         .ac-item {
-            padding: 8px 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            border-bottom: 1px solid #f1f5f9;
-            transition: background .08s;
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--text);
+            padding: 8px 14px; display: flex; justify-content: space-between;
+            align-items: center; cursor: pointer; border-bottom: 1px solid #f1f5f9;
+            transition: background .08s; font-size: 13px; font-weight: 700; color: var(--text);
         }
         .ac-item:last-child { border-bottom: none; }
         .ac-item:hover, .ac-item.selected { background: #eff6ff; }
-        .ac-price {
-            font-size: 12px;
-            font-weight: 900;
-            color: #2563eb;
-            background: #eff6ff;
-            padding: 2px 8px;
-            border-radius: 99px;
-            white-space: nowrap;
-        }
+        .ac-price { font-size: 12px; font-weight: 900; color: #2563eb; background: #eff6ff; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
         .ac-hl { background: #bfdbfe; border-radius: 2px; padding: 0 1px; }
 
-        /* Footer totals row */
-        .grid-footer {
-            background: var(--navy);
-            border-top: 2px solid var(--navy);
-        }
-        .grid-footer td {
-            padding: 10px 12px;
-            color: #fff;
-            font-weight: 900;
-            font-size: 14px;
-            text-align: center;
-        }
+        .grid-footer { background: var(--navy); border-top: 2px solid var(--navy); }
+        .grid-footer td { padding: 10px 12px; color: #fff; font-weight: 900; font-size: 14px; text-align: center; }
         .grid-footer td.lbl { color: rgba(255,255,255,.6); font-size: 12px; text-align: right; }
 
-        /* Bottom status bar */
         .statusbar {
-            height: 30px;
-            background: var(--panel);
-            border-top: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            padding: 0 14px;
-            gap: 20px;
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--muted);
-            flex-shrink: 0;
+            height: 30px; background: var(--panel); border-top: 1px solid var(--border);
+            display: flex; align-items: center; padding: 0 14px; gap: 20px;
+            font-size: 11px; font-weight: 700; color: var(--muted); flex-shrink: 0;
         }
         .statusbar span { display: flex; align-items: center; gap: 4px; }
 
-        /* ══ Preview panel ══ */
         .preview-panel {
-            width: 420px;
-            flex-shrink: 0;
-            background: #e8edf4;
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            width: 420px; flex-shrink: 0; background: #e8edf4;
+            border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden;
         }
         .preview-header {
-            background: var(--panel);
-            border-bottom: 1px solid var(--border);
-            padding: 8px 14px;
-            font-size: 12px;
-            font-weight: 800;
-            color: var(--navy);
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            background: var(--panel); border-bottom: 1px solid var(--border);
+            padding: 8px 14px; font-size: 12px; font-weight: 800; color: var(--navy);
+            display: flex; align-items: center; gap: 6px;
         }
-        .preview-scroll {
-            flex: 1;
-            overflow: auto;
-            padding: 16px;
-            display: flex;
-            justify-content: center;
-        }
+        .preview-scroll { flex: 1; overflow: auto; padding: 16px; display: flex; justify-content: center; }
         .preview-scroll::-webkit-scrollbar { width: 4px; }
         .preview-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 
-        /* Invoice sheet */
         #invoice-sheet {
-            width: 370px;
-            background: #fff;
-            padding: 24px 22px 18px;
-            font-family: 'Cairo', sans-serif;
-            direction: rtl;
-            box-shadow: 0 4px 24px rgba(0,0,0,.15);
-            border-radius: 4px;
+            width: 370px; background: #fff; padding: 24px 22px 18px;
+            font-family: 'Cairo', sans-serif; direction: rtl;
+            box-shadow: 0 4px 24px rgba(0,0,0,.15); border-radius: 4px;
         }
 
         .inv-table { width: 100%; border-collapse: collapse; }
@@ -490,52 +277,23 @@
         .inv-table tbody tr:nth-child(even) { background: #f8fafc; }
         .inv-table tbody td { font-size: 9.5px; color: #1e293b; font-weight: 600; }
 
-        /* ══ Records & Inventory tabs ══ */
-        .full-tab {
-            flex: 1;
-            overflow: auto;
-            padding: 20px;
-        }
+        .full-tab { flex: 1; overflow: auto; padding: 20px; }
         .full-tab::-webkit-scrollbar { width: 5px; }
         .full-tab::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
         .card {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 20px 24px;
-            box-shadow: 0 2px 8px rgba(0,0,0,.04);
+            background: var(--panel); border: 1px solid var(--border);
+            border-radius: 16px; padding: 20px 24px; box-shadow: 0 2px 8px rgba(0,0,0,.04);
         }
 
         .rec-table { width: 100%; border-collapse: collapse; }
-        .rec-table th {
-            padding: 9px 12px;
-            font-weight: 800;
-            font-size: 11px;
-            text-align: center;
-            background: var(--navy);
-            color: #fff;
-            border-left: 1px solid rgba(255,255,255,.07);
-        }
-        .rec-table td {
-            padding: 9px 12px;
-            font-size: 12px;
-            text-align: center;
-            border-bottom: 1px solid var(--border);
-        }
+        .rec-table th { padding: 9px 12px; font-weight: 800; font-size: 11px; text-align: center; background: var(--navy); color: #fff; border-left: 1px solid rgba(255,255,255,.07); }
+        .rec-table td { padding: 9px 12px; font-size: 12px; text-align: center; border-bottom: 1px solid var(--border); }
         .rec-table tbody tr:hover { background: var(--row-hover); }
 
-        /* ══ Loading ══ */
         #loading-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(15,23,42,.75);
-            z-index: 9999;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 14px;
+            display: none; position: fixed; inset: 0; background: rgba(15,23,42,.75);
+            z-index: 9999; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
         }
         #loading-overlay.on { display: flex; }
         #loading-overlay p { color: #fff; font-family: 'Cairo', sans-serif; font-size: 17px; font-weight: 700; }
@@ -543,22 +301,11 @@
         @keyframes rot { to { transform: rotate(360deg); } }
 
         #toast {
-            position: fixed;
-            bottom: 24px;
-            left: 50%;
+            position: fixed; bottom: 24px; left: 50%;
             transform: translateX(-50%) translateY(60px);
-            background: var(--navy);
-            color: #fff;
-            padding: 11px 22px;
-            border-radius: 12px;
-            font-family: 'Cairo', sans-serif;
-            font-weight: 700;
-            font-size: 13px;
-            transition: transform .3s, opacity .3s;
-            opacity: 0;
-            z-index: 9000;
-            white-space: nowrap;
-            pointer-events: none;
+            background: var(--navy); color: #fff; padding: 11px 22px;
+            border-radius: 12px; font-family: 'Cairo', sans-serif; font-weight: 700; font-size: 13px;
+            transition: transform .3s, opacity .3s; opacity: 0; z-index: 9000; white-space: nowrap; pointer-events: none;
         }
         #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
         #toast.err  { background: #dc2626; }
@@ -566,49 +313,28 @@
 
         input:focus, select:focus, textarea:focus { outline: none; }
 
-        /* Inv types */
-        .type-badge {
-            display: inline-block;
-            padding: 2px 9px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: 800;
-        }
+        .type-badge { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 10px; font-weight: 800; }
         .type-sale    { background: #f0fdf4; color: #16a34a; }
         .type-receipt { background: #eff6ff; color: #2563eb; }
 
-        /* Stats row */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-        .stat-card {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 12px 14px;
-        }
-        .stat-card-val { font-size: 17px; font-weight: 900; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 16px; }
+        .stat-card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
+        .stat-card-val { font-size: 16px; font-weight: 900; }
         .stat-card-lbl { font-size: 10px; color: var(--muted); font-weight: 700; margin-top: 2px; }
 
-        /* Product table edit */
-        .edit-input {
-            padding: 3px 7px;
-            border: 1.5px solid #bfdbfe;
-            border-radius: 6px;
-            font-family: 'Cairo', sans-serif;
-            font-size: 11px;
-            font-weight: 600;
-            outline: none;
-        }
+        .edit-input { padding: 3px 7px; border: 1.5px solid #bfdbfe; border-radius: 6px; font-family: 'Cairo', sans-serif; font-size: 11px; font-weight: 600; outline: none; }
         .edit-input:focus { border-color: #2563eb; }
 
-        /* Responsive hint */
+        /* Profit section */
+        .profit-card {
+            background: linear-gradient(135deg, #14532d, #16a34a);
+            border-radius: 14px; padding: 16px 18px; color: #fff; margin-bottom: 16px;
+        }
+        .profit-card.loss { background: linear-gradient(135deg, #7f1d1d, #dc2626); }
+
         @media (max-width: 1200px) {
             .preview-panel { width: 340px; }
-            :root { --sidebar-w: 280px; }
+            :root { --sidebar-w: 290px; }
         }
     </style>
 </head>
@@ -620,21 +346,17 @@
 <script type="text/babel">
 const { useState, useMemo, useRef, useEffect, useCallback } = React;
 
-/* ══ Supabase ══ */
 const SB_URL = 'https://xjekrdmtewopugoklfza.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhqZWtyZG10ZXdvcHVnb2tsZnphIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyNjMxMDgsImV4cCI6MjA5MzgzOTEwOH0.Y-V3vHx0InzRm-8S5aQVpzWJYKy8Iqo7Ll6C3zSLHIY';
 const sb = supabase.createClient(SB_URL, SB_KEY);
 
-/* ══ Helpers ══ */
 function showLoading(t='جاري المعالجة...'){ document.getElementById('loading-text').textContent=t; document.getElementById('loading-overlay').classList.add('on'); }
 function hideLoading(){ document.getElementById('loading-overlay').classList.remove('on'); }
 let _tt;
 function toast(msg,type=''){
     const el=document.getElementById('toast');
-    el.textContent=msg;
-    el.className='show '+(type==='error'?'err':type==='success'?'ok':'');
-    clearTimeout(_tt);
-    _tt=setTimeout(()=>{el.className='';},3000);
+    el.textContent=msg; el.className='show '+(type==='error'?'err':type==='success'?'ok':'');
+    clearTimeout(_tt); _tt=setTimeout(()=>{el.className='';},3000);
 }
 const fmt = n => Number(n||0).toLocaleString();
 const IQ  = n => fmt(n)+' د.ع';
@@ -648,9 +370,7 @@ function toWA(phone){
 }
 
 async function getNextInvoiceNumber(){
-    const now=new Date();
-    const month=now.getMonth()+1;
-    const ym=now.toISOString().slice(0,7);
+    const now=new Date(); const month=now.getMonth()+1; const ym=now.toISOString().slice(0,7);
     try {
         const {count}=await sb.from('invoices').select('id',{count:'exact',head:true})
             .gte('date',ym+'-01').lte('date',ym+'-31');
@@ -658,13 +378,17 @@ async function getNextInvoiceNumber(){
     } catch { return `${month}-1`; }
 }
 
-async function saveToSupabase(inv, subtotal, paid, due){
+async function saveToSupabase(inv, subtotal, discountVal, finalTotal, paid, due){
     try {
+        const notesWithDiscount = discountVal > 0
+            ? `[خصم: ${fmt(discountVal)} د.ع] ${inv.notes||''}`
+            : (inv.notes||'');
         const {error}=await sb.from('invoices').insert({
             invoice_number:inv.invoiceNumber, date:inv.date,
             customer_name:inv.customerName, customer_phone:inv.customerPhone,
             invoice_type:inv.invoiceType, items:inv.items,
-            subtotal, paid_amount:paid, due_amount:due, notes:inv.notes
+            subtotal:finalTotal, paid_amount:paid, due_amount:due,
+            notes:notesWithDiscount
         });
         if(error) throw error;
         return true;
@@ -691,12 +415,10 @@ const Icons = {
     Check:   svg(<><polyline points="20 6 9 17 4 12"/></>),
     X:       svg(<><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>),
     New:     svg(<><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></>),
-    Print:   svg(<><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></>),
+    Profit:  svg(<><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></>),
 };
 
-/* ══════════════════════════════════════
-   AutocompleteCell
-══════════════════════════════════════ */
+/* ══ AutocompleteCell ══ */
 function AutocompleteCell({ value, onSelect, products, inputRef, onKeyDown, onFocus }) {
     const [open, setOpen] = useState(false);
     const [selIdx, setSelIdx] = useState(-1);
@@ -715,23 +437,13 @@ function AutocompleteCell({ value, onSelect, products, inputRef, onKeyDown, onFo
         return () => document.removeEventListener('mousedown', h);
     }, []);
 
-    // Recalculate dropdown position on open
     const updatePos = () => {
         if (!wrapRef.current) return;
         const r = wrapRef.current.getBoundingClientRect();
-        setDropPos({
-            top: r.bottom + 3,
-            // align to input right edge, extend leftward
-            right: window.innerWidth - r.right,
-            width: Math.max(r.width, 360),
-        });
+        setDropPos({ top: r.bottom + 3, right: window.innerWidth - r.right, width: Math.max(r.width, 360) });
     };
 
-    const pick = prod => {
-        onSelect(prod.name, Number(prod.sell_price)||0);
-        setOpen(false);
-        setSelIdx(-1);
-    };
+    const pick = prod => { onSelect(prod.name, Number(prod.sell_price)||0); setOpen(false); setSelIdx(-1); };
 
     const handleKey = e => {
         if (!open) { onKeyDown && onKeyDown(e); return; }
@@ -752,16 +464,11 @@ function AutocompleteCell({ value, onSelect, products, inputRef, onKeyDown, onFo
 
     return (
         <div ref={wrapRef} style={{position:'relative', width:'100%'}}>
-            <input
-                ref={inputRef}
-                className="cell-input name-input"
-                value={value}
-                placeholder="اكتب اسم المادة..."
-                autoComplete="off"
+            <input ref={inputRef} className="cell-input name-input" value={value}
+                placeholder="اكتب اسم المادة..." autoComplete="off"
                 onChange={e => { onSelect(e.target.value, null); updatePos(); setOpen(true); setSelIdx(-1); }}
                 onFocus={() => { updatePos(); setOpen(true); onFocus && onFocus(); }}
-                onKeyDown={handleKey}
-            />
+                onKeyDown={handleKey}/>
             {open && suggestions.length > 0 && (
                 <div className="ac-dropdown" style={{top: dropPos.top, right: dropPos.right, width: dropPos.width}}>
                     <div className="ac-header">▼ اختر من المخزن أو تابع الكتابة</div>
@@ -779,10 +486,8 @@ function AutocompleteCell({ value, onSelect, products, inputRef, onKeyDown, onFo
     );
 }
 
-/* ══════════════════════════════════════
-   Invoice Sheet (for PDF/preview)
-══════════════════════════════════════ */
-function InvoiceSheet({ inv, subtotal, paid, due, sheetRef }) {
+/* ══ InvoiceSheet ══ */
+function InvoiceSheet({ inv, subtotal, discountVal, finalTotal, paid, due, sheetRef }) {
     const F = { fontFamily:"'Cairo', sans-serif" };
     const paddedItems = useMemo(() => {
         const a = [...inv.items.filter(i => i.description || i.quantity || i.price)];
@@ -864,19 +569,52 @@ function InvoiceSheet({ inv, subtotal, paid, due, sheetRef }) {
                             </div>
                         </div>
                         <div style={{width:'42%',border:'2px solid #1a2744',borderRadius:'8px',overflow:'hidden'}}>
-                            {[
-                                {lbl:'المجموع الكلي',en:'Total',val:subtotal,color:'#f8fafc',textCol:'#1a2744',valSz:'13px'},
-                                {lbl:'مدفوع',en:'Paid',val:paid,color:'#fff',textCol:'#0f172a',valSz:'13px'},
-                                {lbl:'الرصيد المستحق',en:'Due',val:due,color:due>0?'#dc2626':'#1a2744',textCol:'#fff',valSz:'16px',bold:true},
-                            ].map(({lbl,en,val,color,textCol,valSz,bold},i)=>(
-                                <div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 10px',background:color,borderBottom:i<2?'1px solid #cbd5e1':'none'}}>
-                                    <span style={{fontWeight:bold?900:800,fontSize:valSz,color:textCol,...F}}>{val.toLocaleString()} <small style={{fontSize:'8px'}}>د.ع</small></span>
+                            {/* Subtotal before discount */}
+                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 10px',background:'#f8fafc',borderBottom:'1px solid #cbd5e1'}}>
+                                <span style={{fontWeight:800,fontSize:'12px',color:'#1a2744',...F}}>{subtotal.toLocaleString()} <small style={{fontSize:'7px'}}>د.ع</small></span>
+                                <div style={{textAlign:'right'}}>
+                                    <div style={{fontWeight:900,fontSize:'9px',color:'#1a2744',...F}}>المجموع الكلي</div>
+                                    <div style={{fontSize:'7px',color:'#94a3b8',...F}}>Total</div>
+                                </div>
+                            </div>
+                            {/* Discount row - only show if discount exists */}
+                            {discountVal > 0 && (
+                                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 10px',background:'#fffbeb',borderBottom:'1px solid #cbd5e1'}}>
+                                    <span style={{fontWeight:800,fontSize:'12px',color:'#d97706',...F}}>- {discountVal.toLocaleString()} <small style={{fontSize:'7px'}}>د.ع</small></span>
                                     <div style={{textAlign:'right'}}>
-                                        <div style={{fontWeight:900,fontSize:'10px',color:i===2?'#fff':textCol,...F}}>{lbl}</div>
-                                        <div style={{fontSize:'7px',color:i===2?'rgba(255,255,255,.6)':'#94a3b8',...F}}>{en}</div>
+                                        <div style={{fontWeight:900,fontSize:'9px',color:'#d97706',...F}}>
+                                            خصم {inv.discountType==='percent'?`${inv.discount}%`:''}
+                                        </div>
+                                        <div style={{fontSize:'7px',color:'#94a3b8',...F}}>Discount</div>
                                     </div>
                                 </div>
-                            ))}
+                            )}
+                            {/* After-discount total */}
+                            {discountVal > 0 && (
+                                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 10px',background:'#f0fdf4',borderBottom:'1px solid #cbd5e1'}}>
+                                    <span style={{fontWeight:800,fontSize:'13px',color:'#16a34a',...F}}>{finalTotal.toLocaleString()} <small style={{fontSize:'7px'}}>د.ع</small></span>
+                                    <div style={{textAlign:'right'}}>
+                                        <div style={{fontWeight:900,fontSize:'9px',color:'#16a34a',...F}}>بعد الخصم</div>
+                                        <div style={{fontSize:'7px',color:'#94a3b8',...F}}>After discount</div>
+                                    </div>
+                                </div>
+                            )}
+                            {/* Paid */}
+                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 10px',background:'#fff',borderBottom:'1px solid #cbd5e1'}}>
+                                <span style={{fontWeight:800,fontSize:'12px',color:'#0f172a',...F}}>{paid.toLocaleString()} <small style={{fontSize:'7px'}}>د.ع</small></span>
+                                <div style={{textAlign:'right'}}>
+                                    <div style={{fontWeight:900,fontSize:'9px',color:'#0f172a',...F}}>مدفوع</div>
+                                    <div style={{fontSize:'7px',color:'#94a3b8',...F}}>Paid</div>
+                                </div>
+                            </div>
+                            {/* Due */}
+                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 10px',background:due>0?'#dc2626':'#1a2744'}}>
+                                <span style={{fontWeight:900,fontSize:'15px',color:'#fff',...F}}>{due.toLocaleString()} <small style={{fontSize:'8px',opacity:.7}}>د.ع</small></span>
+                                <div style={{textAlign:'right'}}>
+                                    <div style={{fontWeight:900,fontSize:'10px',color:'#fff',...F}}>الرصيد المستحق</div>
+                                    <div style={{fontSize:'7px',color:'rgba(255,255,255,.6)',...F}}>Due</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </>
@@ -913,23 +651,22 @@ function InvoiceSheet({ inv, subtotal, paid, due, sheetRef }) {
     );
 }
 
-/* ══════════════════════════════════════
-   CreateView — main invoice entry
-══════════════════════════════════════ */
+/* ══ CreateView ══ */
 function CreateView({ products, onLoadInvoice }) {
-    const sheetRef = useRef(null);
-    const cellRefs = useRef({});
+    const sheetRef  = useRef(null);
+    const cellRefs  = useRef({});
+    const newItem   = () => ({ id: Date.now().toString() + Math.random(), description:'', quantity:1, price:'' });
 
-    const newItem = () => ({ id: Date.now().toString() + Math.random(), description:'', quantity:1, price:'' });
-
-    const [inv, setInv] = useState({
+    const blankInv = () => ({
         invoiceNumber:'...', date:new Date().toISOString().split('T')[0],
         customerName:'', customerPhone:'',
         items:[ newItem() ],
         invoiceType:'sale', paidAmount:'',
+        discount:'', discountType:'amount',
         notes:'البضاعة المباعة لا ترد ولا تستبدل بعد 24 ساعة.'
     });
 
+    const [inv, setInv]           = useState(blankInv);
     const [activeRow, setActiveRow] = useState(null);
 
     useEffect(()=>{
@@ -937,10 +674,16 @@ function CreateView({ products, onLoadInvoice }) {
     },[]);
 
     const subtotal = useMemo(()=> inv.items.reduce((s,it)=> s+(Number(it.quantity||0)*Number(it.price||0)),0), [inv.items]);
-    const paid = Number(inv.paidAmount)||0;
-    const due  = Math.max(0, subtotal - paid);
+    const discountVal = useMemo(()=>{
+        const d = Number(inv.discount||0);
+        if (d <= 0) return 0;
+        return inv.discountType === 'percent' ? Math.round(subtotal * d / 100) : d;
+    }, [inv.discount, inv.discountType, subtotal]);
+    const finalTotal  = Math.max(0, subtotal - discountVal);
+    const paid        = Number(inv.paidAmount)||0;
+    const due         = Math.max(0, finalTotal - paid);
 
-    const setField = (key, val) => setInv(p=>({...p,[key]:val}));
+    const setField  = (key, val) => setInv(p=>({...p,[key]:val}));
 
     const updateItem = useCallback((id, field, value) => {
         setInv(p=>({...p, items: p.items.map(it=> it.id===id ? {...it,[field]:value} : it)}));
@@ -955,26 +698,17 @@ function CreateView({ products, onLoadInvoice }) {
     const addRow = () => {
         const item = newItem();
         setInv(p=>({...p, items:[...p.items, item]}));
-        // focus name cell of new row
-        setTimeout(()=>{
-            const ref = cellRefs.current[`name-${item.id}`];
-            if (ref) ref.focus();
-        }, 50);
+        setTimeout(()=>{ const ref = cellRefs.current[`name-${item.id}`]; if (ref) ref.focus(); }, 50);
     };
 
     const removeItem = id => setInv(p=>({...p, items: p.items.filter(it=>it.id!==id)}));
 
-    const clearAll = async () => {
+    const resetInvoice = async () => {
         const n = await getNextInvoiceNumber();
-        setInv({
-            invoiceNumber:n, date:new Date().toISOString().split('T')[0],
-            customerName:'', customerPhone:'',
-            items:[newItem()], invoiceType:'sale', paidAmount:'',
-            notes:'البضاعة المباعة لا ترد ولا تستبدل بعد 24 ساعة.'
-        });
+        setInv({ ...blankInv(), invoiceNumber: n });
+        setActiveRow(null);
     };
 
-    // Navigate between cells with Tab/Enter
     const handleCellKey = (e, itemId, field) => {
         if (e.key === 'Tab' || e.key === 'Enter') {
             e.preventDefault();
@@ -984,36 +718,20 @@ function CreateView({ products, onLoadInvoice }) {
                 const ref = cellRefs.current[`${order[ci+1]}-${itemId}`];
                 if (ref) ref.focus();
             } else {
-                // move to next row name, or add row
                 const items = inv.items;
                 const ri = items.findIndex(it=>it.id===itemId);
                 if (ri < items.length-1) {
                     const ref = cellRefs.current[`name-${items[ri+1].id}`];
                     if (ref) ref.focus();
-                } else {
-                    addRow();
-                }
+                } else { addRow(); }
             }
         }
     };
 
-    /* Reset invoice to blank new one */
-    const resetInvoice = async () => {
-        const n = await getNextInvoiceNumber();
-        setInv({
-            invoiceNumber:n, date:new Date().toISOString().split('T')[0],
-            customerName:'', customerPhone:'',
-            items:[newItem()], invoiceType:'sale', paidAmount:'',
-            notes:'البضاعة المباعة لا ترد ولا تستبدل بعد 24 ساعة.'
-        });
-        setActiveRow(null);
-    };
-
-    /* PDF */
     const handlePDF = async () => {
         showLoading('جاري إنشاء ملف PDF...');
         try {
-            await saveToSupabase(inv, subtotal, paid, due);
+            await saveToSupabase(inv, subtotal, discountVal, finalTotal, paid, due);
             const el = sheetRef.current;
             await new Promise(r=>setTimeout(r,80));
             await html2pdf().set({
@@ -1033,7 +751,7 @@ function CreateView({ products, onLoadInvoice }) {
         showLoading('جاري تجهيز صورة الفاتورة...');
         try {
             await document.fonts.ready;
-            await saveToSupabase(inv, subtotal, paid, due);
+            await saveToSupabase(inv, subtotal, discountVal, finalTotal, paid, due);
             const el = sheetRef.current;
             await new Promise(r=>setTimeout(r,80));
             const dataUrl = await domtoimage.toPng(el,{quality:1,bgcolor:'#ffffff',style:{direction:'rtl',fontFamily:"'Cairo',sans-serif"}});
@@ -1061,13 +779,14 @@ function CreateView({ products, onLoadInvoice }) {
 
     const handleSave = async () => {
         showLoading('جاري الحفظ...');
-        const ok = await saveToSupabase(inv, subtotal, paid, due);
+        const ok = await saveToSupabase(inv, subtotal, discountVal, finalTotal, paid, due);
         hideLoading();
         if(ok){ toast('تم الحفظ ✓','success'); await resetInvoice(); }
         else toast('فشل الحفظ','error');
     };
 
     const filledCount = inv.items.filter(it=>it.description).length;
+    const F = {fontFamily:'Cairo,sans-serif'};
 
     return (
         <div className="create-layout">
@@ -1095,6 +814,35 @@ function CreateView({ products, onLoadInvoice }) {
                         placeholder="رقم الهاتف" dir="ltr" className="sb-input"/>
                 </div>
 
+                {/* ══ Discount Section ══ */}
+                <div className="sidebar-section">
+                    <div className="sidebar-label">🏷️ الخصم</div>
+                    <div className="disc-toggle" style={{marginBottom:8}}>
+                        <button className={inv.discountType==='amount'?'active':''} onClick={()=>setField('discountType','amount')}>
+                            مبلغ (د.ع)
+                        </button>
+                        <button className={inv.discountType==='percent'?'active':''} onClick={()=>setField('discountType','percent')}>
+                            نسبة (%)
+                        </button>
+                    </div>
+                    <div style={{position:'relative'}}>
+                        <input type="number" value={inv.discount}
+                            onChange={e=>setField('discount',e.target.value)}
+                            placeholder={inv.discountType==='percent'?'0 %':'0 د.ع'}
+                            className="sb-input"
+                            style={{fontSize:17,fontWeight:900,color:'#fcd34d',textAlign:'center',paddingLeft:30}}
+                            min="0" max={inv.discountType==='percent'?100:undefined}/>
+                        <span style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)',color:'rgba(255,255,255,.4)',fontSize:13,fontWeight:800,pointerEvents:'none'}}>
+                            {inv.discountType==='percent'?'%':'IQD'}
+                        </span>
+                    </div>
+                    {discountVal > 0 && (
+                        <div style={{marginTop:6,background:'rgba(253,211,77,.1)',border:'1px solid rgba(253,211,77,.25)',borderRadius:8,padding:'6px 10px',color:'#fcd34d',fontSize:12,fontWeight:800,textAlign:'center'}}>
+                            وفّر: {fmt(discountVal)} د.ع
+                        </div>
+                    )}
+                </div>
+
                 <div className="sidebar-section">
                     <div className="sidebar-label">{inv.invoiceType==='sale'?'💵 المبلغ المدفوع':'💵 مبلغ السند'}</div>
                     <input type="number" value={inv.paidAmount} onChange={e=>setField('paidAmount',e.target.value)}
@@ -1104,22 +852,32 @@ function CreateView({ products, onLoadInvoice }) {
 
                 {inv.invoiceType==='sale' && (
                     <div className="sidebar-section">
-                        <div className="sb-row">
+                        <div className="sb-row" style={{marginBottom:6}}>
                             <div className="sb-stat">
                                 <div className="sb-stat-val" style={{color:'#93c5fd'}}>{fmt(subtotal)}</div>
-                                <div className="sb-stat-lbl">المجموع الكلي</div>
+                                <div className="sb-stat-lbl">قبل الخصم</div>
                             </div>
+                            {discountVal > 0 && (
+                                <div className="sb-stat">
+                                    <div className="sb-stat-val" style={{color:'#fcd34d'}}>-{fmt(discountVal)}</div>
+                                    <div className="sb-stat-lbl">خصم</div>
+                                </div>
+                            )}
                             <div className="sb-stat">
                                 <div className="sb-stat-val" style={{color:'#86efac'}}>{fmt(paid)}</div>
                                 <div className="sb-stat-lbl">مدفوع</div>
                             </div>
                         </div>
-                        <div style={{marginTop:10}}>
-                            <div className={`due-box${due>0?' red':''}`}>
-                                <div className="due-box-lbl">الرصيد المستحق</div>
-                                <div className="due-box-val">{fmt(due)} <span style={{fontSize:12,opacity:.7}}>د.ع</span></div>
-                                <div className="due-box-sub">{due<=0?'✅ مسدد بالكامل':'⚠ متبقي للتحصيل'}</div>
+                        {discountVal > 0 && (
+                            <div style={{background:'rgba(99,255,180,.08)',border:'1px solid rgba(99,255,180,.2)',borderRadius:10,padding:'7px 12px',marginBottom:6,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                                <span style={{fontSize:10,fontWeight:800,color:'rgba(255,255,255,.5)'}}>بعد الخصم</span>
+                                <span style={{fontSize:16,fontWeight:900,color:'#86efac'}}>{fmt(finalTotal)} <span style={{fontSize:10,opacity:.6}}>د.ع</span></span>
                             </div>
+                        )}
+                        <div className={`due-box${due>0?' red':''}`}>
+                            <div className="due-box-lbl">الرصيد المستحق</div>
+                            <div className="due-box-val">{fmt(due)} <span style={{fontSize:12,opacity:.7}}>د.ع</span></div>
+                            <div className="due-box-sub">{due<=0?'✅ مسدد بالكامل':'⚠ متبقي للتحصيل'}</div>
                         </div>
                     </div>
                 )}
@@ -1149,31 +907,25 @@ function CreateView({ products, onLoadInvoice }) {
                 </div>
             </div>
 
-            {/* ══ Main grid area ══ */}
+            {/* ══ Main grid ══ */}
             <div className="main-area">
-                {/* Toolbar */}
                 <div className="toolbar">
-                    <button className="tb-btn" onClick={addRow} title="إضافة صف (Enter في آخر خلية)">
-                        <Icons.Plus/> إضافة صف
-                    </button>
+                    <button className="tb-btn" onClick={addRow}><Icons.Plus/> إضافة صف</button>
                     <div className="tb-sep"/>
-                    <button className="tb-btn" onClick={clearAll}>
-                        <Icons.New/> فاتورة جديدة
-                    </button>
+                    <button className="tb-btn" onClick={resetInvoice}><Icons.New/> فاتورة جديدة</button>
                     <div className="tb-sep"/>
                     <button className="tb-btn" onClick={handlePDF}><Icons.PDF/> PDF</button>
                     <button className="tb-btn" onClick={handleWA} style={{color:'#16a34a'}}><Icons.WA/> واتساب</button>
                     <button className="tb-btn" onClick={handleSave}><Icons.Save/> حفظ</button>
-
                     <div className="tb-sep"/>
                     <span style={{fontSize:12,fontWeight:700,color:'#94a3b8'}}>
                         وصل رقم: <strong style={{color:'#1a2744'}}>#{inv.invoiceNumber}</strong>
                         &nbsp;|&nbsp; {filledCount} مادة
-                        &nbsp;|&nbsp; المجموع: <strong style={{color:'#2563eb'}}>{fmt(subtotal)} د.ع</strong>
+                        &nbsp;|&nbsp; المجموع: <strong style={{color:'#2563eb'}}>{fmt(finalTotal)} د.ع</strong>
+                        {discountVal>0&&<span style={{color:'#d97706'}}> (خصم: {fmt(discountVal)})</span>}
                     </span>
                 </div>
 
-                {/* Grid */}
                 <div className="grid-wrap">
                     <table className="invoice-grid">
                         <thead>
@@ -1192,69 +944,39 @@ function CreateView({ products, onLoadInvoice }) {
                                 return (
                                     <tr key={item.id} className={activeRow===item.id?'active-row':''}>
                                         <td className="col-num">{i+1}</td>
-
-                                        {/* Name + autocomplete */}
                                         <td style={{minWidth:220}}>
-                                            <AutocompleteCell
-                                                value={item.description}
-                                                products={products}
+                                            <AutocompleteCell value={item.description} products={products}
                                                 onSelect={(name, price) => selectProduct(item.id, name, price)}
                                                 inputRef={el => cellRefs.current[`name-${item.id}`] = el}
                                                 onKeyDown={e => handleCellKey(e, item.id, 'name')}
-                                                onFocus={() => setActiveRow(item.id)}
-                                            />
+                                                onFocus={() => setActiveRow(item.id)}/>
                                         </td>
-
-                                        {/* Quantity */}
                                         <td>
-                                            <input
-                                                ref={el => cellRefs.current[`qty-${item.id}`] = el}
-                                                type="number"
-                                                className="cell-input"
-                                                value={item.quantity}
-                                                min="0"
+                                            <input ref={el => cellRefs.current[`qty-${item.id}`] = el}
+                                                type="number" className="cell-input" value={item.quantity} min="0"
                                                 onChange={e => updateItem(item.id,'quantity',e.target.value)}
                                                 onFocus={() => setActiveRow(item.id)}
-                                                onKeyDown={e => handleCellKey(e, item.id, 'qty')}
-                                            />
+                                                onKeyDown={e => handleCellKey(e, item.id, 'qty')}/>
                                         </td>
-
-                                        {/* Price */}
                                         <td>
-                                            <input
-                                                ref={el => cellRefs.current[`price-${item.id}`] = el}
-                                                type="number"
-                                                className={`cell-input${Number(item.price)>0?' price-filled':''}`}
-                                                value={item.price}
-                                                min="0"
-                                                placeholder="0"
+                                            <input ref={el => cellRefs.current[`price-${item.id}`] = el}
+                                                type="number" className={`cell-input${Number(item.price)>0?' price-filled':''}`}
+                                                value={item.price} min="0" placeholder="0"
                                                 onChange={e => updateItem(item.id,'price',e.target.value)}
                                                 onFocus={() => setActiveRow(item.id)}
-                                                onKeyDown={e => handleCellKey(e, item.id, 'price')}
-                                            />
+                                                onKeyDown={e => handleCellKey(e, item.id, 'price')}/>
                                         </td>
-
-                                        {/* Total (computed) */}
                                         <td>
-                                            <input
-                                                className="cell-input computed total-cell"
-                                                value={total > 0 ? total.toLocaleString() : ''}
-                                                readOnly
-                                                tabIndex={-1}
-                                            />
+                                            <input className="cell-input computed total-cell"
+                                                value={total > 0 ? total.toLocaleString() : ''} readOnly tabIndex={-1}/>
                                         </td>
-
-                                        {/* Delete */}
                                         <td style={{width:44}}>
-                                            <button className="del-btn" onClick={()=>removeItem(item.id)} title="حذف الصف">
-                                                ✕
-                                            </button>
+                                            <button className="del-btn" onClick={()=>removeItem(item.id)}>✕</button>
                                         </td>
                                     </tr>
                                 );
                             })}
                         </tbody>
-                        {/* Footer totals */}
                         {inv.invoiceType==='sale' && (
                             <tfoot>
                                 <tr className="grid-footer">
@@ -1266,11 +988,31 @@ function CreateView({ products, onLoadInvoice }) {
                                     </td>
                                     <td></td>
                                 </tr>
+                                {discountVal > 0 && (
+                                    <tr style={{background:'#78350f'}}>
+                                        <td colSpan={4} style={{textAlign:'right',paddingRight:20,color:'rgba(255,255,255,.6)',fontSize:12,padding:'8px 12px',fontWeight:700}}>
+                                            خصم {inv.discountType==='percent'?`${inv.discount}%`:''}
+                                        </td>
+                                        <td style={{color:'#fcd34d',fontWeight:900,fontSize:15,padding:'8px 12px',textAlign:'center'}}>
+                                            - {fmt(discountVal)} <span style={{fontSize:11,opacity:.6}}>د.ع</span>
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                )}
+                                {discountVal > 0 && (
+                                    <tr style={{background:'#1e3a5f'}}>
+                                        <td colSpan={4} style={{textAlign:'right',paddingRight:20,color:'rgba(255,255,255,.6)',fontSize:12,padding:'8px 12px',fontWeight:700}}>
+                                            الإجمالي بعد الخصم
+                                        </td>
+                                        <td style={{color:'#86efac',fontWeight:900,fontSize:16,padding:'8px 12px',textAlign:'center'}}>
+                                            {fmt(finalTotal)} <span style={{fontSize:11,opacity:.6}}>د.ع</span>
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                )}
                                 {paid > 0 && (
                                     <tr style={{background:'#1e3a5f'}}>
-                                        <td colSpan={4} style={{textAlign:'right',paddingRight:20,color:'rgba(255,255,255,.5)',fontSize:12,padding:'8px 12px',fontWeight:700}}>
-                                            مدفوع
-                                        </td>
+                                        <td colSpan={4} style={{textAlign:'right',paddingRight:20,color:'rgba(255,255,255,.5)',fontSize:12,padding:'8px 12px',fontWeight:700}}>مدفوع</td>
                                         <td style={{color:'#86efac',fontWeight:900,fontSize:15,padding:'8px 12px',textAlign:'center'}}>
                                             {fmt(paid)} <span style={{fontSize:11,opacity:.6}}>د.ع</span>
                                         </td>
@@ -1279,9 +1021,7 @@ function CreateView({ products, onLoadInvoice }) {
                                 )}
                                 {paid > 0 && (
                                     <tr style={{background:due>0?'#7f1d1d':'#14532d'}}>
-                                        <td colSpan={4} style={{textAlign:'right',paddingRight:20,color:'rgba(255,255,255,.6)',fontSize:12,padding:'8px 12px',fontWeight:700}}>
-                                            الرصيد المستحق
-                                        </td>
+                                        <td colSpan={4} style={{textAlign:'right',paddingRight:20,color:'rgba(255,255,255,.6)',fontSize:12,padding:'8px 12px',fontWeight:700}}>الرصيد المستحق</td>
                                         <td style={{color:'#fff',fontWeight:900,fontSize:17,padding:'8px 12px',textAlign:'center'}}>
                                             {fmt(due)} <span style={{fontSize:11,opacity:.7}}>د.ع</span>
                                         </td>
@@ -1292,20 +1032,19 @@ function CreateView({ products, onLoadInvoice }) {
                         )}
                     </table>
 
-                    {/* Hint row */}
                     <div style={{marginTop:8,padding:'6px 12px',fontSize:11,color:'#94a3b8',fontWeight:600,display:'flex',gap:20}}>
                         <span>💡 Tab / Enter: الانتقال للحقل التالي</span>
                         <span>↑↓: التنقل في القائمة المنسدلة</span>
-                        <span>اكتب اسم المادة لتظهر الأسعار تلقائياً من المخزن</span>
+                        <span>اكتب اسم المادة لتظهر الأسعار تلقائياً</span>
                     </div>
                 </div>
 
-                {/* Status bar */}
                 <div className="statusbar">
                     <span>📄 وصل #{inv.invoiceNumber}</span>
                     <span>📅 {inv.date}</span>
-                    <span>📦 {inv.items.length} صف | {filledCount} مادة مُدخلة</span>
-                    <span>💰 المجموع: {fmt(subtotal)} د.ع</span>
+                    <span>📦 {filledCount} مادة مُدخلة</span>
+                    {discountVal>0&&<span style={{color:'#d97706'}}>🏷️ خصم: {fmt(discountVal)} د.ع</span>}
+                    <span>💰 الإجمالي: {fmt(finalTotal)} د.ع</span>
                     {paid>0&&<span>✅ مدفوع: {fmt(paid)} د.ع</span>}
                     {paid>0&&<span style={{color:due>0?'#dc2626':'#16a34a'}}>
                         {due>0?`⚠ متبقي: ${fmt(due)} د.ع`:'✅ مسدد'}
@@ -1315,26 +1054,23 @@ function CreateView({ products, onLoadInvoice }) {
 
             {/* ══ Preview panel ══ */}
             <div className="preview-panel">
-                <div className="preview-header">
-                    <Icons.Eye/> معاينة الفاتورة
-                </div>
+                <div className="preview-header"><Icons.Eye/> معاينة الفاتورة</div>
                 <div className="preview-scroll">
-                    <InvoiceSheet inv={inv} subtotal={subtotal} paid={paid} due={due} sheetRef={sheetRef}/>
+                    <InvoiceSheet inv={inv} subtotal={subtotal} discountVal={discountVal}
+                        finalTotal={finalTotal} paid={paid} due={due} sheetRef={sheetRef}/>
                 </div>
             </div>
         </div>
     );
 }
 
-/* ══════════════════════════════════════
-   RecordsView
-══════════════════════════════════════ */
+/* ══ RecordsView ══ */
 function RecordsView({ onLoadInvoice, onSwitch }) {
-    const [records, setRecords] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [records, setRecords]   = useState([]);
+    const [loading, setLoading]   = useState(true);
     const [filterType, setFilterType] = useState('all');
-    const [search, setSearch] = useState('');
-    const [editRow, setEditRow] = useState(null); // row being edited inline
+    const [search, setSearch]     = useState('');
+    const [editRow, setEditRow]   = useState(null);
     const [editData, setEditData] = useState({});
 
     useEffect(()=>{ load(); },[]);
@@ -1351,36 +1087,23 @@ function RecordsView({ onLoadInvoice, onSwitch }) {
         if(!confirm('هل تريد حذف هذه القائمة نهائياً؟')) return;
         const {error} = await sb.from('invoices').delete().eq('id', id);
         if(error){ toast('فشل الحذف','error'); return; }
-        toast('تم الحذف ✓','success');
-        load();
+        toast('تم الحذف ✓','success'); load();
     };
 
     const startEdit = (row) => {
         setEditRow(row.id);
-        setEditData({
-            customer_name: row.customer_name||'',
-            customer_phone: row.customer_phone||'',
-            date: row.date||'',
-            paid_amount: row.paid_amount||0,
-            notes: row.notes||'',
-        });
+        setEditData({ customer_name:row.customer_name||'', customer_phone:row.customer_phone||'', date:row.date||'', paid_amount:row.paid_amount||0, notes:row.notes||'' });
     };
 
     const saveEdit = async (row) => {
         const newPaid = Number(editData.paid_amount)||0;
         const newDue  = Math.max(0, Number(row.subtotal||0) - newPaid);
         const {error} = await sb.from('invoices').update({
-            customer_name: editData.customer_name,
-            customer_phone: editData.customer_phone,
-            date: editData.date,
-            paid_amount: newPaid,
-            due_amount: newDue,
-            notes: editData.notes,
+            customer_name:editData.customer_name, customer_phone:editData.customer_phone,
+            date:editData.date, paid_amount:newPaid, due_amount:newDue, notes:editData.notes,
         }).eq('id', row.id);
         if(error){ toast('فشل الحفظ','error'); return; }
-        toast('تم الحفظ ✓','success');
-        setEditRow(null);
-        load();
+        toast('تم الحفظ ✓','success'); setEditRow(null); load();
     };
 
     const filtered = useMemo(()=> records.filter(r=>{
@@ -1430,8 +1153,11 @@ function RecordsView({ onLoadInvoice, onSwitch }) {
                     </div>
                 </div>
 
-                <div className="stats-grid" style={{marginBottom:16}}>
-                    {[['عدد السجلات',filtered.length,'#1a2744'],['إجمالي المبيعات',IQ(totSub),'#0f172a'],['إجمالي المدفوع',IQ(totPaid),'#16a34a'],['إجمالي المتبقي',IQ(totDue),totDue>0?'#dc2626':'#16a34a']].map(([lbl,val,col])=>(
+                <div className="stats-grid">
+                    {[['عدد السجلات',filtered.length,'#1a2744'],
+                      ['إجمالي المبيعات',IQ(totSub),'#0f172a'],
+                      ['إجمالي المدفوع',IQ(totPaid),'#16a34a'],
+                      ['إجمالي المتبقي',IQ(totDue),totDue>0?'#dc2626':'#16a34a']].map(([lbl,val,col])=>(
                         <div key={lbl} className="stat-card">
                             <div className="stat-card-val" style={{color:col,...F}}>{val}</div>
                             <div className="stat-card-lbl" style={F}>{lbl}</div>
@@ -1480,18 +1206,18 @@ function RecordsView({ onLoadInvoice, onSwitch }) {
                                                 {isEditing ? editInp('customer_phone','الهاتف','tel',110) :
                                                     <span style={{fontSize:11,direction:'ltr',display:'block',...F}}>{row.customer_phone||'—'}</span>}
                                             </td>
-                                            <td>
-                                                <span className={`type-badge${isR?' type-receipt':' type-sale'}`} style={F}>
-                                                    {isR?'سند قبض':'قائمة بيع'}
-                                                </span>
-                                            </td>
+                                            <td><span className={`type-badge${isR?' type-receipt':' type-sale'}`} style={F}>{isR?'سند قبض':'قائمة بيع'}</span></td>
                                             <td style={{fontWeight:700,...F}}>{sub.toLocaleString()}</td>
                                             <td style={{...F}}>
                                                 {isEditing ? editInp('paid_amount','مدفوع','number',80) :
                                                     <span style={{color:'#16a34a',fontWeight:700,...F}}>{pd.toLocaleString()}</span>}
                                             </td>
                                             <td style={{fontWeight:900,color:dv>0?'#dc2626':'#16a34a',...F}}>
-                                                {isEditing ? <span style={{color:Math.max(0,sub-Number(editData.paid_amount||0))>0?'#dc2626':'#16a34a',fontWeight:900,...F}}>{Math.max(0,sub-Number(editData.paid_amount||0)).toLocaleString()}</span> : dv.toLocaleString()}
+                                                {isEditing
+                                                    ? <span style={{color:Math.max(0,sub-Number(editData.paid_amount||0))>0?'#dc2626':'#16a34a',fontWeight:900,...F}}>
+                                                        {Math.max(0,sub-Number(editData.paid_amount||0)).toLocaleString()}
+                                                      </span>
+                                                    : dv.toLocaleString()}
                                             </td>
                                             <td>
                                                 <div style={{display:'flex',gap:4,justifyContent:'center',flexWrap:'nowrap'}}>
@@ -1508,7 +1234,7 @@ function RecordsView({ onLoadInvoice, onSwitch }) {
                                                         </>
                                                     ) : (
                                                         <>
-                                                            <button onClick={()=>{onLoadInvoice(row);onSwitch('create');toast('تم تحميل الفاتورة للمعاينة','success');}}
+                                                            <button onClick={()=>{onLoadInvoice(row);onSwitch('create');toast('تم تحميل الفاتورة ✓','success');}}
                                                                 style={{display:'inline-flex',alignItems:'center',gap:3,padding:'4px 8px',background:'#1a2744',color:'#fff',border:'none',borderRadius:7,cursor:'pointer',fontWeight:700,fontSize:11,...F}}>
                                                                 <Icons.Eye/> عرض
                                                             </button>
@@ -1539,9 +1265,7 @@ function RecordsView({ onLoadInvoice, onSwitch }) {
     );
 }
 
-/* ══════════════════════════════════════
-   InventoryView
-══════════════════════════════════════ */
+/* ══ InventoryView ══ */
 function InventoryView() {
     const [products, setProducts] = useState([]);
     const [expenses, setExpenses] = useState([]);
@@ -1576,7 +1300,10 @@ function InventoryView() {
 
     const delProduct = async id => { if(!confirm('حذف؟'))return; await sb.from('products').delete().eq('id',id); toast('تم الحذف','success'); loadAll(); };
     const startEdit  = row => { setEditId(row.id); setEditData({...row}); };
-    const saveEdit   = async () => { await sb.from('products').update({name:editData.name,cost_price:Number(editData.cost_price)||0,sell_price:Number(editData.sell_price)||0,quantity:Number(editData.quantity)||0,category:editData.category||''}).eq('id',editId); toast('تم الحفظ ✓','success'); setEditId(null); loadAll(); };
+    const saveEdit   = async () => {
+        await sb.from('products').update({name:editData.name,cost_price:Number(editData.cost_price)||0,sell_price:Number(editData.sell_price)||0,quantity:Number(editData.quantity)||0,category:editData.category||''}).eq('id',editId);
+        toast('تم الحفظ ✓','success'); setEditId(null); loadAll();
+    };
 
     const addExpense = async () => {
         if(!newExp.description||!newExp.amount){toast('أدخل الوصف والمبلغ','error');return;}
@@ -1587,17 +1314,63 @@ function InventoryView() {
     };
     const delExpense = async id => { if(!confirm('حذف؟'))return; await sb.from('expenses').delete().eq('id',id); toast('تم الحذف','success'); loadAll(); };
 
-    const totalInvSell = products.reduce((s,p)=>s+(Number(p.sell_price)||0)*(Number(p.quantity)||0),0);
-    const totalExpenses = expenses.reduce((s,e)=>s+(Number(e.amount)||0),0);
-    const totalRevenue  = invoices.filter(i=>i.invoice_type==='sale').reduce((s,i)=>s+Number(i.subtotal||0),0);
+    // ══ Profit Calculations ══
+    const totalInvSell   = products.reduce((s,p)=>s+(Number(p.sell_price)||0)*(Number(p.quantity)||0),0);
+    const totalInvCost   = products.reduce((s,p)=>s+(Number(p.cost_price)||0)*(Number(p.quantity)||0),0);
+    const totalExpenses  = expenses.reduce((s,e)=>s+(Number(e.amount)||0),0);
+    const totalRevenue   = invoices.filter(i=>i.invoice_type==='sale').reduce((s,i)=>s+Number(i.subtotal||0),0);
+    const totalCollected = invoices.filter(i=>i.invoice_type==='sale').reduce((s,i)=>s+Number(i.paid_amount||0),0);
+    // Gross profit = revenue - cost (estimated: assume cost is ~(cost_price/sell_price) ratio of revenue)
+    // We approximate: for each product, margin = (sell-cost)/sell. Apply to revenue.
+    const avgMargin = (() => {
+        const sellTotal = products.reduce((s,p)=>s+(Number(p.sell_price)||0)*(Number(p.quantity)||0),0);
+        if (!sellTotal) return 0;
+        const costTotal = products.reduce((s,p)=>s+(Number(p.cost_price)||0)*(Number(p.quantity)||0),0);
+        return (sellTotal - costTotal) / sellTotal;
+    })();
+    const estimatedCOGS  = Math.round(totalRevenue * (1 - avgMargin));
+    const grossProfit    = totalRevenue - estimatedCOGS;
+    const netProfit      = grossProfit - totalExpenses;
 
     const F = {fontFamily:'Cairo,sans-serif'};
 
     return (
         <div className="full-tab">
-            {/* Stats */}
+            {/* ══ Profit Summary Banner ══ */}
+            <div className={`profit-card${netProfit < 0 ? ' loss' : ''}`} style={{marginBottom:16}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:12}}>
+                    <div>
+                        <div style={{fontSize:11,fontWeight:700,opacity:.7,marginBottom:4,...F}}>💹 صافي الربح التقديري</div>
+                        <div style={{fontSize:32,fontWeight:900,...F}}>{fmt(netProfit)} <span style={{fontSize:14,opacity:.7}}>د.ع</span></div>
+                        <div style={{fontSize:11,opacity:.6,marginTop:4,...F}}>
+                            {netProfit>=0 ? '✅ الأعمال في وضع جيد' : '⚠ المصروفات تتجاوز الأرباح'}
+                        </div>
+                    </div>
+                    <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
+                        {[
+                            ['إجمالي الإيرادات', totalRevenue, '#86efac'],
+                            ['الربح الإجمالي (تقديري)', grossProfit, '#93c5fd'],
+                            ['إجمالي الصرفيات', totalExpenses, '#fca5a5'],
+                        ].map(([lbl,val,col])=>(
+                            <div key={lbl} style={{background:'rgba(255,255,255,.1)',borderRadius:10,padding:'10px 14px',minWidth:130}}>
+                                <div style={{fontSize:18,fontWeight:900,color:col,...F}}>{fmt(val)}</div>
+                                <div style={{fontSize:9,opacity:.65,marginTop:2,...F}}>{lbl}</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* Stats grid */}
             <div className="stats-grid" style={{marginBottom:16}}>
-                {[['المنتجات في المخزن',products.length+' صنف','#7c3aed'],['قيمة المخزن (بيع)',IQ(totalInvSell),'#1a2744'],['إجمالي الإيرادات',IQ(totalRevenue),'#16a34a'],['إجمالي الصرفيات',IQ(totalExpenses),'#dc2626']].map(([lbl,val,col])=>(
+                {[
+                    ['أصناف المخزن', products.length+' صنف', '#7c3aed'],
+                    ['قيمة المخزن (بيع)', IQ(totalInvSell), '#1a2744'],
+                    ['قيمة المخزن (تكلفة)', IQ(totalInvCost), '#475569'],
+                    ['فارق المخزن', IQ(totalInvSell-totalInvCost), totalInvSell>=totalInvCost?'#16a34a':'#dc2626'],
+                    ['إجمالي المحصّل', IQ(totalCollected), '#2563eb'],
+                    ['غير محصّل', IQ(totalRevenue-totalCollected), totalRevenue>totalCollected?'#dc2626':'#16a34a'],
+                ].map(([lbl,val,col])=>(
                     <div key={lbl} className="stat-card">
                         <div className="stat-card-val" style={{color:col,...F}}>{val}</div>
                         <div className="stat-card-lbl" style={F}>{lbl}</div>
@@ -1607,7 +1380,7 @@ function InventoryView() {
 
             {/* Tabs */}
             <div style={{display:'inline-flex',gap:4,marginBottom:14,background:'#fff',borderRadius:10,padding:4,border:'1px solid #e2e8f0'}}>
-                {[['products','📦 المنتجات'],['expenses','💸 الصرفيات']].map(([id,lbl])=>(
+                {[['products','📦 المنتجات'],['expenses','💸 الصرفيات'],['profit','📈 تفصيل الأرباح']].map(([id,lbl])=>(
                     <button key={id} onClick={()=>setSection(id)}
                         style={{padding:'7px 18px',border:'none',background:section===id?'#1a2744':'transparent',color:section===id?'#fff':'#64748b',borderRadius:8,fontWeight:800,fontSize:13,cursor:'pointer',...F}}>
                         {lbl}
@@ -1620,9 +1393,9 @@ function InventoryView() {
 
             {loading && <div style={{textAlign:'center',padding:40,color:'#94a3b8',fontWeight:700,...F}}>⏳ جاري التحميل...</div>}
 
+            {/* ══ Products Tab ══ */}
             {!loading && section==='products' && (
                 <div style={{display:'flex',gap:16,alignItems:'flex-start',flexWrap:'wrap'}}>
-                    {/* Add form */}
                     <div className="card" style={{width:260,flexShrink:0}}>
                         <div style={{fontWeight:900,fontSize:14,color:'#1a2744',marginBottom:12,...F}}>➕ إضافة منتج</div>
                         {[['اسم المنتج','name','text'],['كلفة الشراء','cost_price','number'],['سعر البيع','sell_price','number'],['الكمية','quantity','number'],['الفئة','category','text']].map(([ph,key,type])=>(
@@ -1633,6 +1406,7 @@ function InventoryView() {
                         {newProd.sell_price&&newProd.cost_price&&(
                             <div style={{background:(Number(newProd.sell_price)-Number(newProd.cost_price))>=0?'#f0fdf4':'#fef2f2',borderRadius:8,padding:'7px 10px',marginBottom:8,fontSize:12,fontWeight:800,color:(Number(newProd.sell_price)-Number(newProd.cost_price))>=0?'#16a34a':'#dc2626',...F}}>
                                 ربح الوحدة: {fmt(Number(newProd.sell_price)-Number(newProd.cost_price))} د.ع
+                                &nbsp;|&nbsp; هامش: {newProd.cost_price>0?Math.round((Number(newProd.sell_price)-Number(newProd.cost_price))/Number(newProd.sell_price)*100):0}%
                             </div>
                         )}
                         <button onClick={addProduct} style={{width:'100%',padding:10,background:'#1a2744',color:'#fff',border:'none',borderRadius:9,fontWeight:800,fontSize:13,cursor:'pointer',...F}}>
@@ -1640,17 +1414,17 @@ function InventoryView() {
                         </button>
                     </div>
 
-                    {/* Table */}
                     <div className="card" style={{flex:1,overflowX:'auto'}}>
                         <div style={{fontWeight:900,fontSize:14,color:'#1a2744',marginBottom:10,...F}}>قائمة المنتجات ({products.length})</div>
                         {products.length===0?(
                             <div style={{textAlign:'center',padding:40,color:'#94a3b8',fontWeight:700,...F}}>لا توجد منتجات</div>
                         ):(
                             <table className="rec-table">
-                                <thead><tr>{['المنتج','الفئة','الكلفة','سعر البيع','الكمية','ربح الوحدة','إجراء'].map(h=><th key={h} style={F}>{h}</th>)}</tr></thead>
+                                <thead><tr>{['المنتج','الفئة','الكلفة','سعر البيع','الكمية','ربح الوحدة','الهامش%','إجراء'].map(h=><th key={h} style={F}>{h}</th>)}</tr></thead>
                                 <tbody>
                                     {products.map(p=>{
                                         const up=Number(p.sell_price)-Number(p.cost_price);
+                                        const margin = p.sell_price>0 ? Math.round(up/Number(p.sell_price)*100) : 0;
                                         const isE=editId===p.id;
                                         return (
                                             <tr key={p.id}>
@@ -1670,6 +1444,11 @@ function InventoryView() {
                                                     {isE?<input type="number" value={editData.quantity} onChange={e=>setEditData(d=>({...d,quantity:e.target.value}))} className="edit-input" style={{width:55,textAlign:'center'}}/>:fmt(p.quantity)}
                                                 </td>
                                                 <td style={{fontWeight:900,color:up>=0?'#16a34a':'#dc2626',...F}}>{up>=0?'+':''}{fmt(up)}</td>
+                                                <td>
+                                                    <span style={{padding:'2px 8px',borderRadius:99,background:margin>=20?'#f0fdf4':margin>0?'#fffbeb':'#fef2f2',color:margin>=20?'#16a34a':margin>0?'#d97706':'#dc2626',fontWeight:800,fontSize:11,...F}}>
+                                                        {margin}%
+                                                    </span>
+                                                </td>
                                                 <td>
                                                     <div style={{display:'flex',gap:5,justifyContent:'center'}}>
                                                         {isE?(
@@ -1695,6 +1474,7 @@ function InventoryView() {
                 </div>
             )}
 
+            {/* ══ Expenses Tab ══ */}
             {!loading && section==='expenses' && (
                 <div style={{display:'flex',gap:16,alignItems:'flex-start',flexWrap:'wrap'}}>
                     <div className="card" style={{width:260,flexShrink:0}}>
@@ -1736,31 +1516,92 @@ function InventoryView() {
                     </div>
                 </div>
             )}
+
+            {/* ══ Profit Details Tab ══ */}
+            {!loading && section==='profit' && (
+                <div style={{display:'flex',gap:16,flexWrap:'wrap'}}>
+                    {/* Summary */}
+                    <div className="card" style={{minWidth:260,flex:1}}>
+                        <div style={{fontWeight:900,fontSize:15,color:'#1a2744',marginBottom:14,...F}}>📊 ملخص الأرباح</div>
+                        {[
+                            ['إجمالي الإيرادات (المبيعات)', totalRevenue, '#2563eb', false],
+                            ['تكلفة البضاعة المباعة (تقديري)', estimatedCOGS, '#64748b', false],
+                            ['الربح الإجمالي (تقديري)', grossProfit, grossProfit>=0?'#16a34a':'#dc2626', true],
+                            ['إجمالي الصرفيات التشغيلية', totalExpenses, '#dc2626', false],
+                            ['صافي الربح', netProfit, netProfit>=0?'#16a34a':'#dc2626', true],
+                        ].map(([lbl,val,col,bold])=>(
+                            <div key={lbl} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px',marginBottom:4,background:bold?'#f8fafc':'#fff',border:bold?'2px solid '+col:'1px solid #f1f5f9',borderRadius:10}}>
+                                <span style={{fontSize:12,fontWeight:bold?800:700,color:'#374151',...F}}>{lbl}</span>
+                                <span style={{fontSize:bold?16:13,fontWeight:900,color:col,...F}}>{fmt(val)} <small style={{fontSize:9,opacity:.6}}>د.ع</small></span>
+                            </div>
+                        ))}
+                        <div style={{marginTop:12,background:'#f8fafc',borderRadius:10,padding:'10px 12px',border:'1px solid #e2e8f0'}}>
+                            <div style={{fontSize:10,color:'#94a3b8',fontWeight:700,marginBottom:4,...F}}>⚠ ملاحظة</div>
+                            <div style={{fontSize:11,color:'#64748b',fontWeight:600,lineHeight:1.8,...F}}>
+                                أرقام التكلفة تقديرية بناءً على هامش ربح المنتجات في المخزن. للحصول على أرقام دقيقة، تأكد من إدخال سعر الكلفة الصحيح لكل منتج.
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Per-product profit table */}
+                    <div className="card" style={{flex:2,overflowX:'auto',minWidth:300}}>
+                        <div style={{fontWeight:900,fontSize:15,color:'#1a2744',marginBottom:14,...F}}>💰 ربحية كل منتج</div>
+                        <table className="rec-table">
+                            <thead><tr>
+                                {['المنتج','الكمية','تكلفة الوحدة','سعر البيع','ربح الوحدة','الهامش%','إجمالي الربح المتوقع'].map(h=><th key={h} style={F}>{h}</th>)}
+                            </tr></thead>
+                            <tbody>
+                                {[...products].sort((a,b)=>{
+                                    const pa=(Number(a.sell_price)-Number(a.cost_price))*Number(a.quantity);
+                                    const pb=(Number(b.sell_price)-Number(b.cost_price))*Number(b.quantity);
+                                    return pb-pa;
+                                }).map(p=>{
+                                    const up=Number(p.sell_price)-Number(p.cost_price);
+                                    const margin=p.sell_price>0?Math.round(up/Number(p.sell_price)*100):0;
+                                    const totalProfit=up*Number(p.quantity);
+                                    return (
+                                        <tr key={p.id}>
+                                            <td style={{fontWeight:800,textAlign:'right',...F}}>{p.name}</td>
+                                            <td style={F}>{fmt(p.quantity)}</td>
+                                            <td style={F}>{fmt(p.cost_price)}</td>
+                                            <td style={F}>{fmt(p.sell_price)}</td>
+                                            <td style={{fontWeight:900,color:up>=0?'#16a34a':'#dc2626',...F}}>{up>=0?'+':''}{fmt(up)}</td>
+                                            <td>
+                                                <span style={{padding:'2px 8px',borderRadius:99,background:margin>=20?'#f0fdf4':margin>0?'#fffbeb':'#fef2f2',color:margin>=20?'#16a34a':margin>0?'#d97706':'#dc2626',fontWeight:800,fontSize:11,...F}}>
+                                                    {margin}%
+                                                </span>
+                                            </td>
+                                            <td style={{fontWeight:900,color:totalProfit>=0?'#16a34a':'#dc2626',...F}}>
+                                                {totalProfit>=0?'+':''}{fmt(totalProfit)}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
 
-/* ══════════════════════════════════════
-   App
-══════════════════════════════════════ */
+/* ══ App ══ */
 function App() {
     const [activeTab, setActiveTab] = useState('create');
     const [products, setProducts]   = useState([]);
-    const createRef = useRef(null);
 
     useEffect(()=>{
         sb.from('products').select('name,sell_price').order('name').then(({data})=>{ if(data) setProducts(data); });
     },[]);
 
     const loadInvoice = row => {
-        // Store loaded data, switch tab triggers CreateView to re-init
         sessionStorage.setItem('loadedInvoice', JSON.stringify(row));
         setActiveTab('create');
     };
 
     return (
         <div id="root" style={{display:'flex',flexDirection:'column',height:'100vh',overflow:'hidden'}}>
-            {/* Header */}
             <div className="app-header">
                 <div className="app-logo">
                     عالم ورق الكاشير
@@ -1771,7 +1612,7 @@ function App() {
                     {[
                         ['create',    <Icons.Create/>,  'إنشاء فاتورة'],
                         ['records',   <Icons.Records/>, 'سجل الإصدارات'],
-                        ['inventory', <Icons.Store/>,   'المخزن والصرفيات'],
+                        ['inventory', <Icons.Store/>,   'المخزن والأرباح'],
                     ].map(([tab,icon,lbl])=>(
                         <button key={tab} className={`header-tab${activeTab===tab?' active':''}`} onClick={()=>setActiveTab(tab)}>
                             {icon} {lbl}
@@ -1780,14 +1621,9 @@ function App() {
                 </div>
 
                 <div className="header-spacer"/>
-
-                <div className="header-badge">
-                    <div className="pulse-dot"/>
-                    متصل بالخادم
-                </div>
+                <div className="header-badge"><div className="pulse-dot"/> متصل بالخادم</div>
             </div>
 
-            {/* Body */}
             <div className="app-body">
                 {activeTab==='create'    && <CreateView key="create" products={products} onLoadInvoice={loadInvoice}/>}
                 {activeTab==='records'   && <RecordsView onLoadInvoice={loadInvoice} onSwitch={setActiveTab}/>}
