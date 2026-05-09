@@ -80,6 +80,10 @@
         .rank-2 { background: linear-gradient(135deg,#94a3b8,#cbd5e1); color:#fff; }
         .rank-3 { background: linear-gradient(135deg,#d97706,#f59e0b); color:#fff; }
         .rank-n { background: #f1f5f9; color: #64748b; }
+
+        /* autocomplete suggestion row */
+        .ac-row { transition: background .1s; }
+        .ac-row:hover { background: #eff6ff !important; }
     </style>
 </head>
 <body>
@@ -150,14 +154,10 @@ async function saveToSupabase(inv, subtotal, paid, due) {
     } catch(e) { console.error('Supabase save error:', e); return false; }
 }
 
-/* ══ حساب ربح المواد من الفواتير الفعلية ══
-   يطابق item.description مع product.name ليجلب سعر الكلفة
-   ويحسب: ربح = (سعر البيع - الكلفة) × الكمية
-*/
 function calcSalesStats(invoices, products) {
     const map = {};
     let totalRevenue = 0;
-    let totalCOGS    = 0; // تكلفة البضاعة المباعة
+    let totalCOGS    = 0;
 
     for (const inv of invoices) {
         if (inv.invoice_type !== 'sale') continue;
@@ -168,7 +168,6 @@ function calcSalesStats(invoices, products) {
             const qty     = Number(item.quantity  || 0);
             if (!name || qty === 0) continue;
 
-            // ابحث عن المادة في جدول المنتجات (مطابقة مرنة)
             const prod = products.find(p =>
                 p.name.toLowerCase().trim() === name.toLowerCase()
             );
@@ -184,15 +183,9 @@ function calcSalesStats(invoices, products) {
 
             if (!map[name]) {
                 map[name] = {
-                    name,
-                    hasProduct,
-                    totalQty:     0,
-                    totalRevenue: 0,
-                    totalCost:    0,
-                    totalProfit:  0,
-                    txCount:      0,
-                    costPx,
-                    sellAvg:      0,
+                    name, hasProduct,
+                    totalQty: 0, totalRevenue: 0, totalCost: 0, totalProfit: 0,
+                    txCount: 0, costPx, sellAvg: 0,
                 };
             }
             map[name].totalQty     += qty;
@@ -203,7 +196,6 @@ function calcSalesStats(invoices, products) {
         }
     }
 
-    // حساب متوسط سعر البيع لكل مادة
     const rows = Object.values(map).map(r => ({
         ...r,
         sellAvg: r.totalQty > 0 ? r.totalRevenue / r.totalQty : 0,
@@ -211,7 +203,6 @@ function calcSalesStats(invoices, products) {
     }));
 
     const totalProfit = totalRevenue - totalCOGS;
-
     return { rows, totalRevenue, totalCOGS, totalProfit };
 }
 
@@ -247,28 +238,145 @@ const IQ     = n => numFmt(n) + ' د.ع';
 const pct    = n => Number(n||0).toFixed(1) + '%';
 
 
+/* ══════════════════════════════════════
+   AutocompleteInput
+   يظهر مقترحات من جدول المنتجات أثناء الكتابة
+   عند الاختيار يملأ الاسم والسعر تلقائياً
+══════════════════════════════════════ */
+function AutocompleteInput({ value, onSelect, products, inputStyle }) {
+    const [open, setOpen]   = React.useState(false);
+    const wrapRef           = React.useRef(null);
+    const inputRef          = React.useRef(null);
+
+    /* المقترحات: عند فراغ الحقل → أول 8 منتجات، وإلا → فلترة */
+    const suggestions = React.useMemo(() => {
+        const q = (value || '').trim().toLowerCase();
+        if (!q) return products.slice(0, 8);
+        /* مطابقة جزئية في أي موضع من الاسم */
+        return products
+            .filter(p => p.name.toLowerCase().includes(q))
+            .slice(0, 8);
+    }, [value, products]);
+
+    /* إغلاق عند النقر خارج */
+    React.useEffect(() => {
+        const handler = e => {
+            if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false);
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
+
+    const handleSelect = (prod) => {
+        onSelect(prod.name, Number(prod.sell_price) || 0);
+        setOpen(false);
+        inputRef.current && inputRef.current.blur();
+    };
+
+    /* تمييز النص المطابق داخل الاقتراح */
+    const highlight = (text) => {
+        const q = (value || '').trim();
+        if (!q) return text;
+        const idx = text.toLowerCase().indexOf(q.toLowerCase());
+        if (idx === -1) return text;
+        return (
+            <>
+                {text.slice(0, idx)}
+                <mark style={{ background: '#bfdbfe', borderRadius: '2px', padding: '0 1px' }}>
+                    {text.slice(idx, idx + q.length)}
+                </mark>
+                {text.slice(idx + q.length)}
+            </>
+        );
+    };
+
+    return (
+        <div ref={wrapRef} style={{ position: 'relative', flex: 1 }}>
+            <input
+                ref={inputRef}
+                placeholder="المادة"
+                value={value}
+                autoComplete="off"
+                onChange={e => { onSelect(e.target.value, null); setOpen(true); }}
+                onFocus={() => setOpen(true)}
+                style={inputStyle}
+            />
+            {open && suggestions.length > 0 && (
+                <div style={{
+                    position: 'absolute', top: '100%', right: 0, left: 0, zIndex: 9999,
+                    background: '#fff',
+                    border: '2px solid #2563eb',
+                    borderRadius: '10px',
+                    boxShadow: '0 10px 30px rgba(37,99,235,.15)',
+                    marginTop: '3px',
+                    overflow: 'hidden',
+                    direction: 'rtl',
+                }}>
+                    {/* رأس القائمة */}
+                    <div style={{
+                        padding: '5px 10px', fontSize: '10px', fontWeight: 800,
+                        color: '#2563eb', background: '#eff6ff',
+                        borderBottom: '1px solid #bfdbfe', ...F
+                    }}>
+                        اختر منتجاً أو تابع الكتابة
+                    </div>
+
+                    {suggestions.map((prod, i) => (
+                        <div
+                            key={prod.name}
+                            className="ac-row"
+                            onMouseDown={e => { e.preventDefault(); handleSelect(prod); }}
+                            style={{
+                                padding: '8px 12px',
+                                cursor: 'pointer',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                color: '#0f172a',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                borderBottom: i < suggestions.length - 1 ? '1px solid #f1f5f9' : 'none',
+                                ...F
+                            }}
+                        >
+                            <span>{highlight(prod.name)}</span>
+                            {Number(prod.sell_price) > 0 && (
+                                <span style={{
+                                    fontSize: '11px', color: '#2563eb', fontWeight: 900,
+                                    background: '#eff6ff', padding: '2px 8px',
+                                    borderRadius: '99px', whiteSpace: 'nowrap', marginRight: '6px', ...F
+                                }}>
+                                    {Number(prod.sell_price).toLocaleString()} د.ع
+                                </span>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
+
 /* ══════════════════════════════════════════════════════
-   InventoryView — المخزن والأرباح (محدّث)
+   InventoryView
 ══════════════════════════════════════════════════════ */
 function InventoryView() {
     const [products,  setProducts]  = React.useState([]);
     const [expenses,  setExpenses]  = React.useState([]);
     const [invoices,  setInvoices]  = React.useState([]);
     const [loading,   setLoading]   = React.useState(true);
-    const [section,   setSection]   = React.useState('sales'); // default → sales profit
+    const [section,   setSection]   = React.useState('sales');
     const [editId,    setEditId]    = React.useState(null);
     const [editData,  setEditData]  = React.useState({});
     const [dbReady,   setDbReady]   = React.useState(true);
 
-    // فلاتر قسم أرباح المبيعات
     const [salesSearch,   setSalesSearch]   = React.useState('');
-    const [salesSort,     setSalesSort]     = React.useState('profit');   // profit | revenue | qty | margin
-    const [salesDir,      setSalesDir]      = React.useState('desc');     // asc | desc
-    const [salesFilter,   setSalesFilter]   = React.useState('all');      // all | known | unknown
+    const [salesSort,     setSalesSort]     = React.useState('profit');
+    const [salesDir,      setSalesDir]      = React.useState('desc');
+    const [salesFilter,   setSalesFilter]   = React.useState('all');
 
-    // نموذج منتج جديد
     const [newProd, setNewProd] = React.useState({ name:'', cost_price:'', sell_price:'', quantity:'', category:'' });
-    // نموذج صرفية جديدة
     const [newExp,  setNewExp]  = React.useState({ description:'', amount:'', date: new Date().toISOString().split('T')[0], category:'' });
 
     React.useEffect(()=>{ loadAll(); }, []);
@@ -293,7 +401,6 @@ function InventoryView() {
         setLoading(false);
     };
 
-    /* ── إضافة منتج ── */
     const addProduct = async () => {
         if (!newProd.name) { toast('أدخل اسم المنتج','error'); return; }
         const { error } = await sbClient.from('products').insert({
@@ -343,20 +450,17 @@ function InventoryView() {
         toast('تم الحذف','success'); loadAll();
     };
 
-    /* ══ حسابات المخزن (قيمة دفترية فقط) ══ */
     const invTotalCost = products.reduce((s,p)=> s+(Number(p.cost_price)||0)*(Number(p.quantity)||0), 0);
     const invTotalSell = products.reduce((s,p)=> s+(Number(p.sell_price)||0)*(Number(p.quantity)||0), 0);
     const totalExpenses= expenses.reduce((s,e)=> s+(Number(e.amount)||0), 0);
     const totalUnits   = products.reduce((s,p)=> s+(Number(p.quantity)||0), 0);
 
-    /* ══ حسابات أرباح المبيعات الفعلية ══ */
     const salesStats = React.useMemo(()=> calcSalesStats(invoices, products), [invoices, products]);
     const { rows: salesRows, totalRevenue, totalCOGS, totalProfit: salesProfit } = salesStats;
     const netProfit = salesProfit - totalExpenses;
     const salesMargin = totalRevenue > 0 ? (salesProfit / totalRevenue) * 100 : 0;
     const saleInvoicesCount = invoices.filter(i=>i.invoice_type==='sale').length;
 
-    /* ══ فلترة وترتيب صفوف المبيعات ══ */
     const filteredSalesRows = React.useMemo(()=>{
         let rows = [...salesRows];
         if (salesSearch) {
@@ -378,7 +482,6 @@ function InventoryView() {
 
     const maxProfit = Math.max(...filteredSalesRows.map(r=>Math.abs(r.totalProfit)), 1);
 
-    /* ══ SQL setup ══ */
     const sqlText = `-- أنشئ هذه الجداول في Supabase SQL Editor:
 
 create table products (
@@ -454,8 +557,6 @@ create policy "all" on expenses for all using (true) with check (true);`;
 
     return (
         <div style={{display:'flex',flexDirection:'column',gap:'16px'}}>
-
-            {/* ── بطاقات الملخص العلوي (أرباح فعلية) ── */}
             <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:'12px'}}>
                 {[
                     {lbl:'إيرادات المبيعات',      val:IQ(totalRevenue),  color:'#1e3a5f', bg:'#eff6ff', icon:'💰', sub:`${saleInvoicesCount} فاتورة`},
@@ -468,7 +569,7 @@ create policy "all" on expenses for all using (true) with check (true);`;
                         bg:netProfit>=0?'#f0fdf4':'#fef2f2',
                         icon:netProfit>=0?'✅':'❌',
                         sub:'بعد الصرفيات'},
-                    {lbl:'مواد في المخزن',         val:products.length+' صنف', color:'#7c3aed', bg:'#f5f3ff', icon:'🗃️', sub:totalUnits+' وحدة'},
+                    {lbl:'مواد في المخزن', val:products.length+' صنف', color:'#7c3aed', bg:'#f5f3ff', icon:'🗃️', sub:totalUnits+' وحدة'},
                 ].map(({lbl,val,color,bg,icon,sub})=>(
                     <div key={lbl} style={{background:'#fff',border:'1px solid #e2e8f0',borderRadius:'14px',padding:'14px 16px',boxShadow:'0 1px 4px rgba(0,0,0,.05)'}}>
                         <div style={{fontSize:'12px',color:'#94a3b8',fontWeight:700,marginBottom:'4px',...F}}>{icon} {lbl}</div>
@@ -478,7 +579,6 @@ create policy "all" on expenses for all using (true) with check (true);`;
                 ))}
             </div>
 
-            {/* ── ملاحظة توضيحية ── */}
             <div style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:'12px',padding:'10px 14px',display:'flex',gap:'8px',alignItems:'flex-start'}}>
                 <span style={{fontSize:'16px',marginTop:'1px'}}>💡</span>
                 <span style={{fontSize:'12px',fontWeight:700,color:'#92400e',...F}}>
@@ -486,9 +586,7 @@ create policy "all" on expenses for all using (true) with check (true);`;
                 </span>
             </div>
 
-            {/* ── محتوى التبويبات ── */}
             <div style={{background:'#fff',borderRadius:'20px',padding:'22px',boxShadow:'0 2px 12px rgba(0,0,0,.07)',border:'1px solid #e2e8f0'}}>
-
                 <div style={{display:'inline-flex',gap:'4px',marginBottom:'20px',background:'#f8fafc',borderRadius:'12px',padding:'4px',flexWrap:'wrap'}}>
                     <Tab id="sales"    lbl="أرباح المبيعات"  icon="💰" badge={saleInvoicesCount}/>
                     <Tab id="products" lbl="المنتجات"        icon="📦" badge={products.length}/>
@@ -498,13 +596,9 @@ create policy "all" on expenses for all using (true) with check (true);`;
 
                 {loading && <div style={{textAlign:'center',padding:'40px',color:'#94a3b8',fontWeight:700,...F}}>⏳ جاري التحميل...</div>}
 
-                {/* ═══ أرباح المبيعات الفعلية ═══ */}
                 {!loading && section==='sales' && (
                     <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:'16px'}}>
-
-                        {/* شريط الفلاتر والترتيب */}
                         <div style={{display:'flex',gap:'8px',flexWrap:'wrap',alignItems:'center'}}>
-                            {/* بحث */}
                             <div style={{position:'relative',flex:'1',minWidth:'180px'}}>
                                 <span style={{position:'absolute',right:'10px',top:'50%',transform:'translateY(-50%)',color:'#94a3b8'}}>
                                     <I.Search/>
@@ -513,8 +607,6 @@ create policy "all" on expenses for all using (true) with check (true);`;
                                     placeholder="بحث باسم المادة..."
                                     style={{width:'100%',padding:'8px 32px 8px 12px',border:'2px solid #e2e8f0',borderRadius:'10px',fontSize:'13px',fontWeight:600,...F}}/>
                             </div>
-
-                            {/* فلتر الحالة */}
                             <div style={{display:'flex',gap:'4px',background:'#f8fafc',borderRadius:'9px',padding:'3px'}}>
                                 {[['all','الكل'],['known','مع كلفة محددة'],['unknown','بدون كلفة']].map(([val,lbl])=>(
                                     <button key={val} onClick={()=>setSalesFilter(val)}
@@ -525,14 +617,12 @@ create policy "all" on expenses for all using (true) with check (true);`;
                                     </button>
                                 ))}
                             </div>
-
                             <button onClick={loadAll}
                                 style={{display:'flex',alignItems:'center',gap:'5px',padding:'8px 12px',background:'#f1f5f9',border:'1px solid #e2e8f0',borderRadius:'9px',fontWeight:700,fontSize:'12px',cursor:'pointer',color:'#475569',...F}}>
                                 <I.Refresh/> تحديث
                             </button>
                         </div>
 
-                        {/* أزرار الترتيب */}
                         <div style={{display:'flex',gap:'6px',alignItems:'center',flexWrap:'wrap'}}>
                             <span style={{fontSize:'12px',color:'#94a3b8',fontWeight:700,...F}}>ترتيب حسب:</span>
                             <SortBtn field="profit"  lbl="الربح"/>
@@ -541,7 +631,6 @@ create policy "all" on expenses for all using (true) with check (true);`;
                             <SortBtn field="margin"  lbl="هامش الربح %"/>
                         </div>
 
-                        {/* نتائج */}
                         {filteredSalesRows.length === 0 ? (
                             <div style={{textAlign:'center',padding:'60px',color:'#94a3b8',fontWeight:700,...F}}>
                                 <div style={{fontSize:'36px',marginBottom:'10px'}}>📊</div>
@@ -549,7 +638,6 @@ create policy "all" on expenses for all using (true) with check (true);`;
                             </div>
                         ) : (
                             <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
-                                {/* رأس الجدول */}
                                 <div style={{display:'grid',gridTemplateColumns:'36px 1fr 90px 110px 100px 110px 80px',gap:'8px',
                                     padding:'8px 12px',background:'#f8fafc',borderRadius:'10px',
                                     fontSize:'11px',fontWeight:800,color:'#64748b',...F}}>
@@ -571,15 +659,11 @@ create policy "all" on expenses for all using (true) with check (true);`;
                                             onMouseEnter={e=>e.currentTarget.style.boxShadow='0 4px 16px rgba(0,0,0,.08)'}
                                             onMouseLeave={e=>e.currentTarget.style.boxShadow='none'}>
                                             <div style={{display:'grid',gridTemplateColumns:'36px 1fr 90px 110px 100px 110px 80px',gap:'8px',alignItems:'center'}}>
-
-                                                {/* ترتيب */}
                                                 <div style={{display:'flex',justifyContent:'center'}}>
                                                     <span className={rankClass} style={{width:'24px',height:'24px',borderRadius:'99px',display:'inline-flex',alignItems:'center',justifyContent:'center',fontSize:'11px',fontWeight:900,...F}}>
                                                         {i+1}
                                                     </span>
                                                 </div>
-
-                                                {/* اسم المادة */}
                                                 <div>
                                                     <div style={{fontWeight:800,fontSize:'13px',color:'#0f172a',...F}}>{row.name}</div>
                                                     <div style={{display:'flex',gap:'6px',alignItems:'center',marginTop:'2px'}}>
@@ -595,38 +679,27 @@ create policy "all" on expenses for all using (true) with check (true);`;
                                                         <span style={{fontSize:'10px',color:'#94a3b8',fontWeight:600,...F}}>{row.txCount} صفقة</span>
                                                     </div>
                                                 </div>
-
-                                                {/* الكمية */}
                                                 <div style={{textAlign:'center',fontWeight:800,fontSize:'14px',color:'#0f172a',...F}}>
                                                     {numFmt(row.totalQty)}
                                                     <div style={{fontSize:'10px',color:'#94a3b8',fontWeight:600,...F}}>وحدة</div>
                                                 </div>
-
-                                                {/* الإيراد */}
                                                 <div style={{textAlign:'center',fontWeight:700,fontSize:'13px',color:'#1e3a5f',...F}}>
                                                     {numFmt(row.totalRevenue)}
                                                     <div style={{fontSize:'10px',color:'#94a3b8',...F}}>د.ع</div>
                                                 </div>
-
-                                                {/* التكلفة */}
                                                 <div style={{textAlign:'center',fontWeight:700,fontSize:'13px',color:row.hasProduct?'#475569':'#f59e0b',...F}}>
                                                     {row.hasProduct ? numFmt(row.totalCost) : '—'}
                                                     {row.hasProduct && <div style={{fontSize:'10px',color:'#94a3b8',...F}}>د.ع</div>}
                                                 </div>
-
-                                                {/* الربح */}
                                                 <div style={{textAlign:'center'}}>
                                                     <div style={{fontWeight:900,fontSize:'15px',color:isPositive?'#16a34a':'#dc2626',...F}}>
                                                         {isPositive?'+':''}{numFmt(row.totalProfit)}
                                                     </div>
                                                     <div style={{fontSize:'10px',color:'#94a3b8',...F}}>د.ع</div>
-                                                    {/* شريط البروفيت */}
                                                     <div className="profit-bar-bg" style={{marginTop:'4px'}}>
                                                         <div className={`profit-bar-fill${!isPositive?' neg':''}`} style={{width:`${barWidth}%`}}/>
                                                     </div>
                                                 </div>
-
-                                                {/* الهامش */}
                                                 <div style={{textAlign:'center'}}>
                                                     <div style={{fontWeight:900,fontSize:'14px',color:row.margin>=0?'#7c3aed':'#dc2626',...F}}>
                                                         {row.hasProduct ? pct(row.margin) : '—'}
@@ -639,7 +712,6 @@ create policy "all" on expenses for all using (true) with check (true);`;
                             </div>
                         )}
 
-                        {/* ملخص الفلترة */}
                         <div style={{textAlign:'center',fontSize:'11px',color:'#94a3b8',fontWeight:600,...F}}>
                             {filteredSalesRows.length} مادة | إجمالي ربح المواد المعروضة: <strong style={{color:'#1e3a5f'}}>
                                 {IQ(filteredSalesRows.reduce((s,r)=>s+r.totalProfit,0))}
@@ -648,7 +720,6 @@ create policy "all" on expenses for all using (true) with check (true);`;
                     </div>
                 )}
 
-                {/* ═══ المنتجات ═══ */}
                 {!loading && section==='products' && (
                     <div className="fade-in" style={{display:'flex',gap:'20px',alignItems:'flex-start',flexWrap:'wrap'}}>
                         <div style={{width:'260px',flexShrink:0,background:'#f8fafc',borderRadius:'14px',padding:'16px',border:'1px solid #e2e8f0'}}>
@@ -744,7 +815,6 @@ create policy "all" on expenses for all using (true) with check (true);`;
                     </div>
                 )}
 
-                {/* ═══ الصرفيات ═══ */}
                 {!loading && section==='expenses' && (
                     <div className="fade-in" style={{display:'flex',gap:'20px',alignItems:'flex-start',flexWrap:'wrap'}}>
                         <div style={{width:'260px',flexShrink:0,background:'#f8fafc',borderRadius:'14px',padding:'16px',border:'1px solid #e2e8f0'}}>
@@ -798,11 +868,8 @@ create policy "all" on expenses for all using (true) with check (true);`;
                     </div>
                 )}
 
-                {/* ═══ تقرير الأرباح (محدّث بالأرباح الفعلية) ═══ */}
                 {!loading && section==='summary' && (
                     <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:'20px'}}>
-
-                        {/* بطاقة النتيجة الرئيسية */}
                         <div style={{background:netProfit>=0?'linear-gradient(135deg,#1e3a5f,#2563eb)':'linear-gradient(135deg,#7f1d1d,#dc2626)',borderRadius:'18px',padding:'28px',color:'#fff'}}>
                             <div style={{fontSize:'12px',fontWeight:700,opacity:.75,marginBottom:'6px',...F}}>
                                 صافي الربح بعد المبيعات والصرفيات
@@ -828,7 +895,6 @@ create policy "all" on expenses for all using (true) with check (true);`;
                             </div>
                         </div>
 
-                        {/* تفاصيل الحسابات */}
                         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px'}}>
                             {[
                                 {lbl:'إيرادات المبيعات الفعلية', val:IQ(totalRevenue),  icon:'💰', color:'#1e3a5f', bg:'#eff6ff'},
@@ -843,15 +909,14 @@ create policy "all" on expenses for all using (true) with check (true);`;
                             ))}
                         </div>
 
-                        {/* معادلة الحساب */}
                         <div style={{background:'#f8fafc',borderRadius:'14px',padding:'18px',border:'1px solid #e2e8f0'}}>
                             <div style={{fontWeight:900,fontSize:'14px',color:'#1e3a5f',marginBottom:'12px',...F}}>🧮 معادلة الحساب (أرباح فعلية بعد البيع)</div>
                             {[
-                                ['إيرادات المبيعات',          IQ(totalRevenue),                     '#0f172a'],
-                                ['— تكلفة البضاعة المباعة',  IQ(totalCOGS),                         '#64748b'],
-                                ['= ربح المبيعات الإجمالي',  IQ(salesProfit),                       salesProfit>=0?'#16a34a':'#dc2626'],
-                                ['— إجمالي الصرفيات',        IQ(totalExpenses),                     '#dc2626'],
-                                ['= صافي الربح / الخسارة',   IQ(netProfit),                         netProfit>=0?'#16a34a':'#dc2626'],
+                                ['إيرادات المبيعات',         IQ(totalRevenue),   '#0f172a'],
+                                ['— تكلفة البضاعة المباعة', IQ(totalCOGS),      '#64748b'],
+                                ['= ربح المبيعات الإجمالي', IQ(salesProfit),    salesProfit>=0?'#16a34a':'#dc2626'],
+                                ['— إجمالي الصرفيات',       IQ(totalExpenses),  '#dc2626'],
+                                ['= صافي الربح / الخسارة',  IQ(netProfit),      netProfit>=0?'#16a34a':'#dc2626'],
                             ].map(([lbl,val,col],i)=>(
                                 <div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',
                                     padding:'9px 0',borderBottom:i<4?'1px solid #e2e8f0':'3px solid #1e3a5f',
@@ -862,7 +927,6 @@ create policy "all" on expenses for all using (true) with check (true);`;
                             ))}
                         </div>
 
-                        {/* أعلى المواد ربحاً (من المبيعات الفعلية) */}
                         {salesRows.filter(r=>r.hasProduct).length > 0 && (
                             <div style={{background:'#f8fafc',borderRadius:'14px',padding:'18px',border:'1px solid #e2e8f0'}}>
                                 <div style={{fontWeight:900,fontSize:'14px',color:'#1e3a5f',marginBottom:'12px',...F}}>
@@ -893,7 +957,6 @@ create policy "all" on expenses for all using (true) with check (true);`;
                             </div>
                         )}
 
-                        {/* مقارنة: قيمة المخزن الدفترية */}
                         <div style={{background:'#f0f9ff',border:'1px solid #bae6fd',borderRadius:'14px',padding:'16px 18px'}}>
                             <div style={{fontWeight:800,fontSize:'13px',color:'#0369a1',marginBottom:'10px',...F}}>
                                 📦 القيمة الدفترية للمخزن (مرجعي فقط — ليست أرباحاً)
@@ -1078,6 +1141,14 @@ function App() {
 
     const [activeTab, setActiveTab] = useState('create');
 
+    /* ── جلب المنتجات لاستخدامها في الـ Autocomplete ── */
+    const [products, setProducts] = useState([]);
+    useEffect(()=>{
+        sbClient.from('products').select('name,sell_price').order('name').then(({data})=>{
+            if (data) setProducts(data);
+        });
+    }, []);
+
     const [inv, setInv] = useState({
         invoiceNumber: '...',
         date: new Date().toISOString().split('T')[0],
@@ -1129,6 +1200,17 @@ function App() {
     const addItem    = ()=> setInv(p=>({...p, items:[...p.items,{id:Date.now().toString(),description:'',quantity:1,price:0}]}));
     const removeItem = id=> setInv(p=>({...p, items:p.items.filter(i=>i.id!==id)}));
     const updateItem = (id,f,v)=> setInv(p=>({...p, items:p.items.map(i=>i.id===id?{...i,[f]:v}:i)}));
+
+    /* عند اختيار منتج من الـ autocomplete: يملأ الاسم والسعر */
+    const selectProduct = (itemId, name, price) => {
+        setInv(p=>({
+            ...p,
+            items: p.items.map(i => i.id === itemId
+                ? { ...i, description: name, ...(price !== null && price > 0 ? { price } : {}) }
+                : i
+            )
+        }));
+    };
 
     const loadInvoice = row => {
         setInv({
@@ -1359,9 +1441,9 @@ function App() {
         <div style={{minHeight:'100vh',padding:'16px'}}>
             <div style={{display:'inline-flex',gap:'4px',marginBottom:'16px',background:'#fff',borderRadius:'14px',padding:'5px',boxShadow:'0 2px 12px rgba(0,0,0,.08)',border:'1px solid #e2e8f0'}}>
                 {[
-                    ['create',  <I.Create/>,  'إنشاء فاتورة'],
-                    ['records', <I.Records/>, 'سجل الإصدارات'],
-                    ['inventory', <I.Store/>, 'المخزن والأرباح'],
+                    ['create',    <I.Create/>,  'إنشاء فاتورة'],
+                    ['records',   <I.Records/>, 'سجل الإصدارات'],
+                    ['inventory', <I.Store/>,   'المخزن والأرباح'],
                 ].map(([tab,icon,lbl])=>(
                     <button key={tab} onClick={()=>setActiveTab(tab)}
                         style={{display:'flex',alignItems:'center',gap:'7px',padding:'9px 20px',
@@ -1432,11 +1514,20 @@ function App() {
                                         <I.Plus/> إضافة
                                     </button>
                                 </div>
-                                <div style={{display:'flex',flexDirection:'column',gap:'5px',maxHeight:'200px',overflowY:'auto'}}>
+                                <div style={{display:'flex',flexDirection:'column',gap:'5px',maxHeight:'240px',overflowY:'auto'}}>
                                     {inv.items.map(item=>(
                                         <div key={item.id} style={{display:'flex',gap:'5px',background:'#f8fafc',padding:'7px',borderRadius:'9px',border:'1px solid #e2e8f0'}}>
-                                            <input placeholder="المادة" value={item.description} onChange={e=>updateItem(item.id,'description',e.target.value)}
-                                                style={{flex:1,padding:'5px 7px',border:'1px solid #e2e8f0',borderRadius:'7px',fontSize:'12px',...F}}/>
+                                            {/* ── حقل المادة مع Autocomplete ── */}
+                                            <AutocompleteInput
+                                                value={item.description}
+                                                products={products}
+                                                onSelect={(name, price) => selectProduct(item.id, name, price)}
+                                                inputStyle={{
+                                                    width:'100%', padding:'5px 7px',
+                                                    border:'1px solid #e2e8f0', borderRadius:'7px',
+                                                    fontSize:'12px', fontFamily:"'Cairo',sans-serif"
+                                                }}
+                                            />
                                             <input type="number" placeholder="ك" value={item.quantity} onChange={e=>updateItem(item.id,'quantity',e.target.value)}
                                                 style={{width:'44px',padding:'5px',border:'1px solid #e2e8f0',borderRadius:'7px',fontSize:'12px',textAlign:'center'}}/>
                                             <input type="number" placeholder="سعر" value={item.price} onChange={e=>updateItem(item.id,'price',e.target.value)}
