@@ -168,9 +168,502 @@ const I = {
     Eye:     ()=><svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
     PDF:     ()=><svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>,
     Create:  ()=><svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
+    Store:   ()=><svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>,
+    Tag:     ()=><svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>,
+    TrendUp: ()=><svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>,
+    Expense: ()=><svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>,
+    Edit:    ()=><svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
+    Check:   ()=><svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>,
 };
 
 const F = { fontFamily:"'Cairo', sans-serif" };
+
+
+/* ══════════════════════════════════════
+   InventoryView — المخزن والأرباح
+══════════════════════════════════════ */
+function InventoryView() {
+    const [products,   setProducts]   = React.useState([]);
+    const [expenses,   setExpenses]   = React.useState([]);
+    const [loading,    setLoading]    = React.useState(true);
+    const [section,    setSection]    = React.useState('products'); // 'products' | 'expenses' | 'summary'
+    const [editId,     setEditId]     = React.useState(null);
+    const [editData,   setEditData]   = React.useState({});
+    const [dbReady,    setDbReady]    = React.useState(true);
+
+    // نموذج منتج جديد
+    const [newProd, setNewProd] = React.useState({ name:'', cost_price:'', sell_price:'', quantity:'', category:'' });
+    // نموذج صرفية جديدة
+    const [newExp,  setNewExp]  = React.useState({ description:'', amount:'', date: new Date().toISOString().split('T')[0], category:'' });
+
+    React.useEffect(() => { loadAll(); }, []);
+
+    const loadAll = async () => {
+        setLoading(true);
+        try {
+            const [pr, ex] = await Promise.all([
+                sbClient.from('products').select('*').order('created_at', {ascending:false}),
+                sbClient.from('expenses').select('*').order('date', {ascending:false})
+            ]);
+            if (pr.error || ex.error) {
+                setDbReady(false);
+            } else {
+                setProducts(pr.data || []);
+                setExpenses(ex.data || []);
+                setDbReady(true);
+            }
+        } catch(e) { setDbReady(false); }
+        setLoading(false);
+    };
+
+    // ── إضافة منتج ──
+    const addProduct = async () => {
+        if (!newProd.name) { toast('أدخل اسم المنتج','error'); return; }
+        const { error } = await sbClient.from('products').insert({
+            name: newProd.name,
+            cost_price: Number(newProd.cost_price)||0,
+            sell_price: Number(newProd.sell_price)||0,
+            quantity:   Number(newProd.quantity)||0,
+            category:   newProd.category||''
+        });
+        if (error) { toast('فشل الإضافة: '+error.message,'error'); return; }
+        toast('تم إضافة المنتج ✓','success');
+        setNewProd({ name:'', cost_price:'', sell_price:'', quantity:'', category:'' });
+        loadAll();
+    };
+
+    // ── حذف منتج ──
+    const deleteProduct = async (id) => {
+        if (!confirm('هل تريد حذف هذا المنتج؟')) return;
+        await sbClient.from('products').delete().eq('id', id);
+        toast('تم الحذف','success');
+        loadAll();
+    };
+
+    // ── تعديل منتج ──
+    const startEdit = (row) => { setEditId(row.id); setEditData({...row}); };
+    const saveEdit = async () => {
+        const { error } = await sbClient.from('products').update({
+            name: editData.name, cost_price: Number(editData.cost_price)||0,
+            sell_price: Number(editData.sell_price)||0, quantity: Number(editData.quantity)||0,
+            category: editData.category||''
+        }).eq('id', editId);
+        if (error) { toast('فشل التعديل','error'); return; }
+        toast('تم الحفظ ✓','success');
+        setEditId(null); loadAll();
+    };
+
+    // ── إضافة صرفية ──
+    const addExpense = async () => {
+        if (!newExp.description || !newExp.amount) { toast('أدخل الوصف والمبلغ','error'); return; }
+        const { error } = await sbClient.from('expenses').insert({
+            description: newExp.description,
+            amount: Number(newExp.amount)||0,
+            date: newExp.date,
+            category: newExp.category||''
+        });
+        if (error) { toast('فشل الإضافة','error'); return; }
+        toast('تم إضافة الصرفية ✓','success');
+        setNewExp({ description:'', amount:'', date: new Date().toISOString().split('T')[0], category:'' });
+        loadAll();
+    };
+
+    // ── حذف صرفية ──
+    const deleteExpense = async (id) => {
+        if (!confirm('هل تريد حذف هذه الصرفية؟')) return;
+        await sbClient.from('expenses').delete().eq('id', id);
+        toast('تم الحذف','success');
+        loadAll();
+    };
+
+    // ── حسابات ──
+    const totalCostValue   = products.reduce((s,p)=> s + (Number(p.cost_price)||0)*(Number(p.quantity)||0), 0);
+    const totalSellValue   = products.reduce((s,p)=> s + (Number(p.sell_price)||0)*(Number(p.quantity)||0), 0);
+    const grossProfit      = totalSellValue - totalCostValue;
+    const totalExpenses    = expenses.reduce((s,e)=> s + (Number(e.amount)||0), 0);
+    const netProfit        = grossProfit - totalExpenses;
+    const totalUnits       = products.reduce((s,p)=> s + (Number(p.quantity)||0), 0);
+    const profitMargin     = totalSellValue > 0 ? ((grossProfit/totalSellValue)*100).toFixed(1) : 0;
+
+    // ── SQL Setup Modal ──
+    const sqlText = `-- أنشئ هذه الجداول في Supabase SQL Editor:
+
+create table products (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  cost_price numeric default 0,
+  sell_price numeric default 0,
+  quantity   numeric default 0,
+  category   text default '',
+  created_at timestamptz default now()
+);
+
+create table expenses (
+  id uuid primary key default gen_random_uuid(),
+  description text not null,
+  amount      numeric default 0,
+  date        date default current_date,
+  category    text default '',
+  created_at  timestamptz default now()
+);
+
+-- صلاحيات القراءة والكتابة للجميع
+alter table products enable row level security;
+create policy "all" on products for all using (true) with check (true);
+alter table expenses enable row level security;
+create policy "all" on expenses for all using (true) with check (true);`;
+
+    if (!dbReady) return (
+        <div style={{background:'#fff',borderRadius:'20px',padding:'30px',boxShadow:'0 2px 12px rgba(0,0,0,.07)',border:'1px solid #e2e8f0'}}>
+            <div style={{textAlign:'center',marginBottom:'20px'}}>
+                <div style={{fontSize:'40px',marginBottom:'10px'}}>⚠️</div>
+                <h2 style={{fontWeight:900,fontSize:'18px',color:'#dc2626',margin:'0 0 8px',...F}}>الجداول غير موجودة</h2>
+                <p style={{color:'#64748b',fontSize:'13px',fontWeight:600,...F}}>أنشئ الجداول التالية في Supabase SQL Editor أولاً:</p>
+            </div>
+            <pre style={{background:'#0f172a',color:'#e2e8f0',padding:'20px',borderRadius:'12px',fontSize:'12px',
+                overflowX:'auto',lineHeight:1.8,direction:'ltr',textAlign:'left',fontFamily:'monospace'}}>
+                {sqlText}
+            </pre>
+            <button onClick={()=>{ navigator.clipboard.writeText(sqlText); toast('تم النسخ ✓','success'); }}
+                style={{marginTop:'14px',padding:'10px 20px',background:'#1e3a5f',color:'#fff',border:'none',
+                    borderRadius:'10px',fontWeight:800,fontSize:'13px',cursor:'pointer',width:'100%',...F}}>
+                📋 نسخ SQL
+            </button>
+            <button onClick={loadAll}
+                style={{marginTop:'8px',padding:'10px 20px',background:'#f1f5f9',color:'#1e3a5f',border:'1px solid #e2e8f0',
+                    borderRadius:'10px',fontWeight:800,fontSize:'13px',cursor:'pointer',width:'100%',...F}}>
+                🔄 إعادة المحاولة
+            </button>
+        </div>
+    );
+
+    const Tab = ({id,lbl,icon}) => (
+        <button onClick={()=>setSection(id)} style={{display:'flex',alignItems:'center',gap:'6px',padding:'8px 16px',
+            background:section===id?'#1e3a5f':'transparent',color:section===id?'#fff':'#64748b',
+            border:'none',borderRadius:'9px',fontWeight:800,fontSize:'13px',cursor:'pointer',transition:'all .15s',...F}}>
+            {icon} {lbl}
+        </button>
+    );
+
+    const numFmt = n => Number(n||0).toLocaleString();
+    const IQ = n => numFmt(n) + ' د.ع';
+
+    return (
+        <div style={{display:'flex',flexDirection:'column',gap:'16px'}}>
+
+            {/* ── بطاقات الملخص العلوي ── */}
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(170px,1fr))',gap:'12px'}}>
+                {[
+                    {lbl:'قيمة المخزن (كلفة)',    val:IQ(totalCostValue),  color:'#1e3a5f',  bg:'#eff6ff',  icon:'📦'},
+                    {lbl:'قيمة المخزن (بيع)',     val:IQ(totalSellValue),  color:'#0f172a',  bg:'#f8fafc',  icon:'🏷️'},
+                    {lbl:'إجمالي الصرفيات',       val:IQ(totalExpenses),   color:'#dc2626',  bg:'#fef2f2',  icon:'💸'},
+                    {lbl:'هامش الربح الإجمالي',  val:profitMargin+'%',    color:'#7c3aed',  bg:'#f5f3ff',  icon:'📊'},
+                    {lbl:netProfit>=0?'صافي الربح':'صافي الخسارة',
+                        val:IQ(Math.abs(netProfit)),
+                        color:netProfit>=0?'#16a34a':'#dc2626',
+                        bg:netProfit>=0?'#f0fdf4':'#fef2f2',
+                        icon:netProfit>=0?'✅':'❌'},
+                    {lbl:'عدد الأصناف',           val:products.length+' صنف', color:'#0369a1', bg:'#e0f2fe', icon:'🔢'},
+                    {lbl:'إجمالي الوحدات',        val:totalUnits+' وحدة',  color:'#0369a1',  bg:'#e0f2fe',  icon:'📋'},
+                ].map(({lbl,val,color,bg,icon})=>(
+                    <div key={lbl} style={{background:'#fff',border:'1px solid #e2e8f0',borderRadius:'14px',padding:'14px 16px',boxShadow:'0 1px 4px rgba(0,0,0,.05)'}}>
+                        <div style={{fontSize:'13px',color:'#94a3b8',fontWeight:700,marginBottom:'6px',...F}}>{icon} {lbl}</div>
+                        <div style={{fontSize:'18px',fontWeight:900,color,...F}}>{val}</div>
+                    </div>
+                ))}
+            </div>
+
+            {/* ── محتوى ── */}
+            <div style={{background:'#fff',borderRadius:'20px',padding:'22px',boxShadow:'0 2px 12px rgba(0,0,0,.07)',border:'1px solid #e2e8f0'}}>
+
+                {/* تبويبات داخلية */}
+                <div style={{display:'inline-flex',gap:'4px',marginBottom:'20px',background:'#f8fafc',borderRadius:'12px',padding:'4px'}}>
+                    <Tab id="products" lbl="المنتجات" icon="📦"/>
+                    <Tab id="expenses" lbl="الصرفيات" icon="💸"/>
+                    <Tab id="summary"  lbl="تقرير الأرباح" icon="📊"/>
+                </div>
+
+                {loading && <div style={{textAlign:'center',padding:'40px',color:'#94a3b8',fontWeight:700,...F}}>⏳ جاري التحميل...</div>}
+
+                {/* ═══ المنتجات ═══ */}
+                {!loading && section==='products' && (
+                    <div style={{display:'flex',gap:'20px',alignItems:'flex-start',flexWrap:'wrap'}}>
+
+                        {/* نموذج الإضافة */}
+                        <div style={{width:'260px',flexShrink:0,background:'#f8fafc',borderRadius:'14px',padding:'16px',border:'1px solid #e2e8f0'}}>
+                            <div style={{fontWeight:900,fontSize:'14px',color:'#1e3a5f',marginBottom:'12px',...F}}>➕ إضافة منتج</div>
+                            {[
+                                ['اسم المنتج','name','text'],
+                                ['الكلفة (د.ع)','cost_price','number'],
+                                ['سعر البيع (د.ع)','sell_price','number'],
+                                ['الكمية','quantity','number'],
+                                ['الفئة','category','text'],
+                            ].map(([ph,key,type])=>(
+                                <input key={key} type={type} placeholder={ph} value={newProd[key]}
+                                    onChange={e=>setNewProd(p=>({...p,[key]:e.target.value}))}
+                                    style={{width:'100%',padding:'9px 11px',border:'2px solid #e2e8f0',borderRadius:'10px',
+                                        fontSize:'13px',fontWeight:600,marginBottom:'8px',...F}}/>
+                            ))}
+                            {/* معاينة الربح */}
+                            {newProd.sell_price && newProd.cost_price && (
+                                <div style={{background: (Number(newProd.sell_price)-Number(newProd.cost_price))>=0?'#f0fdf4':'#fef2f2',
+                                    border:'1px solid', borderColor:(Number(newProd.sell_price)-Number(newProd.cost_price))>=0?'#bbf7d0':'#fecaca',
+                                    borderRadius:'9px',padding:'8px 11px',marginBottom:'8px',fontSize:'12px',fontWeight:800,
+                                    color:(Number(newProd.sell_price)-Number(newProd.cost_price))>=0?'#16a34a':'#dc2626',...F}}>
+                                    ربح الوحدة: {numFmt(Number(newProd.sell_price)-Number(newProd.cost_price))} د.ع
+                                </div>
+                            )}
+                            <button onClick={addProduct}
+                                style={{width:'100%',padding:'11px',background:'#1e3a5f',color:'#fff',border:'none',
+                                    borderRadius:'11px',fontWeight:800,fontSize:'14px',cursor:'pointer',...F}}>
+                                حفظ المنتج
+                            </button>
+                        </div>
+
+                        {/* جدول المنتجات */}
+                        <div style={{flex:1,overflowX:'auto',minWidth:0}}>
+                            <div style={{fontWeight:900,fontSize:'14px',color:'#1e3a5f',marginBottom:'10px',...F}}>
+                                قائمة المنتجات ({products.length} صنف — {totalUnits} وحدة)
+                            </div>
+                            {products.length===0 ? (
+                                <div style={{textAlign:'center',padding:'40px',color:'#94a3b8',fontWeight:700,...F}}>لا توجد منتجات مضافة</div>
+                            ) : (
+                                <table className="rec-table">
+                                    <thead>
+                                        <tr>
+                                            {['المنتج','الفئة','الكلفة','سعر البيع','الكمية','ربح الوحدة','القيمة الكلية (بيع)','إجراء'].map(h=>(
+                                                <th key={h} style={{...F, whiteSpace:'nowrap'}}>{h}</th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {products.map(p=>{
+                                            const unitProfit = Number(p.sell_price)-Number(p.cost_price);
+                                            const totalVal   = Number(p.sell_price)*Number(p.quantity);
+                                            const isEditing  = editId===p.id;
+                                            return (
+                                                <tr key={p.id}>
+                                                    <td style={{fontWeight:800,textAlign:'right',...F}}>
+                                                        {isEditing
+                                                            ? <input value={editData.name} onChange={e=>setEditData(d=>({...d,name:e.target.value}))}
+                                                                style={{width:'100%',padding:'4px 7px',border:'1px solid #bfdbfe',borderRadius:'7px',fontSize:'12px',...F}}/>
+                                                            : p.name}
+                                                    </td>
+                                                    <td style={{color:'#64748b',fontSize:'12px',...F}}>
+                                                        {isEditing
+                                                            ? <input value={editData.category} onChange={e=>setEditData(d=>({...d,category:e.target.value}))}
+                                                                style={{width:'70px',padding:'4px',border:'1px solid #e2e8f0',borderRadius:'7px',fontSize:'12px',...F}}/>
+                                                            : p.category||'—'}
+                                                    </td>
+                                                    <td style={{fontWeight:700,...F}}>
+                                                        {isEditing
+                                                            ? <input type="number" value={editData.cost_price} onChange={e=>setEditData(d=>({...d,cost_price:e.target.value}))}
+                                                                style={{width:'75px',padding:'4px',border:'1px solid #e2e8f0',borderRadius:'7px',fontSize:'12px',textAlign:'center'}}/>
+                                                            : numFmt(p.cost_price)}
+                                                    </td>
+                                                    <td style={{fontWeight:700,...F}}>
+                                                        {isEditing
+                                                            ? <input type="number" value={editData.sell_price} onChange={e=>setEditData(d=>({...d,sell_price:e.target.value}))}
+                                                                style={{width:'75px',padding:'4px',border:'1px solid #e2e8f0',borderRadius:'7px',fontSize:'12px',textAlign:'center'}}/>
+                                                            : numFmt(p.sell_price)}
+                                                    </td>
+                                                    <td>
+                                                        {isEditing
+                                                            ? <input type="number" value={editData.quantity} onChange={e=>setEditData(d=>({...d,quantity:e.target.value}))}
+                                                                style={{width:'55px',padding:'4px',border:'1px solid #e2e8f0',borderRadius:'7px',fontSize:'12px',textAlign:'center'}}/>
+                                                            : numFmt(p.quantity)}
+                                                    </td>
+                                                    <td style={{fontWeight:900, color: unitProfit>=0?'#16a34a':'#dc2626',...F}}>
+                                                        {unitProfit>=0?'+':''}{numFmt(unitProfit)}
+                                                    </td>
+                                                    <td style={{fontWeight:800,color:'#1e3a5f',...F}}>{numFmt(totalVal)}</td>
+                                                    <td>
+                                                        <div style={{display:'flex',gap:'5px',justifyContent:'center'}}>
+                                                            {isEditing ? (
+                                                                <>
+                                                                    <button onClick={saveEdit}
+                                                                        style={{padding:'4px 8px',background:'#16a34a',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer',display:'flex',alignItems:'center',gap:'3px',fontSize:'12px',fontWeight:700,...F}}>
+                                                                        <I.Check/> حفظ
+                                                                    </button>
+                                                                    <button onClick={()=>setEditId(null)}
+                                                                        style={{padding:'4px 7px',background:'#f1f5f9',color:'#64748b',border:'1px solid #e2e8f0',borderRadius:'6px',cursor:'pointer',fontSize:'12px'}}>
+                                                                        <I.X/>
+                                                                    </button>
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <button onClick={()=>startEdit(p)}
+                                                                        style={{padding:'4px 8px',background:'#eff6ff',color:'#2563eb',border:'none',borderRadius:'6px',cursor:'pointer',display:'flex',alignItems:'center',gap:'3px',fontSize:'12px',fontWeight:700,...F}}>
+                                                                        <I.Edit/> تعديل
+                                                                    </button>
+                                                                    <button onClick={()=>deleteProduct(p.id)}
+                                                                        style={{padding:'4px 7px',background:'#fef2f2',color:'#dc2626',border:'none',borderRadius:'6px',cursor:'pointer',fontSize:'12px'}}>
+                                                                        <I.Trash/>
+                                                                    </button>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* ═══ الصرفيات ═══ */}
+                {!loading && section==='expenses' && (
+                    <div style={{display:'flex',gap:'20px',alignItems:'flex-start',flexWrap:'wrap'}}>
+
+                        {/* نموذج إضافة صرفية */}
+                        <div style={{width:'260px',flexShrink:0,background:'#f8fafc',borderRadius:'14px',padding:'16px',border:'1px solid #e2e8f0'}}>
+                            <div style={{fontWeight:900,fontSize:'14px',color:'#dc2626',marginBottom:'12px',...F}}>➕ إضافة صرفية</div>
+                            {[
+                                ['الوصف','description','text'],
+                                ['المبلغ (د.ع)','amount','number'],
+                                ['التاريخ','date','date'],
+                                ['الفئة','category','text'],
+                            ].map(([ph,key,type])=>(
+                                <input key={key} type={type} placeholder={ph} value={newExp[key]}
+                                    onChange={e=>setNewExp(p=>({...p,[key]:e.target.value}))}
+                                    style={{width:'100%',padding:'9px 11px',border:'2px solid #e2e8f0',borderRadius:'10px',
+                                        fontSize:'13px',fontWeight:600,marginBottom:'8px',...F}}/>
+                            ))}
+                            <button onClick={addExpense}
+                                style={{width:'100%',padding:'11px',background:'#dc2626',color:'#fff',border:'none',
+                                    borderRadius:'11px',fontWeight:800,fontSize:'14px',cursor:'pointer',...F}}>
+                                حفظ الصرفية
+                            </button>
+                            {/* ملخص */}
+                            <div style={{marginTop:'14px',background:'#fef2f2',borderRadius:'10px',padding:'12px',border:'1px solid #fecaca'}}>
+                                <div style={{fontSize:'12px',color:'#94a3b8',fontWeight:700,marginBottom:'4px',...F}}>إجمالي الصرفيات</div>
+                                <div style={{fontSize:'20px',fontWeight:900,color:'#dc2626',...F}}>{IQ(totalExpenses)}</div>
+                            </div>
+                        </div>
+
+                        {/* جدول الصرفيات */}
+                        <div style={{flex:1,overflowX:'auto',minWidth:0}}>
+                            <div style={{fontWeight:900,fontSize:'14px',color:'#1e3a5f',marginBottom:'10px',...F}}>
+                                قائمة الصرفيات ({expenses.length} سجل)
+                            </div>
+                            {expenses.length===0 ? (
+                                <div style={{textAlign:'center',padding:'40px',color:'#94a3b8',fontWeight:700,...F}}>لا توجد صرفيات مسجلة</div>
+                            ) : (
+                                <table className="rec-table">
+                                    <thead>
+                                        <tr>
+                                            {['التاريخ','الوصف','الفئة','المبلغ (د.ع)','حذف'].map(h=>(
+                                                <th key={h} style={{...F}}>{h}</th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {expenses.map(e=>(
+                                            <tr key={e.id}>
+                                                <td style={{color:'#64748b',fontSize:'12px',...F}}>{e.date}</td>
+                                                <td style={{fontWeight:700,textAlign:'right',...F}}>{e.description}</td>
+                                                <td style={{color:'#64748b',fontSize:'12px',...F}}>{e.category||'—'}</td>
+                                                <td style={{fontWeight:900,color:'#dc2626',...F}}>{numFmt(e.amount)}</td>
+                                                <td>
+                                                    <button onClick={()=>deleteExpense(e.id)}
+                                                        style={{padding:'4px 7px',background:'#fef2f2',color:'#dc2626',border:'none',borderRadius:'6px',cursor:'pointer',fontSize:'12px'}}>
+                                                        <I.Trash/>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* ═══ تقرير الأرباح ═══ */}
+                {!loading && section==='summary' && (
+                    <div style={{display:'flex',flexDirection:'column',gap:'20px'}}>
+                        {/* البطاقة الرئيسية */}
+                        <div style={{background: netProfit>=0 ? 'linear-gradient(135deg,#1e3a5f,#2563eb)' : 'linear-gradient(135deg,#7f1d1d,#dc2626)',
+                            borderRadius:'18px',padding:'28px',color:'#fff'}}>
+                            <div style={{fontSize:'14px',fontWeight:700,opacity:.8,marginBottom:'8px',...F}}>
+                                {netProfit>=0 ? '✅ النتيجة: ربح صافي' : '❌ النتيجة: خسارة صافية'}
+                            </div>
+                            <div style={{fontSize:'42px',fontWeight:900,...F}}>
+                                {numFmt(Math.abs(netProfit))} <span style={{fontSize:'18px',opacity:.8}}>د.ع</span>
+                            </div>
+                        </div>
+
+                        {/* تفاصيل */}
+                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px'}}>
+                            {[
+                                {lbl:'قيمة المخزن بالكلفة',   val:IQ(totalCostValue),  icon:'📦', color:'#1e3a5f', bg:'#eff6ff'},
+                                {lbl:'قيمة المخزن بالبيع',    val:IQ(totalSellValue),  icon:'🏷️', color:'#0f172a', bg:'#f8fafc'},
+                                {lbl:'الربح الإجمالي (مخزن)', val:IQ(grossProfit),     icon:'📈', color:grossProfit>=0?'#16a34a':'#dc2626', bg:grossProfit>=0?'#f0fdf4':'#fef2f2'},
+                                {lbl:'إجمالي الصرفيات',       val:IQ(totalExpenses),   icon:'💸', color:'#dc2626', bg:'#fef2f2'},
+                            ].map(({lbl,val,icon,color,bg})=>(
+                                <div key={lbl} style={{background:bg,border:'1px solid #e2e8f0',borderRadius:'14px',padding:'16px 18px'}}>
+                                    <div style={{fontSize:'12px',color:'#94a3b8',fontWeight:700,marginBottom:'6px',...F}}>{icon} {lbl}</div>
+                                    <div style={{fontSize:'20px',fontWeight:900,color,...F}}>{val}</div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* معادلة الحساب */}
+                        <div style={{background:'#f8fafc',borderRadius:'14px',padding:'18px',border:'1px solid #e2e8f0'}}>
+                            <div style={{fontWeight:900,fontSize:'14px',color:'#1e3a5f',marginBottom:'12px',...F}}>🧮 معادلة الحساب</div>
+                            {[
+                                ['قيمة المخزن بالبيع',   IQ(totalSellValue), '#0f172a'],
+                                ['— قيمة المخزن بالكلفة', IQ(totalCostValue), '#64748b'],
+                                ['= الربح الإجمالي',     IQ(grossProfit),    grossProfit>=0?'#16a34a':'#dc2626'],
+                                ['— إجمالي الصرفيات',    IQ(totalExpenses),  '#dc2626'],
+                                ['= صافي الربح / الخسارة', IQ(netProfit),    netProfit>=0?'#16a34a':'#dc2626'],
+                            ].map(([lbl,val,col],i)=>(
+                                <div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',
+                                    padding:'9px 0', borderBottom: i<4?'1px solid #e2e8f0':'none',
+                                    fontWeight: i===4?900:700, fontSize: i===4?'16px':'14px'}}>
+                                    <span style={{color:'#475569',...F}}>{lbl}</span>
+                                    <span style={{color:col,...F}}>{val}</span>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* أفضل المنتجات ربحاً */}
+                        {products.length > 0 && (
+                            <div style={{background:'#f8fafc',borderRadius:'14px',padding:'18px',border:'1px solid #e2e8f0'}}>
+                                <div style={{fontWeight:900,fontSize:'14px',color:'#1e3a5f',marginBottom:'12px',...F}}>🏆 أعلى المنتجات ربحاً (للوحدة)</div>
+                                {[...products]
+                                    .sort((a,b)=>(Number(b.sell_price)-Number(b.cost_price))-(Number(a.sell_price)-Number(a.cost_price)))
+                                    .slice(0,5)
+                                    .map((p,i)=>{
+                                        const up = Number(p.sell_price)-Number(p.cost_price);
+                                        const pct = Number(p.cost_price)>0 ? ((up/Number(p.cost_price))*100).toFixed(0) : '—';
+                                        return (
+                                            <div key={p.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',
+                                                padding:'8px 0',borderBottom:i<4?'1px solid #f1f5f9':'none'}}>
+                                                <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                                                    <span style={{fontWeight:900,color:'#94a3b8',fontSize:'13px',...F}}>#{i+1}</span>
+                                                    <span style={{fontWeight:700,fontSize:'13px',color:'#0f172a',...F}}>{p.name}</span>
+                                                </div>
+                                                <div style={{display:'flex',gap:'12px',alignItems:'center'}}>
+                                                    <span style={{fontSize:'12px',color:'#94a3b8',...F}}>{pct}%</span>
+                                                    <span style={{fontWeight:900,fontSize:'14px',color:up>=0?'#16a34a':'#dc2626',...F}}>
+                                                        {up>=0?'+':''}{numFmt(up)} د.ع
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
 
 /* ══════════════════════════════════════
    RecordsView — سجل الإصدارات
@@ -704,6 +1197,7 @@ function App() {
                 {[
                     ['create', <I.Create/>, 'إنشاء فاتورة'],
                     ['records', <I.Records/>, 'سجل الإصدارات'],
+                    ['inventory', <I.Store/>, 'المخزن والأرباح'],
                 ].map(([tab, icon, lbl])=>(
                     <button key={tab} onClick={()=>setActiveTab(tab)}
                         style={{display:'flex', alignItems:'center', gap:'7px',
@@ -721,6 +1215,8 @@ function App() {
             {/* ══ محتوى التبويبات ══ */}
             {activeTab === 'records' ? (
                 <RecordsView onLoadInvoice={loadInvoice} onSwitchTab={setActiveTab}/>
+            ) : activeTab === 'inventory' ? (
+                <InventoryView/>
             ) : (
                 <div style={{display:'flex', gap:'20px', alignItems:'flex-start'}}>
 
