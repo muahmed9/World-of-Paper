@@ -123,6 +123,25 @@ function toWA(phone) {
     return p;
 }
 
+/* رقم القائمة التالي: {شهر}-{ترتيب} مثلاً 5-3 */
+async function getNextInvoiceNumber() {
+    const now   = new Date();
+    const month = now.getMonth() + 1;                        // 1-12
+    const ym    = now.toISOString().slice(0,7);              // "2026-05"
+    try {
+        const { count, error } = await sbClient
+            .from('invoices')
+            .select('id', { count:'exact', head:true })
+            .gte('date', ym + '-01')
+            .lte('date', ym + '-31');
+        if(error) throw error;
+        return `${month}-${(count||0)+1}`;
+    } catch(e) {
+        console.error('invoice number error:', e);
+        return `${month}-1`;
+    }
+}
+
 async function saveToSupabase(inv, subtotal, paid, due) {
     try {
         const { error } = await sbClient.from('invoices').insert({
@@ -353,13 +372,20 @@ function App() {
     const [activeTab, setActiveTab] = useState('create');
 
     const [inv, setInv] = useState({
-        invoiceNumber: '8743',
+        invoiceNumber: '...',
         date: new Date().toISOString().split('T')[0],
         customerName: '', customerPhone: '',
         items: [{ id:'1', description:'', quantity:1, price:0 }],
         invoiceType: 'sale', paidAmount: '',
         notes: 'البضاعة المباعة لا ترد ولا تستبدل بعد 24 ساعة.'
     });
+
+    /* جلب الرقم التلقائي عند التحميل */
+    useEffect(()=>{
+        getNextInvoiceNumber().then(num =>
+            setInv(p=>({...p, invoiceNumber: num}))
+        );
+    }, []);
 
     const subtotal = useMemo(()=> inv.items.reduce((s,it)=>s+(Number(it.quantity)*Number(it.price)),0), [inv.items]);
     const paid     = Number(inv.paidAmount) || 0;
@@ -432,6 +458,7 @@ function App() {
             }).from(el).save();
 
             scalerRef.current.style.transform = saved;
+            await advanceInvoiceNumber();
             toast('تم الحفظ وتصدير PDF ✓','success');
         } catch(e){
             console.error(e);
@@ -468,6 +495,7 @@ function App() {
 
             if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
                 await navigator.share({files:[file], title:'فاتورة عالم ورق الكاشير'});
+                await advanceInvoiceNumber();
                 toast('تم الإرسال والحفظ ✓','success');
             } else {
                 const url = URL.createObjectURL(blob);
@@ -477,6 +505,7 @@ function App() {
                 setTimeout(()=>URL.revokeObjectURL(url),1000);
                 const msg = encodeURIComponent(`مرحباً ${inv.customerName}،\nفاتورة رقم ${inv.invoiceNumber} من عالم ورق الكاشير.\n(الصورة محفوظة على جهازك)`);
                 setTimeout(()=>window.open(`https://wa.me/${wa}?text=${msg}`,'_blank'),800);
+                await advanceInvoiceNumber();
                 toast('تم الحفظ والتنزيل ✓','success');
             }
         } catch(e){
@@ -485,11 +514,18 @@ function App() {
         }
     };
 
+    /* تحديث رقم القائمة للرقم التالي بعد الحفظ */
+    const advanceInvoiceNumber = async () => {
+        const next = await getNextInvoiceNumber();
+        setInv(p => ({...p, invoiceNumber: next}));
+    };
+
     /* ══ حفظ يدوي ══ */
     const handleSave = async ()=>{
         showLoading('جاري الحفظ...');
         const ok = await saveToSupabase(inv, subtotal, paid, due);
         hideLoading();
+        if(ok) advanceInvoiceNumber();
         toast(ok ? 'تم الحفظ في قاعدة البيانات ✓' : 'فشل الحفظ، تحقق من الاتصال', ok?'success':'error');
     };
 
@@ -810,4 +846,3 @@ ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </script>
 </body>
 </html>
-
