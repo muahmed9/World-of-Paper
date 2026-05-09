@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>عالم ورق الكاشير - مولد الفواتير</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -13,36 +12,535 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        *, *::before, *::after { box-sizing: border-box; }
-        html, body { font-family: 'Cairo', sans-serif; background: #eef2f7; margin: 0; padding: 0; direction: rtl; }
-
-        #invoice-sheet {
-            width: 794px; height: 1123px; min-height: 1123px; max-height: 1123px;
-            background: #fff; padding: 40px 50px 34px 50px;
-            display: flex; flex-direction: column; overflow: hidden;
-            position: relative; font-family: 'Cairo', sans-serif; direction: rtl;
+        :root {
+            --navy: #1a2744;
+            --navy2: #243058;
+            --blue: #2563eb;
+            --green: #16a34a;
+            --red: #dc2626;
+            --amber: #d97706;
+            --bg: #f0f4f8;
+            --panel: #ffffff;
+            --border: #d1d9e6;
+            --text: #0f172a;
+            --muted: #64748b;
+            --row-even: #f7f9fc;
+            --row-hover: #eef3fb;
+            --input-bg: #ffffff;
+            --input-focus: #eff6ff;
+            --header-h: 54px;
+            --sidebar-w: 320px;
         }
 
-        .inv-table { width: 100%; border-collapse: collapse; font-family: 'Cairo', sans-serif; }
-        .inv-table th, .inv-table td { border: 1px solid #d1d5db; padding: 6px 8px; text-align: center; font-family: 'Cairo', sans-serif; }
+        html, body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* ══ Layout ══ */
+        #root { height: 100vh; display: flex; flex-direction: column; }
+
+        .app-header {
+            height: var(--header-h);
+            background: var(--navy);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 16px;
+            flex-shrink: 0;
+            border-bottom: 2px solid rgba(255,255,255,.08);
+        }
+
+        .app-logo {
+            font-weight: 900;
+            font-size: 17px;
+            color: #fff;
+            white-space: nowrap;
+        }
+        .app-logo span { color: #93c5fd; font-size: 12px; font-weight: 600; display: block; margin-top: -3px; }
+
+        .header-tabs {
+            display: flex;
+            gap: 2px;
+            background: rgba(255,255,255,.08);
+            border-radius: 10px;
+            padding: 3px;
+        }
+        .header-tab {
+            padding: 6px 16px;
+            border: none;
+            background: transparent;
+            color: rgba(255,255,255,.6);
+            border-radius: 7px;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all .15s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .header-tab.active { background: #fff; color: var(--navy); }
+        .header-tab:not(.active):hover { background: rgba(255,255,255,.12); color: #fff; }
+
+        .header-spacer { flex: 1; }
+
+        .header-badge {
+            background: rgba(255,255,255,.1);
+            border: 1px solid rgba(255,255,255,.15);
+            border-radius: 8px;
+            padding: 5px 12px;
+            color: rgba(255,255,255,.8);
+            font-size: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .pulse-dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+        /* ══ Main body ══ */
+        .app-body {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+        }
+
+        /* ══ Create Tab Layout ══ */
+        .create-layout {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* Left sidebar */
+        .sidebar {
+            width: var(--sidebar-w);
+            flex-shrink: 0;
+            background: var(--navy2);
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid rgba(255,255,255,.07);
+            overflow-y: auto;
+        }
+        .sidebar::-webkit-scrollbar { width: 4px; }
+        .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 4px; }
+
+        .sidebar-section {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255,255,255,.06);
+        }
+        .sidebar-label {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,.35);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .sb-input {
+            width: 100%;
+            padding: 8px 11px;
+            background: rgba(255,255,255,.07);
+            border: 1.5px solid rgba(255,255,255,.1);
+            border-radius: 9px;
+            color: #fff;
+            font-family: 'Cairo', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all .15s;
+            outline: none;
+        }
+        .sb-input::placeholder { color: rgba(255,255,255,.3); }
+        .sb-input:focus { border-color: rgba(99,179,255,.5); background: rgba(255,255,255,.1); }
+        .sb-input option { background: var(--navy2); color: #fff; }
+
+        .sb-row { display: flex; gap: 8px; }
+
+        .sb-stat {
+            flex: 1;
+            background: rgba(255,255,255,.05);
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: 10px;
+            padding: 10px 12px;
+            text-align: center;
+        }
+        .sb-stat-val { font-size: 16px; font-weight: 900; color: #fff; }
+        .sb-stat-lbl { font-size: 10px; font-weight: 700; color: rgba(255,255,255,.4); margin-top: 2px; }
+
+        .sb-btn {
+            width: 100%;
+            padding: 11px;
+            border: none;
+            border-radius: 11px;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 800;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            transition: all .15s;
+        }
+        .sb-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .sb-btn:active { transform: translateY(0); }
+        .btn-primary   { background: #2563eb; color: #fff; }
+        .btn-green     { background: #16a34a; color: #fff; }
+        .btn-purple    { background: #7c3aed; color: #fff; }
+
+        .due-box {
+            background: linear-gradient(135deg, #1e40af, #2563eb);
+            border-radius: 12px;
+            padding: 12px 14px;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .due-box.red { background: linear-gradient(135deg, #991b1b, #dc2626); }
+        .due-box-lbl { font-size: 10px; font-weight: 700; opacity: .7; }
+        .due-box-val { font-size: 22px; font-weight: 900; }
+        .due-box-sub { font-size: 10px; opacity: .6; }
+
+        /* ══ Main content area ══ */
+        .main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--bg);
+        }
+
+        /* Toolbar */
+        .toolbar {
+            height: 42px;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .tb-btn {
+            padding: 5px 12px;
+            border: 1px solid var(--border);
+            background: #fff;
+            border-radius: 7px;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all .12s;
+            white-space: nowrap;
+        }
+        .tb-btn:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
+        .tb-sep { width: 1px; height: 22px; background: var(--border); margin: 0 2px; }
+
+        /* ══ Invoice Grid ══ */
+        .grid-wrap {
+            flex: 1;
+            overflow: auto;
+            padding: 12px;
+        }
+
+        .invoice-grid {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--panel);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,.06);
+            border: 1px solid var(--border);
+        }
+
+        .invoice-grid thead tr {
+            background: var(--navy);
+            height: 38px;
+        }
+        .invoice-grid thead th {
+            color: rgba(255,255,255,.85);
+            font-weight: 800;
+            font-size: 12px;
+            padding: 0 10px;
+            text-align: center;
+            border-left: 1px solid rgba(255,255,255,.07);
+            white-space: nowrap;
+            user-select: none;
+        }
+        .invoice-grid thead th:first-child { border-left: none; }
+        .invoice-grid thead th.col-name { text-align: right; }
+
+        .invoice-grid tbody tr {
+            height: 36px;
+            border-bottom: 1px solid var(--border);
+            transition: background .08s;
+        }
+        .invoice-grid tbody tr:nth-child(even) { background: var(--row-even); }
+        .invoice-grid tbody tr:hover { background: var(--row-hover); }
+        .invoice-grid tbody tr.active-row { background: #eff6ff !important; }
+
+        .invoice-grid tbody td {
+            padding: 0;
+            border-left: 1px solid var(--border);
+            position: relative;
+        }
+        .invoice-grid tbody td:first-child { border-left: none; }
+
+        /* Row number */
+        .col-num {
+            width: 38px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--muted);
+        }
+
+        /* Grid cell input */
+        .cell-input {
+            width: 100%;
+            height: 36px;
+            padding: 0 10px;
+            border: none;
+            background: transparent;
+            font-family: 'Cairo', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            outline: none;
+            text-align: center;
+        }
+        .cell-input.name-input { text-align: right; padding: 0 12px; }
+        .cell-input:focus {
+            background: #dbeafe;
+            box-shadow: inset 0 0 0 2px #2563eb;
+        }
+        .cell-input[readonly] {
+            background: transparent;
+            color: var(--muted);
+            cursor: default;
+            font-weight: 700;
+        }
+        .cell-input.computed {
+            color: var(--navy);
+            font-weight: 800;
+        }
+        .cell-input.price-filled { color: #16a34a; font-weight: 800; }
+        .cell-input.total-cell { color: var(--navy); font-weight: 900; font-size: 14px; }
+
+        /* Delete btn */
+        .del-btn {
+            width: 100%;
+            height: 36px;
+            border: none;
+            background: transparent;
+            color: #cbd5e1;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all .1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .del-btn:hover { color: var(--red); background: #fef2f2; }
+
+        /* Autocomplete dropdown */
+        .ac-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            left: 0;
+            z-index: 9999;
+            background: #fff;
+            border: 2px solid #2563eb;
+            border-radius: 10px;
+            box-shadow: 0 12px 32px rgba(37,99,235,.18);
+            overflow: hidden;
+            margin-top: 2px;
+            min-width: 280px;
+        }
+        .ac-header {
+            padding: 5px 12px;
+            font-size: 10px;
+            font-weight: 800;
+            color: #2563eb;
+            background: #eff6ff;
+            border-bottom: 1px solid #bfdbfe;
+            letter-spacing: .5px;
+        }
+        .ac-item {
+            padding: 8px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f5f9;
+            transition: background .08s;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .ac-item:last-child { border-bottom: none; }
+        .ac-item:hover, .ac-item.selected { background: #eff6ff; }
+        .ac-price {
+            font-size: 12px;
+            font-weight: 900;
+            color: #2563eb;
+            background: #eff6ff;
+            padding: 2px 8px;
+            border-radius: 99px;
+            white-space: nowrap;
+        }
+        .ac-hl { background: #bfdbfe; border-radius: 2px; padding: 0 1px; }
+
+        /* Footer totals row */
+        .grid-footer {
+            background: var(--navy);
+            border-top: 2px solid var(--navy);
+        }
+        .grid-footer td {
+            padding: 10px 12px;
+            color: #fff;
+            font-weight: 900;
+            font-size: 14px;
+            text-align: center;
+        }
+        .grid-footer td.lbl { color: rgba(255,255,255,.6); font-size: 12px; text-align: right; }
+
+        /* Bottom status bar */
+        .statusbar {
+            height: 30px;
+            background: var(--panel);
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 14px;
+            gap: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--muted);
+            flex-shrink: 0;
+        }
+        .statusbar span { display: flex; align-items: center; gap: 4px; }
+
+        /* ══ Preview panel ══ */
+        .preview-panel {
+            width: 420px;
+            flex-shrink: 0;
+            background: #e8edf4;
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .preview-header {
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            padding: 8px 14px;
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--navy);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .preview-scroll {
+            flex: 1;
+            overflow: auto;
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+        }
+        .preview-scroll::-webkit-scrollbar { width: 4px; }
+        .preview-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+        /* Invoice sheet */
+        #invoice-sheet {
+            width: 370px;
+            background: #fff;
+            padding: 24px 22px 18px;
+            font-family: 'Cairo', sans-serif;
+            direction: rtl;
+            box-shadow: 0 4px 24px rgba(0,0,0,.15);
+            border-radius: 4px;
+        }
+
+        .inv-table { width: 100%; border-collapse: collapse; }
+        .inv-table th, .inv-table td { border: 1px solid #d1d5db; padding: 4px 6px; text-align: center; font-family: 'Cairo', sans-serif; }
         .inv-table thead tr { background: #1e3a5f; color: #fff; }
-        .inv-table thead th { font-weight: 800; font-size: 12px; }
+        .inv-table thead th { font-weight: 800; font-size: 10px; }
         .inv-table tbody tr:nth-child(even) { background: #f8fafc; }
-        .inv-table tbody td { font-size: 11.5px; color: #1e293b; font-weight: 600; }
+        .inv-table tbody td { font-size: 9.5px; color: #1e293b; font-weight: 600; }
 
-        .rec-table { width: 100%; border-collapse: collapse; font-family: 'Cairo', sans-serif; }
-        .rec-table th { padding: 10px 12px; font-weight: 800; font-size: 12px; text-align: center; background: #1e3a5f; color: #fff; }
-        .rec-table td { padding: 9px 12px; font-size: 13px; text-align: center; border-bottom: 1px solid #f1f5f9; }
-        .rec-table tbody tr:hover { background: #f8fafc; }
+        /* ══ Records & Inventory tabs ══ */
+        .full-tab {
+            flex: 1;
+            overflow: auto;
+            padding: 20px;
+        }
+        .full-tab::-webkit-scrollbar { width: 5px; }
+        .full-tab::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.04);
+        }
+
+        .rec-table { width: 100%; border-collapse: collapse; }
+        .rec-table th {
+            padding: 9px 12px;
+            font-weight: 800;
+            font-size: 11px;
+            text-align: center;
+            background: var(--navy);
+            color: #fff;
+            border-left: 1px solid rgba(255,255,255,.07);
+        }
+        .rec-table td {
+            padding: 9px 12px;
+            font-size: 12px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+        .rec-table tbody tr:hover { background: var(--row-hover); }
+
+        /* ══ Loading ══ */
         #loading-overlay {
-            display: none; position: fixed; inset: 0;
-            background: rgba(15,23,42,0.75); z-index: 9999;
-            flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15,23,42,.75);
+            z-index: 9999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
         }
         #loading-overlay.on { display: flex; }
         #loading-overlay p { color: #fff; font-family: 'Cairo', sans-serif; font-size: 17px; font-weight: 700; }
@@ -50,305 +548,221 @@
         @keyframes rot { to { transform: rotate(360deg); } }
 
         #toast {
-            position: fixed; bottom: 24px; left: 50%;
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
             transform: translateX(-50%) translateY(60px);
-            background: #1e3a5f; color: #fff; padding: 12px 24px;
-            border-radius: 12px; font-family: 'Cairo', sans-serif;
-            font-weight: 700; font-size: 14px;
+            background: var(--navy);
+            color: #fff;
+            padding: 11px 22px;
+            border-radius: 12px;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 700;
+            font-size: 13px;
             transition: transform .3s, opacity .3s;
-            opacity: 0; z-index: 9000; white-space: nowrap;
+            opacity: 0;
+            z-index: 9000;
+            white-space: nowrap;
+            pointer-events: none;
         }
         #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
         #toast.err  { background: #dc2626; }
         #toast.ok   { background: #16a34a; }
 
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        input:focus, textarea:focus, select:focus { border-color: #2563eb !important; outline: none; }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-        @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
-        .fade-in { animation: fadeIn .25s ease forwards; }
+        input:focus, select:focus, textarea:focus { outline: none; }
 
-        /* profit bar */
-        .profit-bar-bg { background: #f1f5f9; border-radius: 99px; height: 6px; overflow: hidden; }
-        .profit-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg,#16a34a,#4ade80); transition: width .5s ease; }
-        .profit-bar-fill.neg { background: linear-gradient(90deg,#dc2626,#f87171); }
+        /* Inv types */
+        .type-badge {
+            display: inline-block;
+            padding: 2px 9px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 800;
+        }
+        .type-sale    { background: #f0fdf4; color: #16a34a; }
+        .type-receipt { background: #eff6ff; color: #2563eb; }
 
-        /* rank badge */
-        .rank-1 { background: linear-gradient(135deg,#f59e0b,#fbbf24); color:#fff; }
-        .rank-2 { background: linear-gradient(135deg,#94a3b8,#cbd5e1); color:#fff; }
-        .rank-3 { background: linear-gradient(135deg,#d97706,#f59e0b); color:#fff; }
-        .rank-n { background: #f1f5f9; color: #64748b; }
+        /* Stats row */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .stat-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 14px;
+        }
+        .stat-card-val { font-size: 17px; font-weight: 900; }
+        .stat-card-lbl { font-size: 10px; color: var(--muted); font-weight: 700; margin-top: 2px; }
 
-        /* autocomplete suggestion row */
-        .ac-row { transition: background .1s; }
-        .ac-row:hover { background: #eff6ff !important; }
+        /* Product table edit */
+        .edit-input {
+            padding: 3px 7px;
+            border: 1.5px solid #bfdbfe;
+            border-radius: 6px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            outline: none;
+        }
+        .edit-input:focus { border-color: #2563eb; }
+
+        /* Responsive hint */
+        @media (max-width: 1200px) {
+            .preview-panel { width: 340px; }
+            :root { --sidebar-w: 280px; }
+        }
     </style>
 </head>
 <body>
-
 <div id="loading-overlay"><div class="spin"></div><p id="loading-text">جاري المعالجة...</p></div>
 <div id="toast"></div>
 <div id="root"></div>
 
 <script type="text/babel">
-const { useState, useMemo, useRef, useEffect } = React;
+const { useState, useMemo, useRef, useEffect, useCallback } = React;
 
 /* ══ Supabase ══ */
 const SB_URL = 'https://xjekrdmtewopugoklfza.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhqZWtyZG10ZXdvcHVnb2tsZnphIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyNjMxMDgsImV4cCI6MjA5MzgzOTEwOH0.Y-V3vHx0InzRm-8S5aQVpzWJYKy8Iqo7Ll6C3zSLHIY';
-const sbClient = supabase.createClient(SB_URL, SB_KEY);
+const sb = supabase.createClient(SB_URL, SB_KEY);
 
 /* ══ Helpers ══ */
-function showLoading(t='جاري المعالجة...') {
-    document.getElementById('loading-text').textContent = t;
-    document.getElementById('loading-overlay').classList.add('on');
-}
-function hideLoading() { document.getElementById('loading-overlay').classList.remove('on'); }
-
+function showLoading(t='جاري المعالجة...'){ document.getElementById('loading-text').textContent=t; document.getElementById('loading-overlay').classList.add('on'); }
+function hideLoading(){ document.getElementById('loading-overlay').classList.remove('on'); }
 let _tt;
-function toast(msg, type='') {
-    const el = document.getElementById('toast');
-    el.textContent = msg;
-    el.className = 'show ' + (type==='error'?'err':type==='success'?'ok':'');
+function toast(msg,type=''){
+    const el=document.getElementById('toast');
+    el.textContent=msg;
+    el.className='show '+(type==='error'?'err':type==='success'?'ok':'');
     clearTimeout(_tt);
-    _tt = setTimeout(()=>{ el.className=''; }, 3200);
+    _tt=setTimeout(()=>{el.className='';},3000);
 }
+const fmt = n => Number(n||0).toLocaleString();
+const IQ  = n => fmt(n)+' د.ع';
 
-function toWA(phone) {
-    let p = phone.replace(/\D/g,'');
+function toWA(phone){
+    let p=phone.replace(/\D/g,'');
     if(p.startsWith('00')) p=p.slice(2);
-    if(p.startsWith('0'))  p='964'+p.slice(1);
+    if(p.startsWith('0')) p='964'+p.slice(1);
     if(!p.startsWith('964')) p='964'+p;
     return p;
 }
 
-async function getNextInvoiceNumber() {
-    const now   = new Date();
-    const month = now.getMonth() + 1;
-    const ym    = now.toISOString().slice(0,7);
+async function getNextInvoiceNumber(){
+    const now=new Date();
+    const month=now.getMonth()+1;
+    const ym=now.toISOString().slice(0,7);
     try {
-        const { count, error } = await sbClient
-            .from('invoices')
-            .select('id', { count:'exact', head:true })
-            .gte('date', ym + '-01')
-            .lte('date', ym + '-31');
-        if(error) throw error;
+        const {count}=await sb.from('invoices').select('id',{count:'exact',head:true})
+            .gte('date',ym+'-01').lte('date',ym+'-31');
         return `${month}-${(count||0)+1}`;
-    } catch(e) {
-        return `${month}-1`;
-    }
+    } catch { return `${month}-1`; }
 }
 
-async function saveToSupabase(inv, subtotal, paid, due) {
+async function saveToSupabase(inv, subtotal, paid, due){
     try {
-        const { error } = await sbClient.from('invoices').insert({
-            invoice_number: inv.invoiceNumber, date: inv.date,
-            customer_name: inv.customerName, customer_phone: inv.customerPhone,
-            invoice_type: inv.invoiceType, items: inv.items,
-            subtotal, paid_amount: paid, due_amount: due, notes: inv.notes
+        const {error}=await sb.from('invoices').insert({
+            invoice_number:inv.invoiceNumber, date:inv.date,
+            customer_name:inv.customerName, customer_phone:inv.customerPhone,
+            invoice_type:inv.invoiceType, items:inv.items,
+            subtotal, paid_amount:paid, due_amount:due, notes:inv.notes
         });
         if(error) throw error;
         return true;
-    } catch(e) { console.error('Supabase save error:', e); return false; }
-}
-
-function calcSalesStats(invoices, products) {
-    const map = {};
-    let totalRevenue = 0;
-    let totalCOGS    = 0;
-
-    for (const inv of invoices) {
-        if (inv.invoice_type !== 'sale') continue;
-        for (const item of (inv.items || [])) {
-            if (!item.description || item.isEmpty) continue;
-            const name    = (item.description || '').trim();
-            const sellPx  = Number(item.price    || 0);
-            const qty     = Number(item.quantity  || 0);
-            if (!name || qty === 0) continue;
-
-            const prod = products.find(p =>
-                p.name.toLowerCase().trim() === name.toLowerCase()
-            );
-            const costPx     = prod ? Number(prod.cost_price || 0) : 0;
-            const hasProduct = !!prod;
-
-            const lineRevenue = sellPx * qty;
-            const lineCost    = costPx * qty;
-            const lineProfit  = lineRevenue - lineCost;
-
-            totalRevenue += lineRevenue;
-            if (hasProduct) totalCOGS += lineCost;
-
-            if (!map[name]) {
-                map[name] = {
-                    name, hasProduct,
-                    totalQty: 0, totalRevenue: 0, totalCost: 0, totalProfit: 0,
-                    txCount: 0, costPx, sellAvg: 0,
-                };
-            }
-            map[name].totalQty     += qty;
-            map[name].totalRevenue += lineRevenue;
-            map[name].totalCost    += lineCost;
-            map[name].totalProfit  += lineProfit;
-            map[name].txCount++;
-        }
-    }
-
-    const rows = Object.values(map).map(r => ({
-        ...r,
-        sellAvg: r.totalQty > 0 ? r.totalRevenue / r.totalQty : 0,
-        margin:  r.totalRevenue > 0 ? (r.totalProfit / r.totalRevenue) * 100 : 0,
-    }));
-
-    const totalProfit = totalRevenue - totalCOGS;
-    return { rows, totalRevenue, totalCOGS, totalProfit };
+    } catch(e){ console.error(e); return false; }
 }
 
 /* ══ Icons ══ */
-const I = {
-    Plus:    ()=><svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
-    Trash:   ()=><svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>,
-    WA:      ()=><svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>,
-    Save:    ()=><svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>,
-    Records: ()=><svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>,
-    Excel:   ()=><svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>,
-    Refresh: ()=><svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>,
-    X:       ()=><svg width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
-    Eye:     ()=><svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
-    PDF:     ()=><svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>,
-    Create:  ()=><svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
-    Store:   ()=><svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>,
-    Tag:     ()=><svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>,
-    TrendUp: ()=><svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>,
-    Expense: ()=><svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>,
-    Edit:    ()=><svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
-    Check:   ()=><svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>,
-    Sort:    ()=><svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>,
-    ChevronUp:   ()=><svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>,
-    ChevronDown: ()=><svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>,
-    Search:  ()=><svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
-    Info:    ()=><svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>,
+const svg = (d, vb='0 0 24 24') => () =>
+    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox={vb}>{d}</svg>;
+
+const Icons = {
+    Plus:    svg(<><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></>),
+    Trash:   svg(<><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></>),
+    PDF:     svg(<><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></>),
+    WA:      () => <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>,
+    Save:    svg(<><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></>),
+    Records: svg(<><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></>),
+    Store:   svg(<><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></>),
+    Create:  svg(<><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></>),
+    Refresh: svg(<><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></>),
+    Eye:     svg(<><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>),
+    Excel:   svg(<><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></>),
+    Edit:    svg(<><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></>),
+    Check:   svg(<><polyline points="20 6 9 17 4 12"/></>),
+    X:       svg(<><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>),
+    New:     svg(<><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></>),
+    Print:   svg(<><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></>),
 };
 
-const F = { fontFamily:"'Cairo', sans-serif" };
-const numFmt = n => Number(n||0).toLocaleString();
-const IQ     = n => numFmt(n) + ' د.ع';
-const pct    = n => Number(n||0).toFixed(1) + '%';
-
-
 /* ══════════════════════════════════════
-   AutocompleteInput
-   يظهر مقترحات من جدول المنتجات أثناء الكتابة
-   عند الاختيار يملأ الاسم والسعر تلقائياً
+   AutocompleteCell
 ══════════════════════════════════════ */
-function AutocompleteInput({ value, onSelect, products, inputStyle }) {
-    const [open, setOpen]   = React.useState(false);
-    const wrapRef           = React.useRef(null);
-    const inputRef          = React.useRef(null);
+function AutocompleteCell({ value, onSelect, products, inputRef, onKeyDown, onFocus }) {
+    const [open, setOpen] = useState(false);
+    const [selIdx, setSelIdx] = useState(-1);
+    const wrapRef = useRef(null);
 
-    /* المقترحات: عند فراغ الحقل → أول 8 منتجات، وإلا → فلترة */
-    const suggestions = React.useMemo(() => {
-        const q = (value || '').trim().toLowerCase();
-        if (!q) return products.slice(0, 8);
-        /* مطابقة جزئية في أي موضع من الاسم */
-        return products
-            .filter(p => p.name.toLowerCase().includes(q))
-            .slice(0, 8);
+    const suggestions = useMemo(() => {
+        const q = (value||'').trim().toLowerCase();
+        if (!q) return products.slice(0, 10);
+        return products.filter(p => p.name.toLowerCase().includes(q)).slice(0, 10);
     }, [value, products]);
 
-    /* إغلاق عند النقر خارج */
-    React.useEffect(() => {
-        const handler = e => {
-            if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false);
-        };
-        document.addEventListener('mousedown', handler);
-        return () => document.removeEventListener('mousedown', handler);
+    useEffect(() => {
+        const h = e => { if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false); };
+        document.addEventListener('mousedown', h);
+        return () => document.removeEventListener('mousedown', h);
     }, []);
 
-    const handleSelect = (prod) => {
-        onSelect(prod.name, Number(prod.sell_price) || 0);
+    const pick = prod => {
+        onSelect(prod.name, Number(prod.sell_price)||0);
         setOpen(false);
-        inputRef.current && inputRef.current.blur();
+        setSelIdx(-1);
     };
 
-    /* تمييز النص المطابق داخل الاقتراح */
-    const highlight = (text) => {
-        const q = (value || '').trim();
+    const handleKey = e => {
+        if (!open) { onKeyDown && onKeyDown(e); return; }
+        if (e.key === 'ArrowDown') { e.preventDefault(); setSelIdx(i => Math.min(i+1, suggestions.length-1)); return; }
+        if (e.key === 'ArrowUp')   { e.preventDefault(); setSelIdx(i => Math.max(i-1, -1)); return; }
+        if (e.key === 'Enter' && selIdx >= 0) { e.preventDefault(); pick(suggestions[selIdx]); return; }
+        if (e.key === 'Escape') { setOpen(false); setSelIdx(-1); return; }
+        onKeyDown && onKeyDown(e);
+    };
+
+    const hl = (text) => {
+        const q = (value||'').trim();
         if (!q) return text;
         const idx = text.toLowerCase().indexOf(q.toLowerCase());
         if (idx === -1) return text;
-        return (
-            <>
-                {text.slice(0, idx)}
-                <mark style={{ background: '#bfdbfe', borderRadius: '2px', padding: '0 1px' }}>
-                    {text.slice(idx, idx + q.length)}
-                </mark>
-                {text.slice(idx + q.length)}
-            </>
-        );
+        return <>{text.slice(0,idx)}<span className="ac-hl">{text.slice(idx, idx+q.length)}</span>{text.slice(idx+q.length)}</>;
     };
 
     return (
-        <div ref={wrapRef} style={{ position: 'relative', flex: 1 }}>
+        <div ref={wrapRef} style={{position:'relative', width:'100%'}}>
             <input
                 ref={inputRef}
-                placeholder="المادة"
+                className="cell-input name-input"
                 value={value}
+                placeholder="اكتب اسم المادة..."
                 autoComplete="off"
-                onChange={e => { onSelect(e.target.value, null); setOpen(true); }}
-                onFocus={() => setOpen(true)}
-                style={inputStyle}
+                onChange={e => { onSelect(e.target.value, null); setOpen(true); setSelIdx(-1); }}
+                onFocus={() => { setOpen(true); onFocus && onFocus(); }}
+                onKeyDown={handleKey}
             />
             {open && suggestions.length > 0 && (
-                <div style={{
-                    position: 'absolute', top: '100%', right: 0, left: 0, zIndex: 9999,
-                    background: '#fff',
-                    border: '2px solid #2563eb',
-                    borderRadius: '10px',
-                    boxShadow: '0 10px 30px rgba(37,99,235,.15)',
-                    marginTop: '3px',
-                    overflow: 'hidden',
-                    direction: 'rtl',
-                }}>
-                    {/* رأس القائمة */}
-                    <div style={{
-                        padding: '5px 10px', fontSize: '10px', fontWeight: 800,
-                        color: '#2563eb', background: '#eff6ff',
-                        borderBottom: '1px solid #bfdbfe', ...F
-                    }}>
-                        اختر منتجاً أو تابع الكتابة
-                    </div>
-
+                <div className="ac-dropdown">
+                    <div className="ac-header">▼ اختر من المخزن أو تابع الكتابة</div>
                     {suggestions.map((prod, i) => (
-                        <div
-                            key={prod.name}
-                            className="ac-row"
-                            onMouseDown={e => { e.preventDefault(); handleSelect(prod); }}
-                            style={{
-                                padding: '8px 12px',
-                                cursor: 'pointer',
-                                fontSize: '12px',
-                                fontWeight: 700,
-                                color: '#0f172a',
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                borderBottom: i < suggestions.length - 1 ? '1px solid #f1f5f9' : 'none',
-                                ...F
-                            }}
-                        >
-                            <span>{highlight(prod.name)}</span>
-                            {Number(prod.sell_price) > 0 && (
-                                <span style={{
-                                    fontSize: '11px', color: '#2563eb', fontWeight: 900,
-                                    background: '#eff6ff', padding: '2px 8px',
-                                    borderRadius: '99px', whiteSpace: 'nowrap', marginRight: '6px', ...F
-                                }}>
-                                    {Number(prod.sell_price).toLocaleString()} د.ع
-                                </span>
-                            )}
+                        <div key={prod.name} className={`ac-item${i===selIdx?' selected':''}`}
+                            onMouseDown={e => { e.preventDefault(); pick(prod); }}>
+                            <span>{hl(prod.name)}</span>
+                            {Number(prod.sell_price) > 0 &&
+                                <span className="ac-price">{Number(prod.sell_price).toLocaleString()} د.ع</span>}
                         </div>
                     ))}
                 </div>
@@ -357,984 +771,53 @@ function AutocompleteInput({ value, onSelect, products, inputStyle }) {
     );
 }
 
-
-/* ══════════════════════════════════════════════════════
-   InventoryView
-══════════════════════════════════════════════════════ */
-function InventoryView() {
-    const [products,  setProducts]  = React.useState([]);
-    const [expenses,  setExpenses]  = React.useState([]);
-    const [invoices,  setInvoices]  = React.useState([]);
-    const [loading,   setLoading]   = React.useState(true);
-    const [section,   setSection]   = React.useState('sales');
-    const [editId,    setEditId]    = React.useState(null);
-    const [editData,  setEditData]  = React.useState({});
-    const [dbReady,   setDbReady]   = React.useState(true);
-
-    const [salesSearch,   setSalesSearch]   = React.useState('');
-    const [salesSort,     setSalesSort]     = React.useState('profit');
-    const [salesDir,      setSalesDir]      = React.useState('desc');
-    const [salesFilter,   setSalesFilter]   = React.useState('all');
-
-    const [newProd, setNewProd] = React.useState({ name:'', cost_price:'', sell_price:'', quantity:'', category:'' });
-    const [newExp,  setNewExp]  = React.useState({ description:'', amount:'', date: new Date().toISOString().split('T')[0], category:'' });
-
-    React.useEffect(()=>{ loadAll(); }, []);
-
-    const loadAll = async () => {
-        setLoading(true);
-        try {
-            const [pr, ex, inv] = await Promise.all([
-                sbClient.from('products').select('*').order('created_at', {ascending:false}),
-                sbClient.from('expenses').select('*').order('date', {ascending:false}),
-                sbClient.from('invoices').select('*').order('date', {ascending:false})
-            ]);
-            if (pr.error || ex.error) {
-                setDbReady(false);
-            } else {
-                setProducts(pr.data || []);
-                setExpenses(ex.data || []);
-                setInvoices(inv.data || []);
-                setDbReady(true);
-            }
-        } catch(e) { setDbReady(false); }
-        setLoading(false);
-    };
-
-    const addProduct = async () => {
-        if (!newProd.name) { toast('أدخل اسم المنتج','error'); return; }
-        const { error } = await sbClient.from('products').insert({
-            name: newProd.name, cost_price: Number(newProd.cost_price)||0,
-            sell_price: Number(newProd.sell_price)||0, quantity: Number(newProd.quantity)||0,
-            category: newProd.category||''
-        });
-        if (error) { toast('فشل الإضافة: '+error.message,'error'); return; }
-        toast('تم إضافة المنتج ✓','success');
-        setNewProd({ name:'', cost_price:'', sell_price:'', quantity:'', category:'' });
-        loadAll();
-    };
-
-    const deleteProduct = async (id) => {
-        if (!confirm('هل تريد حذف هذا المنتج؟')) return;
-        await sbClient.from('products').delete().eq('id', id);
-        toast('تم الحذف','success'); loadAll();
-    };
-
-    const startEdit = (row) => { setEditId(row.id); setEditData({...row}); };
-    const saveEdit = async () => {
-        const { error } = await sbClient.from('products').update({
-            name: editData.name, cost_price: Number(editData.cost_price)||0,
-            sell_price: Number(editData.sell_price)||0, quantity: Number(editData.quantity)||0,
-            category: editData.category||''
-        }).eq('id', editId);
-        if (error) { toast('فشل التعديل','error'); return; }
-        toast('تم الحفظ ✓','success');
-        setEditId(null); loadAll();
-    };
-
-    const addExpense = async () => {
-        if (!newExp.description || !newExp.amount) { toast('أدخل الوصف والمبلغ','error'); return; }
-        const { error } = await sbClient.from('expenses').insert({
-            description: newExp.description, amount: Number(newExp.amount)||0,
-            date: newExp.date, category: newExp.category||''
-        });
-        if (error) { toast('فشل الإضافة','error'); return; }
-        toast('تم إضافة الصرفية ✓','success');
-        setNewExp({ description:'', amount:'', date: new Date().toISOString().split('T')[0], category:'' });
-        loadAll();
-    };
-
-    const deleteExpense = async (id) => {
-        if (!confirm('هل تريد حذف هذه الصرفية؟')) return;
-        await sbClient.from('expenses').delete().eq('id', id);
-        toast('تم الحذف','success'); loadAll();
-    };
-
-    const invTotalCost = products.reduce((s,p)=> s+(Number(p.cost_price)||0)*(Number(p.quantity)||0), 0);
-    const invTotalSell = products.reduce((s,p)=> s+(Number(p.sell_price)||0)*(Number(p.quantity)||0), 0);
-    const totalExpenses= expenses.reduce((s,e)=> s+(Number(e.amount)||0), 0);
-    const totalUnits   = products.reduce((s,p)=> s+(Number(p.quantity)||0), 0);
-
-    const salesStats = React.useMemo(()=> calcSalesStats(invoices, products), [invoices, products]);
-    const { rows: salesRows, totalRevenue, totalCOGS, totalProfit: salesProfit } = salesStats;
-    const netProfit = salesProfit - totalExpenses;
-    const salesMargin = totalRevenue > 0 ? (salesProfit / totalRevenue) * 100 : 0;
-    const saleInvoicesCount = invoices.filter(i=>i.invoice_type==='sale').length;
-
-    const filteredSalesRows = React.useMemo(()=>{
-        let rows = [...salesRows];
-        if (salesSearch) {
-            const s = salesSearch.toLowerCase();
-            rows = rows.filter(r => r.name.toLowerCase().includes(s));
-        }
-        if (salesFilter === 'known')   rows = rows.filter(r => r.hasProduct);
-        if (salesFilter === 'unknown') rows = rows.filter(r => !r.hasProduct);
-        rows.sort((a,b)=>{
-            let va=0, vb=0;
-            if (salesSort==='profit')  { va=a.totalProfit;  vb=b.totalProfit; }
-            if (salesSort==='revenue') { va=a.totalRevenue; vb=b.totalRevenue; }
-            if (salesSort==='qty')     { va=a.totalQty;     vb=b.totalQty; }
-            if (salesSort==='margin')  { va=a.margin;       vb=b.margin; }
-            return salesDir==='desc' ? vb-va : va-vb;
-        });
-        return rows;
-    }, [salesRows, salesSearch, salesSort, salesDir, salesFilter]);
-
-    const maxProfit = Math.max(...filteredSalesRows.map(r=>Math.abs(r.totalProfit)), 1);
-
-    const sqlText = `-- أنشئ هذه الجداول في Supabase SQL Editor:
-
-create table products (
-  id uuid primary key default gen_random_uuid(),
-  name text not null,
-  cost_price numeric default 0,
-  sell_price numeric default 0,
-  quantity   numeric default 0,
-  category   text default '',
-  created_at timestamptz default now()
-);
-
-create table expenses (
-  id uuid primary key default gen_random_uuid(),
-  description text not null,
-  amount      numeric default 0,
-  date        date default current_date,
-  category    text default '',
-  created_at  timestamptz default now()
-);
-
-alter table products enable row level security;
-create policy "all" on products for all using (true) with check (true);
-alter table expenses enable row level security;
-create policy "all" on expenses for all using (true) with check (true);`;
-
-    if (!dbReady) return (
-        <div style={{background:'#fff',borderRadius:'20px',padding:'30px',boxShadow:'0 2px 12px rgba(0,0,0,.07)',border:'1px solid #e2e8f0'}}>
-            <div style={{textAlign:'center',marginBottom:'20px'}}>
-                <div style={{fontSize:'40px',marginBottom:'10px'}}>⚠️</div>
-                <h2 style={{fontWeight:900,fontSize:'18px',color:'#dc2626',margin:'0 0 8px',...F}}>الجداول غير موجودة</h2>
-                <p style={{color:'#64748b',fontSize:'13px',fontWeight:600,...F}}>أنشئ الجداول التالية في Supabase SQL Editor أولاً:</p>
-            </div>
-            <pre style={{background:'#0f172a',color:'#e2e8f0',padding:'20px',borderRadius:'12px',fontSize:'12px',overflowX:'auto',lineHeight:1.8,direction:'ltr',textAlign:'left',fontFamily:'monospace'}}>
-                {sqlText}
-            </pre>
-            <button onClick={()=>{ navigator.clipboard.writeText(sqlText); toast('تم النسخ ✓','success'); }}
-                style={{marginTop:'14px',padding:'10px 20px',background:'#1e3a5f',color:'#fff',border:'none',borderRadius:'10px',fontWeight:800,fontSize:'13px',cursor:'pointer',width:'100%',...F}}>
-                📋 نسخ SQL
-            </button>
-            <button onClick={loadAll}
-                style={{marginTop:'8px',padding:'10px 20px',background:'#f1f5f9',color:'#1e3a5f',border:'1px solid #e2e8f0',borderRadius:'10px',fontWeight:800,fontSize:'13px',cursor:'pointer',width:'100%',...F}}>
-                🔄 إعادة المحاولة
-            </button>
-        </div>
-    );
-
-    const Tab = ({id,lbl,icon,badge}) => (
-        <button onClick={()=>setSection(id)} style={{display:'flex',alignItems:'center',gap:'6px',padding:'8px 16px',
-            background:section===id?'#1e3a5f':'transparent',color:section===id?'#fff':'#64748b',
-            border:'none',borderRadius:'9px',fontWeight:800,fontSize:'13px',cursor:'pointer',transition:'all .15s',...F}}>
-            {icon} {lbl}
-            {badge && <span style={{background:section===id?'rgba(255,255,255,.25)':'#e2e8f0',color:section===id?'#fff':'#64748b',
-                borderRadius:'99px',padding:'1px 7px',fontSize:'11px',fontWeight:900,...F}}>{badge}</span>}
-        </button>
-    );
-
-    const SortBtn = ({field, lbl}) => {
-        const active = salesSort === field;
-        return (
-            <button onClick={()=>{
-                if (active) setSalesDir(d=>d==='desc'?'asc':'desc');
-                else { setSalesSort(field); setSalesDir('desc'); }
-            }} style={{display:'flex',alignItems:'center',gap:'4px',padding:'6px 12px',
-                background:active?'#1e3a5f':'#f1f5f9',
-                color:active?'#fff':'#475569',
-                border:'none',borderRadius:'8px',fontWeight:700,fontSize:'12px',cursor:'pointer',transition:'all .15s',...F}}>
-                {lbl}
-                {active && (salesDir==='desc' ? <I.ChevronDown/> : <I.ChevronUp/>)}
-            </button>
-        );
-    };
-
-    return (
-        <div style={{display:'flex',flexDirection:'column',gap:'16px'}}>
-            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:'12px'}}>
-                {[
-                    {lbl:'إيرادات المبيعات',      val:IQ(totalRevenue),  color:'#1e3a5f', bg:'#eff6ff', icon:'💰', sub:`${saleInvoicesCount} فاتورة`},
-                    {lbl:'تكلفة البضاعة المباعة', val:IQ(totalCOGS),     color:'#0369a1', bg:'#e0f2fe', icon:'📦', sub:'COGS'},
-                    {lbl:'ربح المبيعات الإجمالي', val:IQ(salesProfit),   color:salesProfit>=0?'#16a34a':'#dc2626', bg:salesProfit>=0?'#f0fdf4':'#fef2f2', icon:salesProfit>=0?'📈':'📉', sub:`هامش ${pct(salesMargin)}`},
-                    {lbl:'إجمالي الصرفيات',       val:IQ(totalExpenses), color:'#dc2626', bg:'#fef2f2', icon:'💸', sub:`${expenses.length} عملية`},
-                    {lbl:netProfit>=0?'صافي الربح':'صافي الخسارة',
-                        val:IQ(Math.abs(netProfit)),
-                        color:netProfit>=0?'#16a34a':'#dc2626',
-                        bg:netProfit>=0?'#f0fdf4':'#fef2f2',
-                        icon:netProfit>=0?'✅':'❌',
-                        sub:'بعد الصرفيات'},
-                    {lbl:'مواد في المخزن', val:products.length+' صنف', color:'#7c3aed', bg:'#f5f3ff', icon:'🗃️', sub:totalUnits+' وحدة'},
-                ].map(({lbl,val,color,bg,icon,sub})=>(
-                    <div key={lbl} style={{background:'#fff',border:'1px solid #e2e8f0',borderRadius:'14px',padding:'14px 16px',boxShadow:'0 1px 4px rgba(0,0,0,.05)'}}>
-                        <div style={{fontSize:'12px',color:'#94a3b8',fontWeight:700,marginBottom:'4px',...F}}>{icon} {lbl}</div>
-                        <div style={{fontSize:'17px',fontWeight:900,color,lineHeight:1.2,...F}}>{val}</div>
-                        {sub && <div style={{fontSize:'11px',color:'#94a3b8',fontWeight:600,marginTop:'3px',...F}}>{sub}</div>}
-                    </div>
-                ))}
-            </div>
-
-            <div style={{background:'#fffbeb',border:'1px solid #fde68a',borderRadius:'12px',padding:'10px 14px',display:'flex',gap:'8px',alignItems:'flex-start'}}>
-                <span style={{fontSize:'16px',marginTop:'1px'}}>💡</span>
-                <span style={{fontSize:'12px',fontWeight:700,color:'#92400e',...F}}>
-                    أرباح المبيعات تُحسب من الفواتير الفعلية المسجّلة فقط (ربح الوحدة = سعر البيع − كلفة المادة من جدول المنتجات). يجب أن يكون اسم المادة في الفاتورة مطابقاً تماماً لاسمها في جدول المنتجات لحساب الكلفة.
-                </span>
-            </div>
-
-            <div style={{background:'#fff',borderRadius:'20px',padding:'22px',boxShadow:'0 2px 12px rgba(0,0,0,.07)',border:'1px solid #e2e8f0'}}>
-                <div style={{display:'inline-flex',gap:'4px',marginBottom:'20px',background:'#f8fafc',borderRadius:'12px',padding:'4px',flexWrap:'wrap'}}>
-                    <Tab id="sales"    lbl="أرباح المبيعات"  icon="💰" badge={saleInvoicesCount}/>
-                    <Tab id="products" lbl="المنتجات"        icon="📦" badge={products.length}/>
-                    <Tab id="expenses" lbl="الصرفيات"        icon="💸" badge={expenses.length}/>
-                    <Tab id="summary"  lbl="تقرير الأرباح"  icon="📊"/>
-                </div>
-
-                {loading && <div style={{textAlign:'center',padding:'40px',color:'#94a3b8',fontWeight:700,...F}}>⏳ جاري التحميل...</div>}
-
-                {!loading && section==='sales' && (
-                    <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:'16px'}}>
-                        <div style={{display:'flex',gap:'8px',flexWrap:'wrap',alignItems:'center'}}>
-                            <div style={{position:'relative',flex:'1',minWidth:'180px'}}>
-                                <span style={{position:'absolute',right:'10px',top:'50%',transform:'translateY(-50%)',color:'#94a3b8'}}>
-                                    <I.Search/>
-                                </span>
-                                <input value={salesSearch} onChange={e=>setSalesSearch(e.target.value)}
-                                    placeholder="بحث باسم المادة..."
-                                    style={{width:'100%',padding:'8px 32px 8px 12px',border:'2px solid #e2e8f0',borderRadius:'10px',fontSize:'13px',fontWeight:600,...F}}/>
-                            </div>
-                            <div style={{display:'flex',gap:'4px',background:'#f8fafc',borderRadius:'9px',padding:'3px'}}>
-                                {[['all','الكل'],['known','مع كلفة محددة'],['unknown','بدون كلفة']].map(([val,lbl])=>(
-                                    <button key={val} onClick={()=>setSalesFilter(val)}
-                                        style={{padding:'5px 10px',background:salesFilter===val?'#1e3a5f':'transparent',
-                                            color:salesFilter===val?'#fff':'#64748b',border:'none',borderRadius:'7px',
-                                            fontWeight:700,fontSize:'11px',cursor:'pointer',transition:'all .15s',...F}}>
-                                        {lbl}
-                                    </button>
-                                ))}
-                            </div>
-                            <button onClick={loadAll}
-                                style={{display:'flex',alignItems:'center',gap:'5px',padding:'8px 12px',background:'#f1f5f9',border:'1px solid #e2e8f0',borderRadius:'9px',fontWeight:700,fontSize:'12px',cursor:'pointer',color:'#475569',...F}}>
-                                <I.Refresh/> تحديث
-                            </button>
-                        </div>
-
-                        <div style={{display:'flex',gap:'6px',alignItems:'center',flexWrap:'wrap'}}>
-                            <span style={{fontSize:'12px',color:'#94a3b8',fontWeight:700,...F}}>ترتيب حسب:</span>
-                            <SortBtn field="profit"  lbl="الربح"/>
-                            <SortBtn field="revenue" lbl="الإيراد"/>
-                            <SortBtn field="qty"     lbl="الكمية المباعة"/>
-                            <SortBtn field="margin"  lbl="هامش الربح %"/>
-                        </div>
-
-                        {filteredSalesRows.length === 0 ? (
-                            <div style={{textAlign:'center',padding:'60px',color:'#94a3b8',fontWeight:700,...F}}>
-                                <div style={{fontSize:'36px',marginBottom:'10px'}}>📊</div>
-                                {salesSearch ? 'لا توجد مواد مطابقة للبحث' : 'لا توجد فواتير مسجّلة بعد'}
-                            </div>
-                        ) : (
-                            <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
-                                <div style={{display:'grid',gridTemplateColumns:'36px 1fr 90px 110px 100px 110px 80px',gap:'8px',
-                                    padding:'8px 12px',background:'#f8fafc',borderRadius:'10px',
-                                    fontSize:'11px',fontWeight:800,color:'#64748b',...F}}>
-                                    <span style={{textAlign:'center'}}>#</span>
-                                    <span>اسم المادة</span>
-                                    <span style={{textAlign:'center'}}>الكمية المباعة</span>
-                                    <span style={{textAlign:'center'}}>إجمالي الإيراد</span>
-                                    <span style={{textAlign:'center'}}>إجمالي التكلفة</span>
-                                    <span style={{textAlign:'center'}}>صافي الربح</span>
-                                    <span style={{textAlign:'center'}}>الهامش %</span>
-                                </div>
-
-                                {filteredSalesRows.map((row, i) => {
-                                    const isPositive = row.totalProfit >= 0;
-                                    const barWidth   = (Math.abs(row.totalProfit) / maxProfit) * 100;
-                                    const rankClass  = i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'rank-n';
-                                    return (
-                                        <div key={row.name} style={{background:'#fff',border:'1px solid #e2e8f0',borderRadius:'12px',padding:'12px 14px',transition:'box-shadow .15s'}}
-                                            onMouseEnter={e=>e.currentTarget.style.boxShadow='0 4px 16px rgba(0,0,0,.08)'}
-                                            onMouseLeave={e=>e.currentTarget.style.boxShadow='none'}>
-                                            <div style={{display:'grid',gridTemplateColumns:'36px 1fr 90px 110px 100px 110px 80px',gap:'8px',alignItems:'center'}}>
-                                                <div style={{display:'flex',justifyContent:'center'}}>
-                                                    <span className={rankClass} style={{width:'24px',height:'24px',borderRadius:'99px',display:'inline-flex',alignItems:'center',justifyContent:'center',fontSize:'11px',fontWeight:900,...F}}>
-                                                        {i+1}
-                                                    </span>
-                                                </div>
-                                                <div>
-                                                    <div style={{fontWeight:800,fontSize:'13px',color:'#0f172a',...F}}>{row.name}</div>
-                                                    <div style={{display:'flex',gap:'6px',alignItems:'center',marginTop:'2px'}}>
-                                                        {row.hasProduct ? (
-                                                            <span style={{fontSize:'10px',fontWeight:700,color:'#16a34a',background:'#f0fdf4',padding:'1px 6px',borderRadius:'99px',...F}}>
-                                                                ✓ كلفة محددة ({numFmt(row.costPx)} د.ع)
-                                                            </span>
-                                                        ) : (
-                                                            <span style={{fontSize:'10px',fontWeight:700,color:'#f59e0b',background:'#fffbeb',padding:'1px 6px',borderRadius:'99px',...F}}>
-                                                                ⚠ كلفة غير محددة
-                                                            </span>
-                                                        )}
-                                                        <span style={{fontSize:'10px',color:'#94a3b8',fontWeight:600,...F}}>{row.txCount} صفقة</span>
-                                                    </div>
-                                                </div>
-                                                <div style={{textAlign:'center',fontWeight:800,fontSize:'14px',color:'#0f172a',...F}}>
-                                                    {numFmt(row.totalQty)}
-                                                    <div style={{fontSize:'10px',color:'#94a3b8',fontWeight:600,...F}}>وحدة</div>
-                                                </div>
-                                                <div style={{textAlign:'center',fontWeight:700,fontSize:'13px',color:'#1e3a5f',...F}}>
-                                                    {numFmt(row.totalRevenue)}
-                                                    <div style={{fontSize:'10px',color:'#94a3b8',...F}}>د.ع</div>
-                                                </div>
-                                                <div style={{textAlign:'center',fontWeight:700,fontSize:'13px',color:row.hasProduct?'#475569':'#f59e0b',...F}}>
-                                                    {row.hasProduct ? numFmt(row.totalCost) : '—'}
-                                                    {row.hasProduct && <div style={{fontSize:'10px',color:'#94a3b8',...F}}>د.ع</div>}
-                                                </div>
-                                                <div style={{textAlign:'center'}}>
-                                                    <div style={{fontWeight:900,fontSize:'15px',color:isPositive?'#16a34a':'#dc2626',...F}}>
-                                                        {isPositive?'+':''}{numFmt(row.totalProfit)}
-                                                    </div>
-                                                    <div style={{fontSize:'10px',color:'#94a3b8',...F}}>د.ع</div>
-                                                    <div className="profit-bar-bg" style={{marginTop:'4px'}}>
-                                                        <div className={`profit-bar-fill${!isPositive?' neg':''}`} style={{width:`${barWidth}%`}}/>
-                                                    </div>
-                                                </div>
-                                                <div style={{textAlign:'center'}}>
-                                                    <div style={{fontWeight:900,fontSize:'14px',color:row.margin>=0?'#7c3aed':'#dc2626',...F}}>
-                                                        {row.hasProduct ? pct(row.margin) : '—'}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-
-                        <div style={{textAlign:'center',fontSize:'11px',color:'#94a3b8',fontWeight:600,...F}}>
-                            {filteredSalesRows.length} مادة | إجمالي ربح المواد المعروضة: <strong style={{color:'#1e3a5f'}}>
-                                {IQ(filteredSalesRows.reduce((s,r)=>s+r.totalProfit,0))}
-                            </strong>
-                        </div>
-                    </div>
-                )}
-
-                {!loading && section==='products' && (
-                    <div className="fade-in" style={{display:'flex',gap:'20px',alignItems:'flex-start',flexWrap:'wrap'}}>
-                        <div style={{width:'260px',flexShrink:0,background:'#f8fafc',borderRadius:'14px',padding:'16px',border:'1px solid #e2e8f0'}}>
-                            <div style={{fontWeight:900,fontSize:'14px',color:'#1e3a5f',marginBottom:'12px',...F}}>➕ إضافة منتج</div>
-                            {[['اسم المنتج','name','text'],['الكلفة (د.ع)','cost_price','number'],['سعر البيع (د.ع)','sell_price','number'],['الكمية','quantity','number'],['الفئة','category','text']].map(([ph,key,type])=>(
-                                <input key={key} type={type} placeholder={ph} value={newProd[key]}
-                                    onChange={e=>setNewProd(p=>({...p,[key]:e.target.value}))}
-                                    style={{width:'100%',padding:'9px 11px',border:'2px solid #e2e8f0',borderRadius:'10px',fontSize:'13px',fontWeight:600,marginBottom:'8px',...F}}/>
-                            ))}
-                            {newProd.sell_price && newProd.cost_price && (
-                                <div style={{background:(Number(newProd.sell_price)-Number(newProd.cost_price))>=0?'#f0fdf4':'#fef2f2',
-                                    border:'1px solid',borderColor:(Number(newProd.sell_price)-Number(newProd.cost_price))>=0?'#bbf7d0':'#fecaca',
-                                    borderRadius:'9px',padding:'8px 11px',marginBottom:'8px',fontSize:'12px',fontWeight:800,
-                                    color:(Number(newProd.sell_price)-Number(newProd.cost_price))>=0?'#16a34a':'#dc2626',...F}}>
-                                    ربح الوحدة: {numFmt(Number(newProd.sell_price)-Number(newProd.cost_price))} د.ع
-                                </div>
-                            )}
-                            <button onClick={addProduct}
-                                style={{width:'100%',padding:'11px',background:'#1e3a5f',color:'#fff',border:'none',borderRadius:'11px',fontWeight:800,fontSize:'14px',cursor:'pointer',...F}}>
-                                حفظ المنتج
-                            </button>
-                        </div>
-
-                        <div style={{flex:1,overflowX:'auto',minWidth:0}}>
-                            <div style={{fontWeight:900,fontSize:'14px',color:'#1e3a5f',marginBottom:'10px',...F}}>
-                                قائمة المنتجات ({products.length} صنف — {totalUnits} وحدة)
-                            </div>
-                            {products.length===0 ? (
-                                <div style={{textAlign:'center',padding:'40px',color:'#94a3b8',fontWeight:700,...F}}>لا توجد منتجات مضافة</div>
-                            ) : (
-                                <table className="rec-table">
-                                    <thead><tr>
-                                        {['المنتج','الفئة','الكلفة','سعر البيع','الكمية','ربح الوحدة','القيمة (بيع)','إجراء'].map(h=>(
-                                            <th key={h} style={{...F,whiteSpace:'nowrap'}}>{h}</th>
-                                        ))}
-                                    </tr></thead>
-                                    <tbody>
-                                        {products.map(p=>{
-                                            const unitProfit = Number(p.sell_price)-Number(p.cost_price);
-                                            const totalVal   = Number(p.sell_price)*Number(p.quantity);
-                                            const isEditing  = editId===p.id;
-                                            return (
-                                                <tr key={p.id}>
-                                                    <td style={{fontWeight:800,textAlign:'right',...F}}>
-                                                        {isEditing ? <input value={editData.name} onChange={e=>setEditData(d=>({...d,name:e.target.value}))} style={{width:'100%',padding:'4px 7px',border:'1px solid #bfdbfe',borderRadius:'7px',fontSize:'12px',...F}}/> : p.name}
-                                                    </td>
-                                                    <td style={{color:'#64748b',fontSize:'12px',...F}}>
-                                                        {isEditing ? <input value={editData.category} onChange={e=>setEditData(d=>({...d,category:e.target.value}))} style={{width:'70px',padding:'4px',border:'1px solid #e2e8f0',borderRadius:'7px',fontSize:'12px',...F}}/> : p.category||'—'}
-                                                    </td>
-                                                    <td style={{fontWeight:700,...F}}>
-                                                        {isEditing ? <input type="number" value={editData.cost_price} onChange={e=>setEditData(d=>({...d,cost_price:e.target.value}))} style={{width:'75px',padding:'4px',border:'1px solid #e2e8f0',borderRadius:'7px',fontSize:'12px',textAlign:'center'}}/> : numFmt(p.cost_price)}
-                                                    </td>
-                                                    <td style={{fontWeight:700,...F}}>
-                                                        {isEditing ? <input type="number" value={editData.sell_price} onChange={e=>setEditData(d=>({...d,sell_price:e.target.value}))} style={{width:'75px',padding:'4px',border:'1px solid #e2e8f0',borderRadius:'7px',fontSize:'12px',textAlign:'center'}}/> : numFmt(p.sell_price)}
-                                                    </td>
-                                                    <td>
-                                                        {isEditing ? <input type="number" value={editData.quantity} onChange={e=>setEditData(d=>({...d,quantity:e.target.value}))} style={{width:'55px',padding:'4px',border:'1px solid #e2e8f0',borderRadius:'7px',fontSize:'12px',textAlign:'center'}}/> : numFmt(p.quantity)}
-                                                    </td>
-                                                    <td style={{fontWeight:900,color:unitProfit>=0?'#16a34a':'#dc2626',...F}}>
-                                                        {unitProfit>=0?'+':''}{numFmt(unitProfit)}
-                                                    </td>
-                                                    <td style={{fontWeight:800,color:'#1e3a5f',...F}}>{numFmt(totalVal)}</td>
-                                                    <td>
-                                                        <div style={{display:'flex',gap:'5px',justifyContent:'center'}}>
-                                                            {isEditing ? (
-                                                                <>
-                                                                    <button onClick={saveEdit} style={{padding:'4px 8px',background:'#16a34a',color:'#fff',border:'none',borderRadius:'6px',cursor:'pointer',display:'flex',alignItems:'center',gap:'3px',fontSize:'12px',fontWeight:700,...F}}>
-                                                                        <I.Check/> حفظ
-                                                                    </button>
-                                                                    <button onClick={()=>setEditId(null)} style={{padding:'4px 7px',background:'#f1f5f9',color:'#64748b',border:'1px solid #e2e8f0',borderRadius:'6px',cursor:'pointer',fontSize:'12px'}}>
-                                                                        <I.X/>
-                                                                    </button>
-                                                                </>
-                                                            ) : (
-                                                                <>
-                                                                    <button onClick={()=>startEdit(p)} style={{padding:'4px 8px',background:'#eff6ff',color:'#2563eb',border:'none',borderRadius:'6px',cursor:'pointer',display:'flex',alignItems:'center',gap:'3px',fontSize:'12px',fontWeight:700,...F}}>
-                                                                        <I.Edit/> تعديل
-                                                                    </button>
-                                                                    <button onClick={()=>deleteProduct(p.id)} style={{padding:'4px 7px',background:'#fef2f2',color:'#dc2626',border:'none',borderRadius:'6px',cursor:'pointer',fontSize:'12px'}}>
-                                                                        <I.Trash/>
-                                                                    </button>
-                                                                </>
-                                                            )}
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {!loading && section==='expenses' && (
-                    <div className="fade-in" style={{display:'flex',gap:'20px',alignItems:'flex-start',flexWrap:'wrap'}}>
-                        <div style={{width:'260px',flexShrink:0,background:'#f8fafc',borderRadius:'14px',padding:'16px',border:'1px solid #e2e8f0'}}>
-                            <div style={{fontWeight:900,fontSize:'14px',color:'#dc2626',marginBottom:'12px',...F}}>➕ إضافة صرفية</div>
-                            {[['الوصف','description','text'],['المبلغ (د.ع)','amount','number'],['التاريخ','date','date'],['الفئة','category','text']].map(([ph,key,type])=>(
-                                <input key={key} type={type} placeholder={ph} value={newExp[key]}
-                                    onChange={e=>setNewExp(p=>({...p,[key]:e.target.value}))}
-                                    style={{width:'100%',padding:'9px 11px',border:'2px solid #e2e8f0',borderRadius:'10px',fontSize:'13px',fontWeight:600,marginBottom:'8px',...F}}/>
-                            ))}
-                            <button onClick={addExpense}
-                                style={{width:'100%',padding:'11px',background:'#dc2626',color:'#fff',border:'none',borderRadius:'11px',fontWeight:800,fontSize:'14px',cursor:'pointer',...F}}>
-                                حفظ الصرفية
-                            </button>
-                            <div style={{marginTop:'14px',background:'#fef2f2',borderRadius:'10px',padding:'12px',border:'1px solid #fecaca'}}>
-                                <div style={{fontSize:'12px',color:'#94a3b8',fontWeight:700,marginBottom:'4px',...F}}>إجمالي الصرفيات</div>
-                                <div style={{fontSize:'20px',fontWeight:900,color:'#dc2626',...F}}>{IQ(totalExpenses)}</div>
-                            </div>
-                        </div>
-
-                        <div style={{flex:1,overflowX:'auto',minWidth:0}}>
-                            <div style={{fontWeight:900,fontSize:'14px',color:'#1e3a5f',marginBottom:'10px',...F}}>
-                                قائمة الصرفيات ({expenses.length} سجل)
-                            </div>
-                            {expenses.length===0 ? (
-                                <div style={{textAlign:'center',padding:'40px',color:'#94a3b8',fontWeight:700,...F}}>لا توجد صرفيات مسجلة</div>
-                            ) : (
-                                <table className="rec-table">
-                                    <thead><tr>
-                                        {['التاريخ','الوصف','الفئة','المبلغ (د.ع)','حذف'].map(h=>(
-                                            <th key={h} style={{...F}}>{h}</th>
-                                        ))}
-                                    </tr></thead>
-                                    <tbody>
-                                        {expenses.map(e=>(
-                                            <tr key={e.id}>
-                                                <td style={{color:'#64748b',fontSize:'12px',...F}}>{e.date}</td>
-                                                <td style={{fontWeight:700,textAlign:'right',...F}}>{e.description}</td>
-                                                <td style={{color:'#64748b',fontSize:'12px',...F}}>{e.category||'—'}</td>
-                                                <td style={{fontWeight:900,color:'#dc2626',...F}}>{numFmt(e.amount)}</td>
-                                                <td>
-                                                    <button onClick={()=>deleteExpense(e.id)} style={{padding:'4px 7px',background:'#fef2f2',color:'#dc2626',border:'none',borderRadius:'6px',cursor:'pointer',fontSize:'12px'}}>
-                                                        <I.Trash/>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {!loading && section==='summary' && (
-                    <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:'20px'}}>
-                        <div style={{background:netProfit>=0?'linear-gradient(135deg,#1e3a5f,#2563eb)':'linear-gradient(135deg,#7f1d1d,#dc2626)',borderRadius:'18px',padding:'28px',color:'#fff'}}>
-                            <div style={{fontSize:'12px',fontWeight:700,opacity:.75,marginBottom:'6px',...F}}>
-                                صافي الربح بعد المبيعات والصرفيات
-                            </div>
-                            <div style={{fontSize:'13px',fontWeight:700,opacity:.8,marginBottom:'8px',...F}}>
-                                {netProfit>=0?'✅ النتيجة: ربح صافي':'❌ النتيجة: خسارة صافية'}
-                            </div>
-                            <div style={{fontSize:'42px',fontWeight:900,...F}}>
-                                {numFmt(Math.abs(netProfit))} <span style={{fontSize:'18px',opacity:.8}}>د.ع</span>
-                            </div>
-                            <div style={{marginTop:'14px',display:'flex',gap:'20px',flexWrap:'wrap'}}>
-                                {[
-                                    ['إيرادات المبيعات', IQ(totalRevenue)],
-                                    ['تكلفة البضاعة المباعة', IQ(totalCOGS)],
-                                    ['ربح المبيعات', IQ(salesProfit)],
-                                    ['الصرفيات', IQ(totalExpenses)],
-                                ].map(([lbl,val])=>(
-                                    <div key={lbl}>
-                                        <div style={{fontSize:'10px',opacity:.65,fontWeight:600,...F}}>{lbl}</div>
-                                        <div style={{fontSize:'14px',fontWeight:900,...F}}>{val}</div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px'}}>
-                            {[
-                                {lbl:'إيرادات المبيعات الفعلية', val:IQ(totalRevenue),  icon:'💰', color:'#1e3a5f', bg:'#eff6ff'},
-                                {lbl:'تكلفة البضاعة المباعة',   val:IQ(totalCOGS),     icon:'📦', color:'#0369a1', bg:'#e0f2fe'},
-                                {lbl:'ربح المبيعات الإجمالي',   val:IQ(salesProfit),   icon:'📈', color:salesProfit>=0?'#16a34a':'#dc2626', bg:salesProfit>=0?'#f0fdf4':'#fef2f2'},
-                                {lbl:'إجمالي الصرفيات',         val:IQ(totalExpenses), icon:'💸', color:'#dc2626', bg:'#fef2f2'},
-                            ].map(({lbl,val,icon,color,bg})=>(
-                                <div key={lbl} style={{background:bg,border:'1px solid #e2e8f0',borderRadius:'14px',padding:'16px 18px'}}>
-                                    <div style={{fontSize:'12px',color:'#94a3b8',fontWeight:700,marginBottom:'6px',...F}}>{icon} {lbl}</div>
-                                    <div style={{fontSize:'20px',fontWeight:900,color,...F}}>{val}</div>
-                                </div>
-                            ))}
-                        </div>
-
-                        <div style={{background:'#f8fafc',borderRadius:'14px',padding:'18px',border:'1px solid #e2e8f0'}}>
-                            <div style={{fontWeight:900,fontSize:'14px',color:'#1e3a5f',marginBottom:'12px',...F}}>🧮 معادلة الحساب (أرباح فعلية بعد البيع)</div>
-                            {[
-                                ['إيرادات المبيعات',         IQ(totalRevenue),   '#0f172a'],
-                                ['— تكلفة البضاعة المباعة', IQ(totalCOGS),      '#64748b'],
-                                ['= ربح المبيعات الإجمالي', IQ(salesProfit),    salesProfit>=0?'#16a34a':'#dc2626'],
-                                ['— إجمالي الصرفيات',       IQ(totalExpenses),  '#dc2626'],
-                                ['= صافي الربح / الخسارة',  IQ(netProfit),      netProfit>=0?'#16a34a':'#dc2626'],
-                            ].map(([lbl,val,col],i)=>(
-                                <div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',
-                                    padding:'9px 0',borderBottom:i<4?'1px solid #e2e8f0':'3px solid #1e3a5f',
-                                    fontWeight:i===4?900:700,fontSize:i===4?'16px':'14px'}}>
-                                    <span style={{color:'#475569',...F}}>{lbl}</span>
-                                    <span style={{color:col,...F}}>{val}</span>
-                                </div>
-                            ))}
-                        </div>
-
-                        {salesRows.filter(r=>r.hasProduct).length > 0 && (
-                            <div style={{background:'#f8fafc',borderRadius:'14px',padding:'18px',border:'1px solid #e2e8f0'}}>
-                                <div style={{fontWeight:900,fontSize:'14px',color:'#1e3a5f',marginBottom:'12px',...F}}>
-                                    🏆 أعلى المواد ربحاً من المبيعات الفعلية
-                                </div>
-                                {[...salesRows]
-                                    .filter(r=>r.hasProduct)
-                                    .sort((a,b)=>b.totalProfit-a.totalProfit)
-                                    .slice(0,5)
-                                    .map((r,i)=>(
-                                        <div key={r.name} style={{display:'flex',justifyContent:'space-between',alignItems:'center',
-                                            padding:'10px 0',borderBottom:i<4?'1px solid #f1f5f9':'none'}}>
-                                            <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-                                                <span style={{fontWeight:900,color:'#94a3b8',fontSize:'13px',minWidth:'20px',...F}}>#{i+1}</span>
-                                                <div>
-                                                    <div style={{fontWeight:700,fontSize:'13px',color:'#0f172a',...F}}>{r.name}</div>
-                                                    <div style={{fontSize:'11px',color:'#94a3b8',fontWeight:600,...F}}>{numFmt(r.totalQty)} وحدة مباعة</div>
-                                                </div>
-                                            </div>
-                                            <div style={{display:'flex',gap:'16px',alignItems:'center'}}>
-                                                <span style={{fontSize:'12px',color:'#7c3aed',fontWeight:700,...F}}>{pct(r.margin)}</span>
-                                                <span style={{fontWeight:900,fontSize:'15px',color:r.totalProfit>=0?'#16a34a':'#dc2626',...F}}>
-                                                    {r.totalProfit>=0?'+':''}{IQ(r.totalProfit)}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    ))}
-                            </div>
-                        )}
-
-                        <div style={{background:'#f0f9ff',border:'1px solid #bae6fd',borderRadius:'14px',padding:'16px 18px'}}>
-                            <div style={{fontWeight:800,fontSize:'13px',color:'#0369a1',marginBottom:'10px',...F}}>
-                                📦 القيمة الدفترية للمخزن (مرجعي فقط — ليست أرباحاً)
-                            </div>
-                            <div style={{display:'flex',gap:'20px',flexWrap:'wrap'}}>
-                                {[['قيمة المخزن بالكلفة',IQ(invTotalCost),'#0369a1'],['قيمة المخزن بالبيع',IQ(invTotalSell),'#0f172a']].map(([lbl,val,col])=>(
-                                    <div key={lbl}>
-                                        <div style={{fontSize:'11px',color:'#64748b',fontWeight:600,...F}}>{lbl}</div>
-                                        <div style={{fontSize:'16px',fontWeight:900,color:col,...F}}>{val}</div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-}
-
-
 /* ══════════════════════════════════════
-   RecordsView
+   Invoice Sheet (for PDF/preview)
 ══════════════════════════════════════ */
-function RecordsView({ onLoadInvoice, onSwitchTab }) {
-    const [records,    setRecords]    = useState([]);
-    const [loading,    setLoading]    = useState(true);
-    const [filterType, setFilterType] = useState('all');
-    const [search,     setSearch]     = useState('');
-
-    useEffect(()=>{ loadRecords(); }, []);
-
-    const loadRecords = async () => {
-        setLoading(true);
-        try {
-            const { data, error } = await sbClient.from('invoices').select('*').order('created_at',{ascending:false});
-            if (error) throw error;
-            setRecords(data || []);
-        } catch(e) { toast('فشل تحميل السجل','error'); }
-        setLoading(false);
-    };
-
-    const filtered = useMemo(()=>{
-        return records.filter(r=>{
-            if (filterType !== 'all' && r.invoice_type !== filterType) return false;
-            if (search) {
-                const s = search.toLowerCase();
-                if (!r.customer_name?.toLowerCase().includes(s) && !r.invoice_number?.toString().includes(s)) return false;
-            }
-            return true;
-        });
-    }, [records, filterType, search]);
-
-    const totalSubtotal = filtered.reduce((s,r)=>s+Number(r.subtotal||0),0);
-    const totalDue      = filtered.reduce((s,r)=>s+Number(r.due_amount||0),0);
-    const totalPaid     = filtered.reduce((s,r)=>s+Number(r.paid_amount||0),0);
-
-    const exportExcel = () => {
-        if (!window.XLSX) { toast('مكتبة Excel غير متاحة','error'); return; }
-        const data = filtered.map(r=>({
-            'رقم الوصل': r.invoice_number, 'التاريخ': r.date,
-            'اسم الزبون': r.customer_name||'', 'الهاتف': r.customer_phone||'',
-            'نوع الوصل': r.invoice_type==='receipt'?'سند قبض':'قائمة بيع',
-            'المجموع الكلي (د.ع)': Number(r.subtotal||0),
-            'المبلغ المدفوع (د.ع)': Number(r.paid_amount||0),
-            'المبلغ المتبقي (د.ع)': Number(r.due_amount||0),
-            'ملاحظات': r.notes||'',
-        }));
-        const ws = window.XLSX.utils.json_to_sheet(data);
-        ws['!cols'] = [{wch:12},{wch:12},{wch:22},{wch:16},{wch:14},{wch:18},{wch:18},{wch:18},{wch:30}];
-        const wb = window.XLSX.utils.book_new();
-        window.XLSX.utils.book_append_sheet(wb, ws, 'سجل الفواتير');
-        window.XLSX.writeFile(wb, `سجل_الفواتير_عالم_ورق_${new Date().toISOString().split('T')[0]}.xlsx`);
-        toast('تم تصدير ملف Excel ✓','success');
-    };
-
-    const handleLoad = (row) => { onLoadInvoice(row); onSwitchTab('create'); toast('تم تحميل الفاتورة','success'); };
-
-    return (
-        <div style={{background:'#fff',borderRadius:'20px',padding:'24px',boxShadow:'0 2px 12px rgba(0,0,0,.07)',border:'1px solid #e2e8f0'}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'18px',flexWrap:'wrap',gap:'10px'}}>
-                <h2 style={{fontWeight:900,fontSize:'19px',color:'#1e3a5f',margin:0,...F}}>سجل الإصدارات</h2>
-                <div style={{display:'flex',gap:'8px'}}>
-                    <button onClick={loadRecords} style={{display:'flex',alignItems:'center',gap:'6px',padding:'9px 14px',background:'#f1f5f9',border:'1px solid #e2e8f0',borderRadius:'10px',fontWeight:700,fontSize:'13px',cursor:'pointer',color:'#475569',...F}}>
-                        <I.Refresh/> تحديث
-                    </button>
-                    <button onClick={exportExcel} style={{display:'flex',alignItems:'center',gap:'6px',padding:'9px 16px',background:'#16a34a',color:'#fff',border:'none',borderRadius:'10px',fontWeight:800,fontSize:'13px',cursor:'pointer',...F}}>
-                        <I.Excel/> تصدير Excel
-                    </button>
-                </div>
-            </div>
-
-            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'10px',marginBottom:'18px'}}>
-                {[['عدد السجلات',filtered.length,'#1e3a5f','#eff6ff'],['إجمالي المبيعات',totalSubtotal.toLocaleString()+' د.ع','#0f172a','#f8fafc'],['إجمالي المدفوع',totalPaid.toLocaleString()+' د.ع','#16a34a','#f0fdf4'],['إجمالي المتبقي',totalDue.toLocaleString()+' د.ع','#dc2626','#fef2f2']].map(([lbl,val,col,bg])=>(
-                    <div key={lbl} style={{background:bg,border:'1px solid #e2e8f0',borderRadius:'12px',padding:'12px 14px'}}>
-                        <div style={{fontSize:'11px',color:'#94a3b8',fontWeight:700,marginBottom:'4px',...F}}>{lbl}</div>
-                        <div style={{fontSize:'17px',fontWeight:900,color:col,...F}}>{val}</div>
-                    </div>
-                ))}
-            </div>
-
-            <div style={{display:'flex',gap:'8px',marginBottom:'16px',flexWrap:'wrap',alignItems:'center'}}>
-                {[['all','الكل 📋'],['sale','قوائم البيع 🧾'],['receipt','سندات القبض 💰']].map(([val,lbl])=>(
-                    <button key={val} onClick={()=>setFilterType(val)}
-                        style={{padding:'7px 14px',border:'2px solid',borderColor:filterType===val?'#1e3a5f':'#e2e8f0',
-                            background:filterType===val?'#1e3a5f':'#fff',color:filterType===val?'#fff':'#64748b',
-                            borderRadius:'10px',fontWeight:700,fontSize:'12px',cursor:'pointer',transition:'all .15s',...F}}>
-                        {lbl}
-                    </button>
-                ))}
-                <input value={search} onChange={e=>setSearch(e.target.value)}
-                    placeholder="🔍 بحث باسم الزبون أو رقم الوصل..."
-                    style={{flex:1,minWidth:'200px',padding:'8px 12px',border:'2px solid #e2e8f0',borderRadius:'10px',fontSize:'13px',fontWeight:600,...F}}/>
-            </div>
-
-            {loading ? (
-                <div style={{textAlign:'center',padding:'60px',color:'#94a3b8',fontWeight:700,...F}}>
-                    <div style={{fontSize:'32px',marginBottom:'10px'}}>⏳</div>جاري التحميل...
-                </div>
-            ) : filtered.length===0 ? (
-                <div style={{textAlign:'center',padding:'60px',color:'#94a3b8',fontWeight:700,...F}}>
-                    <div style={{fontSize:'32px',marginBottom:'10px'}}>📭</div>لا توجد سجلات مطابقة
-                </div>
-            ) : (
-                <div style={{overflowX:'auto',borderRadius:'12px',border:'1px solid #e2e8f0'}}>
-                    <table className="rec-table">
-                        <thead><tr>
-                            {['#','رقم الوصل','التاريخ','اسم الزبون','النوع','المجموع','مدفوع','المتبقي','تحميل'].map(h=>(
-                                <th key={h} style={{...F}}>{h}</th>
-                            ))}
-                        </tr></thead>
-                        <tbody>
-                            {filtered.map((row,i)=>{
-                                const subtotal  = Number(row.subtotal||0);
-                                const paid      = Number(row.paid_amount||0);
-                                const due       = Number(row.due_amount||0);
-                                const isReceipt = row.invoice_type==='receipt';
-                                return (
-                                    <tr key={row.id}>
-                                        <td style={{color:'#94a3b8',fontWeight:700,...F}}>{i+1}</td>
-                                        <td style={{fontWeight:900,color:'#1e3a5f',...F}}>#{row.invoice_number}</td>
-                                        <td style={{color:'#64748b',fontSize:'12px',...F}}>{row.date}</td>
-                                        <td style={{fontWeight:700,textAlign:'right',...F}}>{row.customer_name||'—'}</td>
-                                        <td>
-                                            <span style={{display:'inline-block',padding:'3px 10px',borderRadius:'20px',fontSize:'11px',fontWeight:800,background:isReceipt?'#eff6ff':'#f0fdf4',color:isReceipt?'#2563eb':'#16a34a',...F}}>
-                                                {isReceipt?'سند قبض':'قائمة بيع'}
-                                            </span>
-                                        </td>
-                                        <td style={{fontWeight:700,...F}}>{subtotal.toLocaleString()}</td>
-                                        <td style={{color:'#16a34a',fontWeight:700,...F}}>{paid.toLocaleString()}</td>
-                                        <td style={{fontWeight:900,color:due>0?'#dc2626':'#16a34a',...F}}>{due.toLocaleString()}</td>
-                                        <td>
-                                            <button onClick={()=>handleLoad(row)}
-                                                style={{display:'inline-flex',alignItems:'center',gap:'4px',padding:'5px 10px',background:'#1e3a5f',color:'#fff',border:'none',borderRadius:'7px',cursor:'pointer',fontWeight:700,fontSize:'11px',...F}}>
-                                                <I.Eye/> تحميل
-                                            </button>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
-                </div>
-            )}
-
-            <div style={{textAlign:'center',marginTop:'12px',fontSize:'11px',color:'#94a3b8',fontWeight:600,...F}}>
-                عدد النتائج: {filtered.length} من أصل {records.length}
-            </div>
-        </div>
-    );
-}
-
-
-/* ══════════════════════════════════════
-   App
-══════════════════════════════════════ */
-function App() {
-    const sheetRef  = useRef(null);
-    const scalerRef = useRef(null);
-    const colRef    = useRef(null);
-    const invRef    = useRef({});
-
-    const [activeTab, setActiveTab] = useState('create');
-
-    /* ── جلب المنتجات لاستخدامها في الـ Autocomplete ── */
-    const [products, setProducts] = useState([]);
-    useEffect(()=>{
-        sbClient.from('products').select('name,sell_price').order('name').then(({data})=>{
-            if (data) setProducts(data);
-        });
-    }, []);
-
-    const [inv, setInv] = useState({
-        invoiceNumber: '...',
-        date: new Date().toISOString().split('T')[0],
-        customerName: '', customerPhone: '',
-        items: [{ id:'1', description:'', quantity:1, price:0 }],
-        invoiceType: 'sale', paidAmount: '',
-        notes: 'البضاعة المباعة لا ترد ولا تستبدل بعد 24 ساعة.'
-    });
-
-    useEffect(()=>{
-        getNextInvoiceNumber().then(num => setInv(p=>({...p, invoiceNumber:num})));
-    }, []);
-
-    const subtotal = useMemo(()=> inv.items.reduce((s,it)=>s+(Number(it.quantity)*Number(it.price)),0), [inv.items]);
-    const paid     = Number(inv.paidAmount) || 0;
-    const due      = Math.max(0, subtotal - paid);
-
-    invRef.current = { inv, subtotal, paid, due };
-
-    useEffect(()=>{
-        const handler = () => {
-            const { inv, subtotal, paid, due } = invRef.current;
-            saveToSupabase(inv, subtotal, paid, due);
-        };
-        window.addEventListener('beforeprint', handler);
-        return ()=> window.removeEventListener('beforeprint', handler);
-    }, []);
-
-    useEffect(()=>{
-        const resize = ()=>{
-            if(!scalerRef.current || !colRef.current) return;
-            const avail = colRef.current.clientWidth - 32;
-            const scale = Math.min(1, avail / 794);
-            scalerRef.current.style.transform = `scale(${scale})`;
-            scalerRef.current.style.height = `${1123 * scale}px`;
-        };
-        resize();
-        const ro = new ResizeObserver(resize);
-        if(colRef.current) ro.observe(colRef.current);
-        return ()=> ro.disconnect();
-    }, [activeTab]);
-
-    const paddedItems = useMemo(()=>{
-        const a = [...inv.items];
-        while(a.length < 7) a.push({id:Math.random().toString(), description:'', quantity:'', price:'', isEmpty:true});
+function InvoiceSheet({ inv, subtotal, paid, due, sheetRef }) {
+    const F = { fontFamily:"'Cairo', sans-serif" };
+    const paddedItems = useMemo(() => {
+        const a = [...inv.items.filter(i => i.description || i.quantity || i.price)];
+        while (a.length < 8) a.push({ id: Math.random(), description:'', quantity:'', price:'', isEmpty:true });
         return a;
     }, [inv.items]);
 
-    const addItem    = ()=> setInv(p=>({...p, items:[...p.items,{id:Date.now().toString(),description:'',quantity:1,price:0}]}));
-    const removeItem = id=> setInv(p=>({...p, items:p.items.filter(i=>i.id!==id)}));
-    const updateItem = (id,f,v)=> setInv(p=>({...p, items:p.items.map(i=>i.id===id?{...i,[f]:v}:i)}));
-
-    /* عند اختيار منتج من الـ autocomplete: يملأ الاسم والسعر */
-    const selectProduct = (itemId, name, price) => {
-        setInv(p=>({
-            ...p,
-            items: p.items.map(i => i.id === itemId
-                ? { ...i, description: name, ...(price !== null && price > 0 ? { price } : {}) }
-                : i
-            )
-        }));
-    };
-
-    const loadInvoice = row => {
-        setInv({
-            invoiceNumber: row.invoice_number, date: row.date,
-            customerName: row.customer_name||'', customerPhone: row.customer_phone||'',
-            items: row.items||[{id:'1',description:'',quantity:1,price:0}],
-            invoiceType: row.invoice_type||'sale',
-            paidAmount: row.paid_amount?.toString()||'', notes: row.notes||''
-        });
-    };
-
-    const handlePDF = async ()=>{
-        showLoading('جاري إنشاء ملف PDF...');
-        try {
-            await saveToSupabase(inv, subtotal, paid, due);
-            const el = sheetRef.current;
-            const saved = scalerRef.current.style.transform;
-            scalerRef.current.style.transform = 'none';
-            await new Promise(r=>setTimeout(r,80));
-            await html2pdf().set({
-                margin:0, filename:`فاتورة-${inv.invoiceNumber}.pdf`,
-                image:{type:'jpeg',quality:0.98},
-                html2canvas:{scale:2,useCORS:true,logging:false,backgroundColor:'#ffffff'},
-                jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}
-            }).from(el).save();
-            scalerRef.current.style.transform = saved;
-            await advanceInvoiceNumber();
-            toast('تم الحفظ وتصدير PDF ✓','success');
-        } catch(e) { toast('حدث خطأ أثناء التصدير','error'); console.error(e); }
-        hideLoading();
-    };
-
-    const handleWhatsApp = async ()=>{
-        if(!inv.customerPhone){ toast('أدخل رقم هاتف الزبون أولاً','error'); return; }
-        showLoading('جاري تجهيز صورة الفاتورة...');
-        try {
-            await document.fonts.ready;
-            await saveToSupabase(inv, subtotal, paid, due);
-            const el = sheetRef.current;
-            const saved = scalerRef.current.style.transform;
-            scalerRef.current.style.transform = 'none';
-            await new Promise(r=>setTimeout(r,80));
-            const dataUrl = await domtoimage.toPng(el,{quality:1,bgcolor:'#ffffff',width:794,height:1123,style:{direction:'rtl',fontFamily:"'Cairo', sans-serif"}});
-            scalerRef.current.style.transform = saved;
-            const res  = await fetch(dataUrl);
-            const blob = await res.blob();
-            const file = new File([blob],`فاتورة-${inv.invoiceNumber}.png`,{type:'image/png'});
-            const wa   = toWA(inv.customerPhone);
-            hideLoading();
-            if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
-                await navigator.share({files:[file],title:'فاتورة عالم ورق الكاشير'});
-                await advanceInvoiceNumber();
-                toast('تم الإرسال والحفظ ✓','success');
-            } else {
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href=url; a.download=`فاتورة-${inv.invoiceNumber}.png`;
-                document.body.appendChild(a); a.click(); document.body.removeChild(a);
-                setTimeout(()=>URL.revokeObjectURL(url),1000);
-                const msg = encodeURIComponent(`مرحباً ${inv.customerName}،\nفاتورة رقم ${inv.invoiceNumber} من عالم ورق الكاشير.\n(الصورة محفوظة على جهازك)`);
-                setTimeout(()=>window.open(`https://wa.me/${wa}?text=${msg}`,'_blank'),800);
-                await advanceInvoiceNumber();
-                toast('تم الحفظ والتنزيل ✓','success');
-            }
-        } catch(e) {
-            hideLoading();
-            if(e.name!=='AbortError'){ toast('حدث خطأ أثناء التجهيز','error'); console.error(e); }
-        }
-    };
-
-    const advanceInvoiceNumber = async () => {
-        const next = await getNextInvoiceNumber();
-        setInv(p=>({...p, invoiceNumber:next}));
-    };
-
-    const handleSave = async ()=>{
-        showLoading('جاري الحفظ...');
-        const ok = await saveToSupabase(inv, subtotal, paid, due);
-        hideLoading();
-        if(ok) advanceInvoiceNumber();
-        toast(ok?'تم الحفظ في قاعدة البيانات ✓':'فشل الحفظ، تحقق من الاتصال', ok?'success':'error');
-    };
-
-    /* ورقة الفاتورة */
-    const Sheet = ()=>(
+    return (
         <div id="invoice-sheet" ref={sheetRef}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',borderBottom:'3px solid #1e3a5f',paddingBottom:'20px',marginBottom:'18px'}}>
+            {/* Header */}
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',borderBottom:'3px solid #1a2744',paddingBottom:'14px',marginBottom:'12px'}}>
                 <div>
-                    <div style={{fontSize:'30px',fontWeight:900,color:'#1e3a5f',lineHeight:1.1,...F}}>عالم ورق الكاشير</div>
-                    <div style={{fontSize:'13px',fontWeight:700,color:'#2563eb',marginTop:'4px',...F}}>الجودة التي تستحقها تجارتكم</div>
+                    <div style={{fontSize:'22px',fontWeight:900,color:'#1a2744',lineHeight:1.1,...F}}>عالم ورق الكاشير</div>
+                    <div style={{fontSize:'10px',fontWeight:700,color:'#2563eb',marginTop:'3px',...F}}>الجودة التي تستحقها تجارتكم</div>
                 </div>
-                <img src="logo.PNG" alt="عالم ورق الكاشير"
-                    style={{height:'100px',width:'auto',maxWidth:'160px',objectFit:'contain',display:'block'}}
-                    onError={e=>{
-                        e.target.style.display='none';
-                        const d=document.createElement('div');
-                        d.style.cssText='width:100px;height:100px;border-radius:12px;background:#1e3a5f;display:flex;align-items:center;justify-content:center;';
-                        d.innerHTML='<span style="color:#fff;font-size:28px;font-weight:900;font-family:Cairo,sans-serif">ع.و</span>';
-                        e.target.parentNode.appendChild(d);
-                    }}/>
+                <img src="logo.PNG" alt="" style={{height:'64px',width:'auto',maxWidth:'100px',objectFit:'contain'}}
+                    onError={e=>{e.target.style.display='none';}}/>
             </div>
 
-            <div style={{display:'flex',justifyContent:'center',marginBottom:'18px'}}>
-                <div style={{border:'2.5px solid #1e3a5f',borderRadius:'12px',padding:'4px 42px',background:'#f8fafc'}}>
-                    <span style={{fontSize:'22px',fontWeight:900,color:'#1e3a5f',...F}}>
+            {/* Title */}
+            <div style={{display:'flex',justifyContent:'center',marginBottom:'12px'}}>
+                <div style={{border:'2px solid #1a2744',borderRadius:'8px',padding:'3px 32px',background:'#f8fafc'}}>
+                    <span style={{fontSize:'16px',fontWeight:900,color:'#1a2744',...F}}>
                         {inv.invoiceType==='receipt'?'سند قبض':'قائمة بيع'}
                     </span>
                 </div>
             </div>
 
-            <div style={{display:'flex',justifyContent:'space-between',background:'#f8fafc',border:'1.5px solid #e2e8f0',borderRadius:'10px',padding:'10px 16px',marginBottom:'18px'}}>
-                <div style={{display:'flex',flexDirection:'column',gap:'8px',width:'55%'}}>
+            {/* Meta */}
+            <div style={{display:'flex',justifyContent:'space-between',background:'#f8fafc',border:'1.5px solid #e2e8f0',borderRadius:'8px',padding:'8px 12px',marginBottom:'12px'}}>
+                <div style={{display:'flex',flexDirection:'column',gap:'6px',width:'55%'}}>
                     {[['السيد/ة:',inv.customerName],['الهاتف:',inv.customerPhone]].map(([lbl,val],i)=>(
-                        <div key={i} style={{display:'flex',alignItems:'flex-end',gap:'8px'}}>
-                            <span style={{fontWeight:700,color:'#64748b',fontSize:'12px',whiteSpace:'nowrap',...F}}>{lbl}</span>
-                            <span style={{flex:1,borderBottom:'1.5px solid #94a3b8',fontWeight:800,fontSize:'13px',color:'#0f172a',paddingBottom:'2px',direction:i===1?'ltr':'rtl',...F}}>{val}</span>
+                        <div key={i} style={{display:'flex',alignItems:'flex-end',gap:'6px'}}>
+                            <span style={{fontWeight:700,color:'#64748b',fontSize:'10px',whiteSpace:'nowrap',...F}}>{lbl}</span>
+                            <span style={{flex:1,borderBottom:'1.5px solid #94a3b8',fontWeight:800,fontSize:'11px',color:'#0f172a',paddingBottom:'1px',...F}}>{val}</span>
                         </div>
                     ))}
                 </div>
-                <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
-                    {[['رقم الوصل:',inv.invoiceNumber,'19px',900],['التاريخ:',inv.date,'13px',700]].map(([lbl,val,sz,fw],i)=>(
-                        <div key={i} style={{display:'flex',alignItems:'center',gap:'6px'}}>
-                            <span style={{fontWeight:700,color:'#64748b',fontSize:'12px',...F}}>{lbl}</span>
-                            <span style={{fontWeight:fw,fontSize:sz,color:'#1e3a5f',direction:'ltr',...F}}>{val}</span>
+                <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
+                    {[['رقم الوصل:',inv.invoiceNumber,'16px',900],['التاريخ:',inv.date,'11px',700]].map(([lbl,val,sz,fw],i)=>(
+                        <div key={i} style={{display:'flex',alignItems:'center',gap:'5px'}}>
+                            <span style={{fontWeight:700,color:'#64748b',fontSize:'10px',...F}}>{lbl}</span>
+                            <span style={{fontWeight:fw,fontSize:sz,color:'#1a2744',direction:'ltr',...F}}>{val}</span>
                         </div>
                     ))}
                 </div>
@@ -1344,17 +827,17 @@ function App() {
                 <>
                     <table className="inv-table">
                         <thead><tr>
-                            <th style={{width:'28px'}}>#</th>
+                            <th style={{width:'22px'}}>#</th>
                             <th>المادة</th>
-                            <th style={{width:'60px'}}>الكمية</th>
-                            <th style={{width:'80px'}}>السعر</th>
-                            <th style={{width:'90px'}}>المجموع</th>
+                            <th style={{width:'44px'}}>الكمية</th>
+                            <th style={{width:'66px'}}>السعر</th>
+                            <th style={{width:'74px'}}>المجموع</th>
                         </tr></thead>
                         <tbody>
                             {paddedItems.map((item,i)=>(
-                                <tr key={i} style={{height:'28px'}}>
+                                <tr key={i} style={{height:'22px'}}>
                                     <td style={{fontWeight:800,color:'#64748b',...F}}>{!item.isEmpty?i+1:''}</td>
-                                    <td style={{textAlign:'right',paddingRight:'10px',...F}}>{item.description}</td>
+                                    <td style={{textAlign:'right',paddingRight:'8px',...F}}>{item.description}</td>
                                     <td style={F}>{item.isEmpty?'':item.quantity}</td>
                                     <td style={F}>{item.price&&!item.isEmpty?Number(item.price).toLocaleString():''}</td>
                                     <td style={{fontWeight:800,...F}}>
@@ -1365,219 +848,842 @@ function App() {
                         </tbody>
                     </table>
 
-                    <div style={{display:'flex',gap:'10px',marginTop:'10px',alignItems:'flex-start'}}>
+                    <div style={{display:'flex',gap:'8px',marginTop:'8px',alignItems:'flex-start'}}>
                         <div style={{flex:1}}>
-                            <div style={{fontWeight:900,color:'#1e3a5f',fontSize:'12px',marginBottom:'4px',...F}}>ملاحظات:</div>
-                            <div style={{background:'#f8fafc',border:'1px solid #e2e8f0',borderRadius:'8px',padding:'8px 10px',fontSize:'11px',fontWeight:600,color:'#475569',lineHeight:1.9,minHeight:'80px',...F}}>
-                                {inv.notes||'لا توجد ملاحظات.'}
+                            <div style={{fontWeight:900,color:'#1a2744',fontSize:'10px',marginBottom:'3px',...F}}>ملاحظات:</div>
+                            <div style={{background:'#f8fafc',border:'1px solid #e2e8f0',borderRadius:'6px',padding:'6px 8px',fontSize:'9px',fontWeight:600,color:'#475569',lineHeight:2,minHeight:'60px',...F}}>
+                                {inv.notes||'البضاعة المباعة لا ترد ولا تستبدل بعد 24 ساعة.'}
                             </div>
                         </div>
-                        <div style={{width:'44%',border:'2px solid #1e3a5f',borderRadius:'10px',overflow:'hidden'}}>
-                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 12px',borderBottom:'1px solid #cbd5e1',background:'#f8fafc'}}>
-                                <span style={{fontWeight:800,fontSize:'14px',color:'#1e3a5f',...F}}>{subtotal.toLocaleString()} <small style={{fontSize:'10px'}}>د.ع</small></span>
-                                <div style={{textAlign:'right'}}>
-                                    <div style={{fontWeight:900,fontSize:'12px',color:'#1e3a5f',...F}}>المجموع الكلي</div>
-                                    <div style={{fontSize:'9px',color:'#94a3b8',...F}}>Total Amount</div>
+                        <div style={{width:'42%',border:'2px solid #1a2744',borderRadius:'8px',overflow:'hidden'}}>
+                            {[
+                                {lbl:'المجموع الكلي',en:'Total',val:subtotal,color:'#f8fafc',textCol:'#1a2744',valSz:'13px'},
+                                {lbl:'مدفوع',en:'Paid',val:paid,color:'#fff',textCol:'#0f172a',valSz:'13px'},
+                                {lbl:'الرصيد المستحق',en:'Due',val:due,color:due>0?'#dc2626':'#1a2744',textCol:'#fff',valSz:'16px',bold:true},
+                            ].map(({lbl,en,val,color,textCol,valSz,bold},i)=>(
+                                <div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 10px',background:color,borderBottom:i<2?'1px solid #cbd5e1':'none'}}>
+                                    <span style={{fontWeight:bold?900:800,fontSize:valSz,color:textCol,...F}}>{val.toLocaleString()} <small style={{fontSize:'8px'}}>د.ع</small></span>
+                                    <div style={{textAlign:'right'}}>
+                                        <div style={{fontWeight:900,fontSize:'10px',color:i===2?'#fff':textCol,...F}}>{lbl}</div>
+                                        <div style={{fontSize:'7px',color:i===2?'rgba(255,255,255,.6)':'#94a3b8',...F}}>{en}</div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 12px',borderBottom:'1px solid #cbd5e1',background:'#fff'}}>
-                                <span style={{fontWeight:800,fontSize:'14px',color:'#0f172a',...F}}>{paid.toLocaleString()} <small style={{fontSize:'10px'}}>د.ع</small></span>
-                                <div style={{textAlign:'right'}}>
-                                    <div style={{fontWeight:900,fontSize:'12px',color:'#0f172a',...F}}>مدفوع</div>
-                                    <div style={{fontSize:'9px',color:'#94a3b8',...F}}>Paid</div>
-                                </div>
-                            </div>
-                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px',background:due>0?'#dc2626':'#1e3a5f'}}>
-                                <span style={{fontWeight:900,fontSize:'19px',color:due>0?'#fff':'#4ade80',...F}}>
-                                    {due.toLocaleString()} <small style={{fontSize:'10px'}}>د.ع</small>
-                                </span>
-                                <div style={{textAlign:'right'}}>
-                                    <div style={{fontWeight:900,fontSize:'13px',color:'#fff',...F}}>الرصيد المستحق</div>
-                                    <div style={{fontSize:'9px',color:'rgba(255,255,255,.65)',...F}}>Due Amount</div>
-                                </div>
-                            </div>
+                            ))}
                         </div>
                     </div>
                 </>
             ) : (
-                <div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'center',padding:'0 30px'}}>
-                    <div style={{border:'2.5px solid #1e3a5f',borderRadius:'14px',padding:'32px',background:'#f8fafc',position:'relative',overflow:'hidden'}}>
-                        <div style={{position:'absolute',top:0,right:0,width:'5px',height:'100%',background:'#2563eb'}}></div>
-                        {[['استلمنا من السيد/ة:',inv.customerName],['مبلغاً وقدره:',`${paid.toLocaleString()} دينار عراقي فقط`],['وذلك عن:',inv.notes]].map(([lbl,val],i)=>(
-                            <div key={i} style={{display:'flex',alignItems:'flex-end',gap:'8px',marginBottom:i<2?'26px':'0',fontSize:'18px',fontWeight:700,color:'#0f172a',...F}}>
-                                <span style={{whiteSpace:'nowrap',color:'#475569',fontSize:'15px',...F}}>{lbl}</span>
-                                <span style={{flex:1,borderBottom:'2px solid #94a3b8',paddingBottom:'3px',color:'#1e3a5f',fontWeight:900,...F}}>{val}</span>
+                <div style={{padding:'20px 10px'}}>
+                    <div style={{border:'2px solid #1a2744',borderRadius:'12px',padding:'24px 20px',background:'#f8fafc'}}>
+                        {[['استلمنا من السيد/ة:',inv.customerName],['مبلغاً وقدره:',`${paid.toLocaleString()} دينار عراقي`],['وذلك عن:',inv.notes]].map(([lbl,val],i)=>(
+                            <div key={i} style={{display:'flex',alignItems:'flex-end',gap:'8px',marginBottom:i<2?'20px':'0',fontSize:'14px',fontWeight:700,...F}}>
+                                <span style={{whiteSpace:'nowrap',color:'#64748b',fontSize:'12px',...F}}>{lbl}</span>
+                                <span style={{flex:1,borderBottom:'2px solid #94a3b8',paddingBottom:'2px',color:'#1a2744',fontWeight:900,...F}}>{val}</span>
                             </div>
                         ))}
                     </div>
                 </div>
             )}
 
-            <div style={{marginTop:'auto',paddingTop:'20px'}}>
-                <div style={{display:'flex',justifyContent:'space-between',padding:'0 50px',marginBottom:'20px'}}>
-                    {['توقيع المستلم','توقيع المحاسب'].map(t=>(
-                        <div key={t} style={{textAlign:'center',width:'130px'}}>
-                            <div style={{borderBottom:'2.5px solid #94a3b8',height:'38px',marginBottom:'7px'}}></div>
-                            <div style={{fontWeight:900,color:'#374151',fontSize:'12px',...F}}>{t}</div>
-                        </div>
-                    ))}
+            {/* Signatures */}
+            <div style={{display:'flex',justifyContent:'space-between',padding:'0 30px',marginTop:'16px',marginBottom:'12px'}}>
+                {['توقيع المستلم','توقيع المحاسب'].map(t=>(
+                    <div key={t} style={{textAlign:'center',width:'100px'}}>
+                        <div style={{borderBottom:'2px solid #94a3b8',height:'28px',marginBottom:'5px'}}></div>
+                        <div style={{fontWeight:900,color:'#374151',fontSize:'9px',...F}}>{t}</div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Footer */}
+            <div style={{background:'#1a2744',borderRadius:'8px',padding:'8px 14px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <span style={{fontWeight:800,color:'#fff',fontSize:'11px',direction:'ltr',...F}}>+964 786 848 3823</span>
+                <span style={{fontWeight:900,color:'#93c5fd',fontSize:'11px',...F}}>عالم ورق الكاشير</span>
+                <span style={{fontWeight:800,color:'#fff',fontSize:'11px',...F}}>بغداد — زيونة</span>
+            </div>
+        </div>
+    );
+}
+
+/* ══════════════════════════════════════
+   CreateView — main invoice entry
+══════════════════════════════════════ */
+function CreateView({ products, onLoadInvoice }) {
+    const sheetRef = useRef(null);
+    const cellRefs = useRef({});
+
+    const newItem = () => ({ id: Date.now().toString() + Math.random(), description:'', quantity:1, price:'' });
+
+    const [inv, setInv] = useState({
+        invoiceNumber:'...', date:new Date().toISOString().split('T')[0],
+        customerName:'', customerPhone:'',
+        items:[ newItem() ],
+        invoiceType:'sale', paidAmount:'',
+        notes:'البضاعة المباعة لا ترد ولا تستبدل بعد 24 ساعة.'
+    });
+
+    const [activeRow, setActiveRow] = useState(null);
+
+    useEffect(()=>{
+        getNextInvoiceNumber().then(n => setInv(p=>({...p,invoiceNumber:n})));
+    },[]);
+
+    const subtotal = useMemo(()=> inv.items.reduce((s,it)=> s+(Number(it.quantity||0)*Number(it.price||0)),0), [inv.items]);
+    const paid = Number(inv.paidAmount)||0;
+    const due  = Math.max(0, subtotal - paid);
+
+    const setField = (key, val) => setInv(p=>({...p,[key]:val}));
+
+    const updateItem = useCallback((id, field, value) => {
+        setInv(p=>({...p, items: p.items.map(it=> it.id===id ? {...it,[field]:value} : it)}));
+    }, []);
+
+    const selectProduct = useCallback((id, name, price) => {
+        setInv(p=>({...p, items: p.items.map(it=>
+            it.id===id ? {...it, description:name, ...(price!==null&&price>0?{price}:{})} : it
+        )}));
+    }, []);
+
+    const addRow = () => {
+        const item = newItem();
+        setInv(p=>({...p, items:[...p.items, item]}));
+        // focus name cell of new row
+        setTimeout(()=>{
+            const ref = cellRefs.current[`name-${item.id}`];
+            if (ref) ref.focus();
+        }, 50);
+    };
+
+    const removeItem = id => setInv(p=>({...p, items: p.items.filter(it=>it.id!==id)}));
+
+    const clearAll = async () => {
+        const n = await getNextInvoiceNumber();
+        setInv({
+            invoiceNumber:n, date:new Date().toISOString().split('T')[0],
+            customerName:'', customerPhone:'',
+            items:[newItem()], invoiceType:'sale', paidAmount:'',
+            notes:'البضاعة المباعة لا ترد ولا تستبدل بعد 24 ساعة.'
+        });
+    };
+
+    // Navigate between cells with Tab/Enter
+    const handleCellKey = (e, itemId, field) => {
+        if (e.key === 'Tab' || e.key === 'Enter') {
+            e.preventDefault();
+            const order = ['name','qty','price'];
+            const ci = order.indexOf(field);
+            if (ci < order.length-1) {
+                const ref = cellRefs.current[`${order[ci+1]}-${itemId}`];
+                if (ref) ref.focus();
+            } else {
+                // move to next row name, or add row
+                const items = inv.items;
+                const ri = items.findIndex(it=>it.id===itemId);
+                if (ri < items.length-1) {
+                    const ref = cellRefs.current[`name-${items[ri+1].id}`];
+                    if (ref) ref.focus();
+                } else {
+                    addRow();
+                }
+            }
+        }
+    };
+
+    /* PDF */
+    const handlePDF = async () => {
+        showLoading('جاري إنشاء ملف PDF...');
+        try {
+            await saveToSupabase(inv, subtotal, paid, due);
+            const el = sheetRef.current;
+            await new Promise(r=>setTimeout(r,80));
+            await html2pdf().set({
+                margin:0, filename:`فاتورة-${inv.invoiceNumber}.pdf`,
+                image:{type:'jpeg',quality:.98},
+                html2canvas:{scale:2,useCORS:true,logging:false,backgroundColor:'#ffffff'},
+                jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}
+            }).from(el).save();
+            const n = await getNextInvoiceNumber();
+            setInv(p=>({...p,invoiceNumber:n}));
+            toast('تم الحفظ وتصدير PDF ✓','success');
+        } catch(e){ toast('خطأ أثناء التصدير','error'); console.error(e); }
+        hideLoading();
+    };
+
+    const handleWA = async () => {
+        if(!inv.customerPhone){ toast('أدخل رقم هاتف الزبون','error'); return; }
+        showLoading('جاري تجهيز صورة الفاتورة...');
+        try {
+            await document.fonts.ready;
+            await saveToSupabase(inv, subtotal, paid, due);
+            const el = sheetRef.current;
+            await new Promise(r=>setTimeout(r,80));
+            const dataUrl = await domtoimage.toPng(el,{quality:1,bgcolor:'#ffffff',style:{direction:'rtl',fontFamily:"'Cairo',sans-serif"}});
+            const blob = await (await fetch(dataUrl)).blob();
+            const file = new File([blob],`فاتورة-${inv.invoiceNumber}.png`,{type:'image/png'});
+            const wa = toWA(inv.customerPhone);
+            hideLoading();
+            if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+                await navigator.share({files:[file],title:'فاتورة عالم ورق الكاشير'});
+            } else {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href=url; a.download=`فاتورة-${inv.invoiceNumber}.png`;
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                setTimeout(()=>URL.revokeObjectURL(url),1000);
+                const msg = encodeURIComponent(`مرحباً ${inv.customerName}،\nفاتورة رقم ${inv.invoiceNumber} من عالم ورق الكاشير.`);
+                setTimeout(()=>window.open(`https://wa.me/${wa}?text=${msg}`,'_blank'),800);
+            }
+            const n = await getNextInvoiceNumber();
+            setInv(p=>({...p,invoiceNumber:n}));
+            toast('تم الإرسال والحفظ ✓','success');
+        } catch(e){
+            hideLoading();
+            if(e.name!=='AbortError'){ toast('خطأ أثناء التجهيز','error'); console.error(e); }
+        }
+    };
+
+    const handleSave = async () => {
+        showLoading('جاري الحفظ...');
+        const ok = await saveToSupabase(inv, subtotal, paid, due);
+        hideLoading();
+        if(ok){ const n=await getNextInvoiceNumber(); setInv(p=>({...p,invoiceNumber:n})); }
+        toast(ok?'تم الحفظ ✓':'فشل الحفظ',ok?'success':'error');
+    };
+
+    const filledCount = inv.items.filter(it=>it.description).length;
+
+    return (
+        <div className="create-layout">
+            {/* ══ Sidebar ══ */}
+            <div className="sidebar">
+                <div className="sidebar-section">
+                    <div className="sidebar-label">🧾 نوع الوصل</div>
+                    <select value={inv.invoiceType} onChange={e=>setField('invoiceType',e.target.value)} className="sb-input">
+                        <option value="sale">قائمة بيع</option>
+                        <option value="receipt">سند قبض</option>
+                    </select>
                 </div>
-                <div style={{background:'#1e3a5f',borderRadius:'10px',padding:'10px 18px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                    <div style={{display:'flex',alignItems:'center',gap:'6px',direction:'ltr'}}>
-                        <span style={{fontSize:'14px'}}>📞</span>
-                        <span style={{fontWeight:800,color:'#fff',fontSize:'13px',direction:'ltr',letterSpacing:'0.5px',...F}}>+964 786 848 3823</span>
+
+                <div className="sidebar-section">
+                    <div className="sidebar-label">📋 بيانات الوصل</div>
+                    <div className="sb-row" style={{marginBottom:8}}>
+                        <input value={inv.invoiceNumber} onChange={e=>setField('invoiceNumber',e.target.value)}
+                            placeholder="رقم الوصل" className="sb-input" style={{flex:1}}/>
+                        <input type="date" value={inv.date} onChange={e=>setField('date',e.target.value)}
+                            className="sb-input" style={{flex:1}}/>
                     </div>
-                    <div style={{fontWeight:900,color:'#93c5fd',fontSize:'13px',...F}}>عالم ورق الكاشير</div>
-                    <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
-                        <span style={{fontWeight:800,color:'#fff',fontSize:'13px',...F}}>بغداد — زيونة</span>
-                        <span style={{fontSize:'14px'}}>📍</span>
+                    <input value={inv.customerName} onChange={e=>setField('customerName',e.target.value)}
+                        placeholder="اسم الزبون" className="sb-input" style={{marginBottom:8}}/>
+                    <input type="tel" value={inv.customerPhone} onChange={e=>setField('customerPhone',e.target.value)}
+                        placeholder="رقم الهاتف" dir="ltr" className="sb-input"/>
+                </div>
+
+                <div className="sidebar-section">
+                    <div className="sidebar-label">{inv.invoiceType==='sale'?'💵 المبلغ المدفوع':'💵 مبلغ السند'}</div>
+                    <input type="number" value={inv.paidAmount} onChange={e=>setField('paidAmount',e.target.value)}
+                        placeholder="0" className="sb-input"
+                        style={{fontSize:18,fontWeight:900,color:'#93c5fd',textAlign:'center'}}/>
+                </div>
+
+                {inv.invoiceType==='sale' && (
+                    <div className="sidebar-section">
+                        <div className="sb-row">
+                            <div className="sb-stat">
+                                <div className="sb-stat-val" style={{color:'#93c5fd'}}>{fmt(subtotal)}</div>
+                                <div className="sb-stat-lbl">المجموع الكلي</div>
+                            </div>
+                            <div className="sb-stat">
+                                <div className="sb-stat-val" style={{color:'#86efac'}}>{fmt(paid)}</div>
+                                <div className="sb-stat-lbl">مدفوع</div>
+                            </div>
+                        </div>
+                        <div style={{marginTop:10}}>
+                            <div className={`due-box${due>0?' red':''}`}>
+                                <div className="due-box-lbl">الرصيد المستحق</div>
+                                <div className="due-box-val">{fmt(due)} <span style={{fontSize:12,opacity:.7}}>د.ع</span></div>
+                                <div className="due-box-sub">{due<=0?'✅ مسدد بالكامل':'⚠ متبقي للتحصيل'}</div>
+                            </div>
+                        </div>
                     </div>
+                )}
+
+                <div className="sidebar-section">
+                    <div className="sidebar-label">📝 ملاحظات</div>
+                    <textarea value={inv.notes} onChange={e=>setField('notes',e.target.value)} rows={3}
+                        className="sb-input" style={{resize:'vertical',lineHeight:1.8,fontSize:12}}/>
+                </div>
+
+                <div className="sidebar-section" style={{display:'flex',flexDirection:'column',gap:8}}>
+                    <button className="sb-btn btn-primary" onClick={handlePDF}>
+                        <Icons.PDF/> تصدير PDF + حفظ
+                    </button>
+                    <button className="sb-btn btn-green" onClick={handleWA}>
+                        <Icons.WA/> إرسال واتساب + حفظ
+                    </button>
+                    <button className="sb-btn btn-purple" onClick={handleSave}>
+                        <Icons.Save/> حفظ في قاعدة البيانات
+                    </button>
+                </div>
+
+                <div style={{padding:'10px 16px',textAlign:'center'}}>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:6,fontSize:11,color:'rgba(255,255,255,.4)',fontWeight:700}}>
+                        <div className="pulse-dot"></div> متصل بقاعدة البيانات
+                    </div>
+                </div>
+            </div>
+
+            {/* ══ Main grid area ══ */}
+            <div className="main-area">
+                {/* Toolbar */}
+                <div className="toolbar">
+                    <button className="tb-btn" onClick={addRow} title="إضافة صف (Enter في آخر خلية)">
+                        <Icons.Plus/> إضافة صف
+                    </button>
+                    <div className="tb-sep"/>
+                    <button className="tb-btn" onClick={clearAll}>
+                        <Icons.New/> فاتورة جديدة
+                    </button>
+                    <div className="tb-sep"/>
+                    <button className="tb-btn" onClick={handlePDF}><Icons.PDF/> PDF</button>
+                    <button className="tb-btn" onClick={handleWA} style={{color:'#16a34a'}}><Icons.WA/> واتساب</button>
+                    <button className="tb-btn" onClick={handleSave}><Icons.Save/> حفظ</button>
+
+                    <div className="tb-sep"/>
+                    <span style={{fontSize:12,fontWeight:700,color:'#94a3b8'}}>
+                        وصل رقم: <strong style={{color:'#1a2744'}}>#{inv.invoiceNumber}</strong>
+                        &nbsp;|&nbsp; {filledCount} مادة
+                        &nbsp;|&nbsp; المجموع: <strong style={{color:'#2563eb'}}>{fmt(subtotal)} د.ع</strong>
+                    </span>
+                </div>
+
+                {/* Grid */}
+                <div className="grid-wrap">
+                    <table className="invoice-grid">
+                        <thead>
+                            <tr>
+                                <th style={{width:38}}>#</th>
+                                <th className="col-name">اسم المادة</th>
+                                <th style={{width:90}}>الكمية</th>
+                                <th style={{width:130}}>سعر البيع (د.ع)</th>
+                                <th style={{width:140}}>الإجمالي (د.ع)</th>
+                                <th style={{width:44}}>حذف</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {inv.items.map((item, i) => {
+                                const total = Number(item.quantity||0) * Number(item.price||0);
+                                return (
+                                    <tr key={item.id} className={activeRow===item.id?'active-row':''}>
+                                        <td className="col-num">{i+1}</td>
+
+                                        {/* Name + autocomplete */}
+                                        <td style={{minWidth:220}}>
+                                            <AutocompleteCell
+                                                value={item.description}
+                                                products={products}
+                                                onSelect={(name, price) => selectProduct(item.id, name, price)}
+                                                inputRef={el => cellRefs.current[`name-${item.id}`] = el}
+                                                onKeyDown={e => handleCellKey(e, item.id, 'name')}
+                                                onFocus={() => setActiveRow(item.id)}
+                                            />
+                                        </td>
+
+                                        {/* Quantity */}
+                                        <td>
+                                            <input
+                                                ref={el => cellRefs.current[`qty-${item.id}`] = el}
+                                                type="number"
+                                                className="cell-input"
+                                                value={item.quantity}
+                                                min="0"
+                                                onChange={e => updateItem(item.id,'quantity',e.target.value)}
+                                                onFocus={() => setActiveRow(item.id)}
+                                                onKeyDown={e => handleCellKey(e, item.id, 'qty')}
+                                            />
+                                        </td>
+
+                                        {/* Price */}
+                                        <td>
+                                            <input
+                                                ref={el => cellRefs.current[`price-${item.id}`] = el}
+                                                type="number"
+                                                className={`cell-input${Number(item.price)>0?' price-filled':''}`}
+                                                value={item.price}
+                                                min="0"
+                                                placeholder="0"
+                                                onChange={e => updateItem(item.id,'price',e.target.value)}
+                                                onFocus={() => setActiveRow(item.id)}
+                                                onKeyDown={e => handleCellKey(e, item.id, 'price')}
+                                            />
+                                        </td>
+
+                                        {/* Total (computed) */}
+                                        <td>
+                                            <input
+                                                className="cell-input computed total-cell"
+                                                value={total > 0 ? total.toLocaleString() : ''}
+                                                readOnly
+                                                tabIndex={-1}
+                                            />
+                                        </td>
+
+                                        {/* Delete */}
+                                        <td style={{width:44}}>
+                                            <button className="del-btn" onClick={()=>removeItem(item.id)} title="حذف الصف">
+                                                ✕
+                                            </button>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                        {/* Footer totals */}
+                        {inv.invoiceType==='sale' && (
+                            <tfoot>
+                                <tr className="grid-footer">
+                                    <td colSpan={4} className="lbl" style={{textAlign:'right',paddingRight:20}}>
+                                        المجموع الكلي — {filledCount} مادة
+                                    </td>
+                                    <td style={{fontSize:18,color:'#93c5fd'}}>
+                                        {fmt(subtotal)} <span style={{fontSize:11,opacity:.6}}>د.ع</span>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                {paid > 0 && (
+                                    <tr style={{background:'#1e3a5f'}}>
+                                        <td colSpan={4} style={{textAlign:'right',paddingRight:20,color:'rgba(255,255,255,.5)',fontSize:12,padding:'8px 12px',fontWeight:700}}>
+                                            مدفوع
+                                        </td>
+                                        <td style={{color:'#86efac',fontWeight:900,fontSize:15,padding:'8px 12px',textAlign:'center'}}>
+                                            {fmt(paid)} <span style={{fontSize:11,opacity:.6}}>د.ع</span>
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                )}
+                                {paid > 0 && (
+                                    <tr style={{background:due>0?'#7f1d1d':'#14532d'}}>
+                                        <td colSpan={4} style={{textAlign:'right',paddingRight:20,color:'rgba(255,255,255,.6)',fontSize:12,padding:'8px 12px',fontWeight:700}}>
+                                            الرصيد المستحق
+                                        </td>
+                                        <td style={{color:'#fff',fontWeight:900,fontSize:17,padding:'8px 12px',textAlign:'center'}}>
+                                            {fmt(due)} <span style={{fontSize:11,opacity:.7}}>د.ع</span>
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                )}
+                            </tfoot>
+                        )}
+                    </table>
+
+                    {/* Hint row */}
+                    <div style={{marginTop:8,padding:'6px 12px',fontSize:11,color:'#94a3b8',fontWeight:600,display:'flex',gap:20}}>
+                        <span>💡 Tab / Enter: الانتقال للحقل التالي</span>
+                        <span>↑↓: التنقل في القائمة المنسدلة</span>
+                        <span>اكتب اسم المادة لتظهر الأسعار تلقائياً من المخزن</span>
+                    </div>
+                </div>
+
+                {/* Status bar */}
+                <div className="statusbar">
+                    <span>📄 وصل #{inv.invoiceNumber}</span>
+                    <span>📅 {inv.date}</span>
+                    <span>📦 {inv.items.length} صف | {filledCount} مادة مُدخلة</span>
+                    <span>💰 المجموع: {fmt(subtotal)} د.ع</span>
+                    {paid>0&&<span>✅ مدفوع: {fmt(paid)} د.ع</span>}
+                    {paid>0&&<span style={{color:due>0?'#dc2626':'#16a34a'}}>
+                        {due>0?`⚠ متبقي: ${fmt(due)} د.ع`:'✅ مسدد'}
+                    </span>}
+                </div>
+            </div>
+
+            {/* ══ Preview panel ══ */}
+            <div className="preview-panel">
+                <div className="preview-header">
+                    <Icons.Eye/> معاينة الفاتورة
+                </div>
+                <div className="preview-scroll">
+                    <InvoiceSheet inv={inv} subtotal={subtotal} paid={paid} due={due} sheetRef={sheetRef}/>
                 </div>
             </div>
         </div>
     );
+}
+
+/* ══════════════════════════════════════
+   RecordsView
+══════════════════════════════════════ */
+function RecordsView({ onLoadInvoice, onSwitch }) {
+    const [records, setRecords] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [filterType, setFilterType] = useState('all');
+    const [search, setSearch] = useState('');
+
+    useEffect(()=>{ load(); },[]);
+
+    const load = async () => {
+        setLoading(true);
+        const {data,error} = await sb.from('invoices').select('*').order('created_at',{ascending:false});
+        if (!error) setRecords(data||[]);
+        else toast('فشل التحميل','error');
+        setLoading(false);
+    };
+
+    const filtered = useMemo(()=> records.filter(r=>{
+        if (filterType!=='all' && r.invoice_type!==filterType) return false;
+        if (search){ const s=search.toLowerCase(); if(!r.customer_name?.toLowerCase().includes(s)&&!r.invoice_number?.toString().includes(s)) return false; }
+        return true;
+    }), [records,filterType,search]);
+
+    const exportExcel = () => {
+        const data = filtered.map(r=>({
+            'رقم الوصل':r.invoice_number,'التاريخ':r.date,
+            'اسم الزبون':r.customer_name||'','الهاتف':r.customer_phone||'',
+            'النوع':r.invoice_type==='receipt'?'سند قبض':'قائمة بيع',
+            'المجموع':Number(r.subtotal||0),'مدفوع':Number(r.paid_amount||0),'متبقي':Number(r.due_amount||0),
+            'ملاحظات':r.notes||''
+        }));
+        const ws=window.XLSX.utils.json_to_sheet(data);
+        const wb=window.XLSX.utils.book_new();
+        window.XLSX.utils.book_append_sheet(wb,ws,'سجل');
+        window.XLSX.writeFile(wb,`سجل_عالم_ورق_${new Date().toISOString().split('T')[0]}.xlsx`);
+        toast('تم تصدير Excel ✓','success');
+    };
+
+    const totSub  = filtered.reduce((s,r)=>s+Number(r.subtotal||0),0);
+    const totPaid = filtered.reduce((s,r)=>s+Number(r.paid_amount||0),0);
+    const totDue  = filtered.reduce((s,r)=>s+Number(r.due_amount||0),0);
 
     return (
-        <div style={{minHeight:'100vh',padding:'16px'}}>
-            <div style={{display:'inline-flex',gap:'4px',marginBottom:'16px',background:'#fff',borderRadius:'14px',padding:'5px',boxShadow:'0 2px 12px rgba(0,0,0,.08)',border:'1px solid #e2e8f0'}}>
-                {[
-                    ['create',    <I.Create/>,  'إنشاء فاتورة'],
-                    ['records',   <I.Records/>, 'سجل الإصدارات'],
-                    ['inventory', <I.Store/>,   'المخزن والأرباح'],
-                ].map(([tab,icon,lbl])=>(
-                    <button key={tab} onClick={()=>setActiveTab(tab)}
-                        style={{display:'flex',alignItems:'center',gap:'7px',padding:'9px 20px',
-                            background:activeTab===tab?'#1e3a5f':'transparent',
-                            color:activeTab===tab?'#fff':'#64748b',
-                            border:'none',borderRadius:'10px',fontWeight:800,fontSize:'13px',cursor:'pointer',transition:'all .15s',...F}}>
-                        {icon} {lbl}
-                    </button>
+        <div className="full-tab">
+            <div className="card">
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16,flexWrap:'wrap',gap:10}}>
+                    <h2 style={{fontWeight:900,fontSize:18,color:'#1a2744',margin:0}}>سجل الإصدارات</h2>
+                    <div style={{display:'flex',gap:8}}>
+                        <button onClick={load} style={{display:'flex',alignItems:'center',gap:5,padding:'8px 14px',background:'#f1f5f9',border:'1px solid #e2e8f0',borderRadius:9,fontWeight:700,fontSize:12,cursor:'pointer',color:'#475569',fontFamily:'Cairo,sans-serif'}}>
+                            <Icons.Refresh/> تحديث
+                        </button>
+                        <button onClick={exportExcel} style={{display:'flex',alignItems:'center',gap:5,padding:'8px 14px',background:'#16a34a',color:'#fff',border:'none',borderRadius:9,fontWeight:700,fontSize:12,cursor:'pointer',fontFamily:'Cairo,sans-serif'}}>
+                            <Icons.Excel/> تصدير Excel
+                        </button>
+                    </div>
+                </div>
+
+                <div className="stats-grid" style={{marginBottom:16}}>
+                    {[['عدد السجلات',filtered.length,'#1a2744'],['إجمالي المبيعات',IQ(totSub),'#0f172a'],['إجمالي المدفوع',IQ(totPaid),'#16a34a'],['إجمالي المتبقي',IQ(totDue),totDue>0?'#dc2626':'#16a34a']].map(([lbl,val,col])=>(
+                        <div key={lbl} className="stat-card">
+                            <div className="stat-card-val" style={{color:col}}>{val}</div>
+                            <div className="stat-card-lbl">{lbl}</div>
+                        </div>
+                    ))}
+                </div>
+
+                <div style={{display:'flex',gap:8,marginBottom:14,flexWrap:'wrap',alignItems:'center'}}>
+                    {[['all','الكل 📋'],['sale','قوائم البيع 🧾'],['receipt','سندات القبض 💰']].map(([val,lbl])=>(
+                        <button key={val} onClick={()=>setFilterType(val)}
+                            style={{padding:'6px 14px',border:'2px solid',borderColor:filterType===val?'#1a2744':'#e2e8f0',background:filterType===val?'#1a2744':'#fff',color:filterType===val?'#fff':'#64748b',borderRadius:9,fontWeight:700,fontSize:12,cursor:'pointer',fontFamily:'Cairo,sans-serif'}}>
+                            {lbl}
+                        </button>
+                    ))}
+                    <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 بحث..."
+                        style={{flex:1,minWidth:200,padding:'7px 12px',border:'2px solid #e2e8f0',borderRadius:9,fontSize:13,fontWeight:600,fontFamily:'Cairo,sans-serif',outline:'none'}}/>
+                </div>
+
+                {loading ? <div style={{textAlign:'center',padding:60,color:'#94a3b8',fontWeight:700,fontFamily:'Cairo,sans-serif'}}>⏳ جاري التحميل...</div>
+                : filtered.length===0 ? <div style={{textAlign:'center',padding:60,color:'#94a3b8',fontWeight:700,fontFamily:'Cairo,sans-serif'}}>📭 لا توجد سجلات</div>
+                : (
+                    <div style={{overflowX:'auto',borderRadius:12,border:'1px solid #e2e8f0'}}>
+                        <table className="rec-table">
+                            <thead><tr>
+                                {['#','رقم الوصل','التاريخ','اسم الزبون','النوع','المجموع','مدفوع','المتبقي','تحميل'].map(h=><th key={h} style={{fontFamily:'Cairo,sans-serif'}}>{h}</th>)}
+                            </tr></thead>
+                            <tbody>
+                                {filtered.map((row,i)=>{
+                                    const sub=Number(row.subtotal||0), pd=Number(row.paid_amount||0), dv=Number(row.due_amount||0);
+                                    const isR=row.invoice_type==='receipt';
+                                    return (
+                                        <tr key={row.id}>
+                                            <td style={{color:'#94a3b8',fontWeight:700,fontFamily:'Cairo,sans-serif'}}>{i+1}</td>
+                                            <td style={{fontWeight:900,color:'#1a2744',fontFamily:'Cairo,sans-serif'}}>#{row.invoice_number}</td>
+                                            <td style={{color:'#64748b',fontSize:11,fontFamily:'Cairo,sans-serif'}}>{row.date}</td>
+                                            <td style={{fontWeight:700,textAlign:'right',fontFamily:'Cairo,sans-serif'}}>{row.customer_name||'—'}</td>
+                                            <td><span className={`type-badge${isR?' type-receipt':' type-sale'}`} style={{fontFamily:'Cairo,sans-serif'}}>{isR?'سند قبض':'قائمة بيع'}</span></td>
+                                            <td style={{fontWeight:700,fontFamily:'Cairo,sans-serif'}}>{sub.toLocaleString()}</td>
+                                            <td style={{color:'#16a34a',fontWeight:700,fontFamily:'Cairo,sans-serif'}}>{pd.toLocaleString()}</td>
+                                            <td style={{fontWeight:900,color:dv>0?'#dc2626':'#16a34a',fontFamily:'Cairo,sans-serif'}}>{dv.toLocaleString()}</td>
+                                            <td>
+                                                <button onClick={()=>{onLoadInvoice(row);onSwitch('create');toast('تم تحميل الفاتورة','success');}}
+                                                    style={{display:'inline-flex',alignItems:'center',gap:4,padding:'4px 9px',background:'#1a2744',color:'#fff',border:'none',borderRadius:7,cursor:'pointer',fontWeight:700,fontSize:11,fontFamily:'Cairo,sans-serif'}}>
+                                                    <Icons.Eye/> تحميل
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+                <div style={{textAlign:'center',marginTop:10,fontSize:11,color:'#94a3b8',fontWeight:600,fontFamily:'Cairo,sans-serif'}}>
+                    {filtered.length} من {records.length} سجل
+                </div>
+            </div>
+        </div>
+    );
+}
+
+/* ══════════════════════════════════════
+   InventoryView
+══════════════════════════════════════ */
+function InventoryView() {
+    const [products, setProducts] = useState([]);
+    const [expenses, setExpenses] = useState([]);
+    const [invoices, setInvoices] = useState([]);
+    const [loading,  setLoading]  = useState(true);
+    const [section,  setSection]  = useState('products');
+    const [editId,   setEditId]   = useState(null);
+    const [editData, setEditData] = useState({});
+    const [newProd,  setNewProd]  = useState({name:'',cost_price:'',sell_price:'',quantity:'',category:''});
+    const [newExp,   setNewExp]   = useState({description:'',amount:'',date:new Date().toISOString().split('T')[0],category:''});
+
+    useEffect(()=>{loadAll();},[]);
+
+    const loadAll = async () => {
+        setLoading(true);
+        const [pr,ex,inv]=await Promise.all([
+            sb.from('products').select('*').order('name'),
+            sb.from('expenses').select('*').order('date',{ascending:false}),
+            sb.from('invoices').select('*').order('date',{ascending:false}),
+        ]);
+        setProducts(pr.data||[]); setExpenses(ex.data||[]); setInvoices(inv.data||[]);
+        setLoading(false);
+    };
+
+    const addProduct = async () => {
+        if(!newProd.name){toast('أدخل اسم المنتج','error');return;}
+        await sb.from('products').insert({name:newProd.name,cost_price:Number(newProd.cost_price)||0,sell_price:Number(newProd.sell_price)||0,quantity:Number(newProd.quantity)||0,category:newProd.category||''});
+        toast('تم الإضافة ✓','success');
+        setNewProd({name:'',cost_price:'',sell_price:'',quantity:'',category:''});
+        loadAll();
+    };
+
+    const delProduct = async id => { if(!confirm('حذف؟'))return; await sb.from('products').delete().eq('id',id); toast('تم الحذف','success'); loadAll(); };
+    const startEdit  = row => { setEditId(row.id); setEditData({...row}); };
+    const saveEdit   = async () => { await sb.from('products').update({name:editData.name,cost_price:Number(editData.cost_price)||0,sell_price:Number(editData.sell_price)||0,quantity:Number(editData.quantity)||0,category:editData.category||''}).eq('id',editId); toast('تم الحفظ ✓','success'); setEditId(null); loadAll(); };
+
+    const addExpense = async () => {
+        if(!newExp.description||!newExp.amount){toast('أدخل الوصف والمبلغ','error');return;}
+        await sb.from('expenses').insert({description:newExp.description,amount:Number(newExp.amount)||0,date:newExp.date,category:newExp.category||''});
+        toast('تم الإضافة ✓','success');
+        setNewExp({description:'',amount:'',date:new Date().toISOString().split('T')[0],category:''});
+        loadAll();
+    };
+    const delExpense = async id => { if(!confirm('حذف؟'))return; await sb.from('expenses').delete().eq('id',id); toast('تم الحذف','success'); loadAll(); };
+
+    const totalInvSell = products.reduce((s,p)=>s+(Number(p.sell_price)||0)*(Number(p.quantity)||0),0);
+    const totalExpenses = expenses.reduce((s,e)=>s+(Number(e.amount)||0),0);
+    const totalRevenue  = invoices.filter(i=>i.invoice_type==='sale').reduce((s,i)=>s+Number(i.subtotal||0),0);
+
+    const F = {fontFamily:'Cairo,sans-serif'};
+
+    return (
+        <div className="full-tab">
+            {/* Stats */}
+            <div className="stats-grid" style={{marginBottom:16}}>
+                {[['المنتجات في المخزن',products.length+' صنف','#7c3aed'],['قيمة المخزن (بيع)',IQ(totalInvSell),'#1a2744'],['إجمالي الإيرادات',IQ(totalRevenue),'#16a34a'],['إجمالي الصرفيات',IQ(totalExpenses),'#dc2626']].map(([lbl,val,col])=>(
+                    <div key={lbl} className="stat-card">
+                        <div className="stat-card-val" style={{color:col,...F}}>{val}</div>
+                        <div className="stat-card-lbl" style={F}>{lbl}</div>
+                    </div>
                 ))}
             </div>
 
-            {activeTab==='records' ? (
-                <RecordsView onLoadInvoice={loadInvoice} onSwitchTab={setActiveTab}/>
-            ) : activeTab==='inventory' ? (
-                <InventoryView/>
-            ) : (
-                <div style={{display:'flex',gap:'20px',alignItems:'flex-start'}}>
-                    {/* لوحة التحكم */}
-                    <div style={{width:'285px',flexShrink:0,background:'#fff',borderRadius:'20px',padding:'18px',boxShadow:'0 2px 12px rgba(0,0,0,.07)',border:'1px solid #e2e8f0',display:'flex',flexDirection:'column',gap:'12px'}}>
-                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',borderBottom:'1px solid #e2e8f0',paddingBottom:'10px'}}>
-                            <h1 style={{fontWeight:900,fontSize:'16px',color:'#1e3a5f',margin:0,...F}}>إعدادات الفاتورة</h1>
-                            <button onClick={()=>setActiveTab('records')} title="سجل الإصدارات"
-                                style={{background:'#f1f5f9',border:'none',borderRadius:'8px',padding:'6px',cursor:'pointer',color:'#475569',display:'flex'}}>
-                                <I.Records/>
-                            </button>
-                        </div>
+            {/* Tabs */}
+            <div style={{display:'inline-flex',gap:4,marginBottom:14,background:'#fff',borderRadius:10,padding:4,border:'1px solid #e2e8f0'}}>
+                {[['products','📦 المنتجات'],['expenses','💸 الصرفيات']].map(([id,lbl])=>(
+                    <button key={id} onClick={()=>setSection(id)}
+                        style={{padding:'7px 18px',border:'none',background:section===id?'#1a2744':'transparent',color:section===id?'#fff':'#64748b',borderRadius:8,fontWeight:800,fontSize:13,cursor:'pointer',...F}}>
+                        {lbl}
+                    </button>
+                ))}
+                <button onClick={loadAll} style={{padding:'7px 12px',border:'none',background:'transparent',color:'#94a3b8',cursor:'pointer',display:'flex',alignItems:'center',gap:4,fontSize:12,...F}}>
+                    <Icons.Refresh/> تحديث
+                </button>
+            </div>
 
-                        <div>
-                            <label style={{fontSize:'11px',fontWeight:700,color:'#94a3b8',display:'block',marginBottom:'3px',...F}}>نوع الوصل</label>
-                            <select value={inv.invoiceType} onChange={e=>setInv(p=>({...p,invoiceType:e.target.value}))}
-                                style={{width:'100%',padding:'9px',border:'2px solid #e2e8f0',borderRadius:'11px',fontWeight:700,fontSize:'14px',background:'#fff',...F}}>
-                                <option value="sale">قائمة بيع</option>
-                                <option value="receipt">سند قبض</option>
-                            </select>
-                        </div>
+            {loading && <div style={{textAlign:'center',padding:40,color:'#94a3b8',fontWeight:700,...F}}>⏳ جاري التحميل...</div>}
 
-                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'7px'}}>
-                            <input value={inv.invoiceNumber} onChange={e=>setInv(p=>({...p,invoiceNumber:e.target.value}))} placeholder="رقم الوصل"
-                                style={{padding:'9px',border:'2px solid #e2e8f0',borderRadius:'11px',fontWeight:700,fontSize:'14px',...F}}/>
-                            <input type="date" value={inv.date} onChange={e=>setInv(p=>({...p,date:e.target.value}))}
-                                style={{padding:'9px',border:'2px solid #e2e8f0',borderRadius:'11px',fontSize:'12px',...F}}/>
-                        </div>
-
-                        <input value={inv.customerName} onChange={e=>setInv(p=>({...p,customerName:e.target.value}))} placeholder="اسم الزبون"
-                            style={{padding:'9px',border:'2px solid #e2e8f0',borderRadius:'11px',fontWeight:600,fontSize:'14px',...F}}/>
-                        <input type="tel" value={inv.customerPhone} onChange={e=>setInv(p=>({...p,customerPhone:e.target.value}))} placeholder="رقم هاتف الزبون" dir="ltr"
-                            style={{padding:'9px',border:'2px solid #e2e8f0',borderRadius:'11px',fontSize:'14px',...F}}/>
-
-                        <div>
-                            <label style={{fontSize:'11px',fontWeight:700,color:'#94a3b8',display:'block',marginBottom:'3px',...F}}>
-                                {inv.invoiceType==='sale'?'المبلغ المدفوع (مقدم)':'مبلغ السند'}
-                            </label>
-                            <input type="number" value={inv.paidAmount} onChange={e=>setInv(p=>({...p,paidAmount:e.target.value}))} placeholder="0"
-                                style={{width:'100%',padding:'9px',border:'2px solid #bfdbfe',borderRadius:'11px',fontWeight:800,fontSize:'15px',color:'#1d4ed8',background:'#eff6ff',...F}}/>
-                        </div>
-
-                        <div>
-                            <label style={{fontSize:'11px',fontWeight:700,color:'#94a3b8',display:'block',marginBottom:'3px',...F}}>الملاحظات</label>
-                            <textarea value={inv.notes} onChange={e=>setInv(p=>({...p,notes:e.target.value}))} rows={3}
-                                style={{width:'100%',padding:'9px',border:'2px solid #e2e8f0',borderRadius:'11px',resize:'none',fontSize:'12px',...F}}/>
-                        </div>
-
-                        {inv.invoiceType==='sale' && (
-                            <div>
-                                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'7px'}}>
-                                    <span style={{fontWeight:800,fontSize:'13px',color:'#1e3a5f',...F}}>المواد</span>
-                                    <button onClick={addItem} style={{display:'flex',alignItems:'center',gap:'4px',padding:'5px 10px',background:'#2563eb',color:'#fff',border:'none',borderRadius:'9px',cursor:'pointer',fontWeight:700,fontSize:'12px',...F}}>
-                                        <I.Plus/> إضافة
-                                    </button>
-                                </div>
-                                <div style={{display:'flex',flexDirection:'column',gap:'5px',maxHeight:'240px',overflowY:'auto'}}>
-                                    {inv.items.map(item=>(
-                                        <div key={item.id} style={{display:'flex',gap:'5px',background:'#f8fafc',padding:'7px',borderRadius:'9px',border:'1px solid #e2e8f0'}}>
-                                            {/* ── حقل المادة مع Autocomplete ── */}
-                                            <AutocompleteInput
-                                                value={item.description}
-                                                products={products}
-                                                onSelect={(name, price) => selectProduct(item.id, name, price)}
-                                                inputStyle={{
-                                                    width:'100%', padding:'5px 7px',
-                                                    border:'1px solid #e2e8f0', borderRadius:'7px',
-                                                    fontSize:'12px', fontFamily:"'Cairo',sans-serif"
-                                                }}
-                                            />
-                                            <input type="number" placeholder="ك" value={item.quantity} onChange={e=>updateItem(item.id,'quantity',e.target.value)}
-                                                style={{width:'44px',padding:'5px',border:'1px solid #e2e8f0',borderRadius:'7px',fontSize:'12px',textAlign:'center'}}/>
-                                            <input type="number" placeholder="سعر" value={item.price} onChange={e=>updateItem(item.id,'price',e.target.value)}
-                                                style={{width:'62px',padding:'5px',border:'1px solid #e2e8f0',borderRadius:'7px',fontSize:'12px',textAlign:'center'}}/>
-                                            <button onClick={()=>removeItem(item.id)} style={{background:'none',border:'none',cursor:'pointer',color:'#ef4444',display:'flex',alignItems:'center'}}><I.Trash/></button>
-                                        </div>
-                                    ))}
-                                </div>
+            {!loading && section==='products' && (
+                <div style={{display:'flex',gap:16,alignItems:'flex-start',flexWrap:'wrap'}}>
+                    {/* Add form */}
+                    <div className="card" style={{width:260,flexShrink:0}}>
+                        <div style={{fontWeight:900,fontSize:14,color:'#1a2744',marginBottom:12,...F}}>➕ إضافة منتج</div>
+                        {[['اسم المنتج','name','text'],['كلفة الشراء','cost_price','number'],['سعر البيع','sell_price','number'],['الكمية','quantity','number'],['الفئة','category','text']].map(([ph,key,type])=>(
+                            <input key={key} type={type} placeholder={ph} value={newProd[key]}
+                                onChange={e=>setNewProd(p=>({...p,[key]:e.target.value}))}
+                                style={{width:'100%',padding:'8px 10px',border:'1.5px solid #e2e8f0',borderRadius:9,fontSize:13,fontWeight:600,marginBottom:7,outline:'none',...F}}/>
+                        ))}
+                        {newProd.sell_price&&newProd.cost_price&&(
+                            <div style={{background:(Number(newProd.sell_price)-Number(newProd.cost_price))>=0?'#f0fdf4':'#fef2f2',borderRadius:8,padding:'7px 10px',marginBottom:8,fontSize:12,fontWeight:800,color:(Number(newProd.sell_price)-Number(newProd.cost_price))>=0?'#16a34a':'#dc2626',...F}}>
+                                ربح الوحدة: {fmt(Number(newProd.sell_price)-Number(newProd.cost_price))} د.ع
                             </div>
                         )}
-
-                        {inv.invoiceType==='sale' && (
-                            <div style={{background:'#f8fafc',borderRadius:'12px',padding:'10px 12px',border:'1px solid #e2e8f0',fontSize:'13px'}}>
-                                {[['المجموع:',subtotal,'#1e3a5f'],['مدفوع:',paid,'#0f172a'],['المتبقي:',due,due>0?'#dc2626':'#16a34a']].map(([lbl,val,col],i)=>(
-                                    <div key={i} style={{display:'flex',justifyContent:'space-between',color:col,fontWeight:i===2?900:700,marginBottom:i<2?'4px':0}}>
-                                        <span style={F}>{lbl}</span>
-                                        <span style={{direction:'ltr',...F}}>{val.toLocaleString()} د.ع</span>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        <div style={{display:'flex',flexDirection:'column',gap:'7px',paddingTop:'2px'}}>
-                            <button onClick={handlePDF} style={{display:'flex',justifyContent:'center',alignItems:'center',gap:'7px',padding:'12px',background:'#1e3a5f',color:'#fff',border:'none',borderRadius:'13px',fontWeight:800,fontSize:'14px',cursor:'pointer',...F}}>
-                                <I.PDF/> تصدير PDF + حفظ
-                            </button>
-                            <button onClick={handleWhatsApp} style={{display:'flex',justifyContent:'center',alignItems:'center',gap:'7px',padding:'12px',background:'#16a34a',color:'#fff',border:'none',borderRadius:'13px',fontWeight:800,fontSize:'14px',cursor:'pointer',...F}}>
-                                <I.WA/> واتساب + حفظ
-                            </button>
-                            <button onClick={handleSave} style={{display:'flex',justifyContent:'center',alignItems:'center',gap:'7px',padding:'12px',background:'#7c3aed',color:'#fff',border:'none',borderRadius:'13px',fontWeight:800,fontSize:'14px',cursor:'pointer',...F}}>
-                                <I.Save/> حفظ في قاعدة البيانات
-                            </button>
-                        </div>
-
-                        <div style={{display:'flex',alignItems:'center',gap:'6px',justifyContent:'center',fontSize:'11px',color:'#16a34a',fontWeight:700,...F}}>
-                            <div style={{width:'7px',height:'7px',borderRadius:'50%',background:'#16a34a',animation:'pulse 2s infinite'}}></div>
-                            متصل بقاعدة البيانات
-                        </div>
+                        <button onClick={addProduct} style={{width:'100%',padding:10,background:'#1a2744',color:'#fff',border:'none',borderRadius:9,fontWeight:800,fontSize:13,cursor:'pointer',...F}}>
+                            حفظ المنتج
+                        </button>
                     </div>
 
-                    {/* معاينة الفاتورة */}
-                    <div ref={colRef} style={{flex:1,overflow:'hidden',paddingBottom:'40px'}}>
-                        <div ref={scalerRef} style={{transformOrigin:'top right',display:'inline-block'}}>
-                            <div style={{boxShadow:'0 4px 28px rgba(0,0,0,.15)',borderRadius:'2px'}}>
-                                <Sheet/>
-                            </div>
-                        </div>
+                    {/* Table */}
+                    <div className="card" style={{flex:1,overflowX:'auto'}}>
+                        <div style={{fontWeight:900,fontSize:14,color:'#1a2744',marginBottom:10,...F}}>قائمة المنتجات ({products.length})</div>
+                        {products.length===0?(
+                            <div style={{textAlign:'center',padding:40,color:'#94a3b8',fontWeight:700,...F}}>لا توجد منتجات</div>
+                        ):(
+                            <table className="rec-table">
+                                <thead><tr>{['المنتج','الفئة','الكلفة','سعر البيع','الكمية','ربح الوحدة','إجراء'].map(h=><th key={h} style={F}>{h}</th>)}</tr></thead>
+                                <tbody>
+                                    {products.map(p=>{
+                                        const up=Number(p.sell_price)-Number(p.cost_price);
+                                        const isE=editId===p.id;
+                                        return (
+                                            <tr key={p.id}>
+                                                <td style={{fontWeight:800,textAlign:'right',...F}}>
+                                                    {isE?<input value={editData.name} onChange={e=>setEditData(d=>({...d,name:e.target.value}))} className="edit-input" style={{width:130}}/>:p.name}
+                                                </td>
+                                                <td style={{color:'#64748b',fontSize:11,...F}}>
+                                                    {isE?<input value={editData.category} onChange={e=>setEditData(d=>({...d,category:e.target.value}))} className="edit-input" style={{width:70}}/>:p.category||'—'}
+                                                </td>
+                                                <td style={{fontWeight:700,...F}}>
+                                                    {isE?<input type="number" value={editData.cost_price} onChange={e=>setEditData(d=>({...d,cost_price:e.target.value}))} className="edit-input" style={{width:70,textAlign:'center'}}/>:fmt(p.cost_price)}
+                                                </td>
+                                                <td style={{fontWeight:700,...F}}>
+                                                    {isE?<input type="number" value={editData.sell_price} onChange={e=>setEditData(d=>({...d,sell_price:e.target.value}))} className="edit-input" style={{width:70,textAlign:'center'}}/>:fmt(p.sell_price)}
+                                                </td>
+                                                <td>
+                                                    {isE?<input type="number" value={editData.quantity} onChange={e=>setEditData(d=>({...d,quantity:e.target.value}))} className="edit-input" style={{width:55,textAlign:'center'}}/>:fmt(p.quantity)}
+                                                </td>
+                                                <td style={{fontWeight:900,color:up>=0?'#16a34a':'#dc2626',...F}}>{up>=0?'+':''}{fmt(up)}</td>
+                                                <td>
+                                                    <div style={{display:'flex',gap:5,justifyContent:'center'}}>
+                                                        {isE?(
+                                                            <>
+                                                                <button onClick={saveEdit} style={{padding:'3px 8px',background:'#16a34a',color:'#fff',border:'none',borderRadius:6,cursor:'pointer',fontSize:11,fontWeight:700,display:'flex',alignItems:'center',gap:3,...F}}><Icons.Check/>حفظ</button>
+                                                                <button onClick={()=>setEditId(null)} style={{padding:'3px 7px',background:'#f1f5f9',color:'#64748b',border:'1px solid #e2e8f0',borderRadius:6,cursor:'pointer',fontSize:11}}><Icons.X/></button>
+                                                            </>
+                                                        ):(
+                                                            <>
+                                                                <button onClick={()=>startEdit(p)} style={{padding:'3px 8px',background:'#eff6ff',color:'#2563eb',border:'none',borderRadius:6,cursor:'pointer',fontSize:11,fontWeight:700,display:'flex',alignItems:'center',gap:3,...F}}><Icons.Edit/>تعديل</button>
+                                                                <button onClick={()=>delProduct(p.id)} style={{padding:'3px 7px',background:'#fef2f2',color:'#dc2626',border:'none',borderRadius:6,cursor:'pointer'}}><Icons.Trash/></button>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        )}
                     </div>
                 </div>
             )}
+
+            {!loading && section==='expenses' && (
+                <div style={{display:'flex',gap:16,alignItems:'flex-start',flexWrap:'wrap'}}>
+                    <div className="card" style={{width:260,flexShrink:0}}>
+                        <div style={{fontWeight:900,fontSize:14,color:'#dc2626',marginBottom:12,...F}}>➕ إضافة صرفية</div>
+                        {[['الوصف','description','text'],['المبلغ','amount','number'],['التاريخ','date','date'],['الفئة','category','text']].map(([ph,key,type])=>(
+                            <input key={key} type={type} placeholder={ph} value={newExp[key]}
+                                onChange={e=>setNewExp(p=>({...p,[key]:e.target.value}))}
+                                style={{width:'100%',padding:'8px 10px',border:'1.5px solid #e2e8f0',borderRadius:9,fontSize:13,fontWeight:600,marginBottom:7,outline:'none',...F}}/>
+                        ))}
+                        <button onClick={addExpense} style={{width:'100%',padding:10,background:'#dc2626',color:'#fff',border:'none',borderRadius:9,fontWeight:800,fontSize:13,cursor:'pointer',...F}}>
+                            حفظ الصرفية
+                        </button>
+                        <div style={{marginTop:12,background:'#fef2f2',borderRadius:10,padding:'10px 12px',border:'1px solid #fecaca'}}>
+                            <div style={{fontSize:11,color:'#94a3b8',fontWeight:700,marginBottom:3,...F}}>إجمالي الصرفيات</div>
+                            <div style={{fontSize:20,fontWeight:900,color:'#dc2626',...F}}>{IQ(totalExpenses)}</div>
+                        </div>
+                    </div>
+
+                    <div className="card" style={{flex:1,overflowX:'auto'}}>
+                        <div style={{fontWeight:900,fontSize:14,color:'#1a2744',marginBottom:10,...F}}>الصرفيات ({expenses.length})</div>
+                        {expenses.length===0?(
+                            <div style={{textAlign:'center',padding:40,color:'#94a3b8',fontWeight:700,...F}}>لا توجد صرفيات</div>
+                        ):(
+                            <table className="rec-table">
+                                <thead><tr>{['التاريخ','الوصف','الفئة','المبلغ','حذف'].map(h=><th key={h} style={F}>{h}</th>)}</tr></thead>
+                                <tbody>
+                                    {expenses.map(e=>(
+                                        <tr key={e.id}>
+                                            <td style={{color:'#64748b',fontSize:11,...F}}>{e.date}</td>
+                                            <td style={{fontWeight:700,textAlign:'right',...F}}>{e.description}</td>
+                                            <td style={{color:'#64748b',fontSize:11,...F}}>{e.category||'—'}</td>
+                                            <td style={{fontWeight:900,color:'#dc2626',...F}}>{fmt(e.amount)}</td>
+                                            <td><button onClick={()=>delExpense(e.id)} style={{padding:'3px 7px',background:'#fef2f2',color:'#dc2626',border:'none',borderRadius:6,cursor:'pointer'}}><Icons.Trash/></button></td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+/* ══════════════════════════════════════
+   App
+══════════════════════════════════════ */
+function App() {
+    const [activeTab, setActiveTab] = useState('create');
+    const [products, setProducts]   = useState([]);
+    const createRef = useRef(null);
+
+    useEffect(()=>{
+        sb.from('products').select('name,sell_price').order('name').then(({data})=>{ if(data) setProducts(data); });
+    },[]);
+
+    const loadInvoice = row => {
+        // Store loaded data, switch tab triggers CreateView to re-init
+        sessionStorage.setItem('loadedInvoice', JSON.stringify(row));
+        setActiveTab('create');
+    };
+
+    return (
+        <div id="root" style={{display:'flex',flexDirection:'column',height:'100vh',overflow:'hidden'}}>
+            {/* Header */}
+            <div className="app-header">
+                <div className="app-logo">
+                    عالم ورق الكاشير
+                    <span>نظام الفواتير والمخزن</span>
+                </div>
+
+                <div className="header-tabs">
+                    {[
+                        ['create',    <Icons.Create/>,  'إنشاء فاتورة'],
+                        ['records',   <Icons.Records/>, 'سجل الإصدارات'],
+                        ['inventory', <Icons.Store/>,   'المخزن والصرفيات'],
+                    ].map(([tab,icon,lbl])=>(
+                        <button key={tab} className={`header-tab${activeTab===tab?' active':''}`} onClick={()=>setActiveTab(tab)}>
+                            {icon} {lbl}
+                        </button>
+                    ))}
+                </div>
+
+                <div className="header-spacer"/>
+
+                <div className="header-badge">
+                    <div className="pulse-dot"/>
+                    متصل بالخادم
+                </div>
+            </div>
+
+            {/* Body */}
+            <div className="app-body">
+                {activeTab==='create'    && <CreateView key="create" products={products} onLoadInvoice={loadInvoice}/>}
+                {activeTab==='records'   && <RecordsView onLoadInvoice={loadInvoice} onSwitch={setActiveTab}/>}
+                {activeTab==='inventory' && <InventoryView/>}
+            </div>
         </div>
     );
 }
