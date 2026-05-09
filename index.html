@@ -272,7 +272,6 @@
             border-collapse: collapse;
             background: var(--panel);
             border-radius: 12px;
-            overflow: hidden;
             box-shadow: 0 2px 12px rgba(0,0,0,.06);
             border: 1px solid var(--border);
         }
@@ -369,18 +368,14 @@
 
         /* Autocomplete dropdown */
         .ac-dropdown {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            left: 0;
-            z-index: 9999;
+            position: fixed;
+            z-index: 99999;
             background: #fff;
             border: 2px solid #2563eb;
             border-radius: 10px;
-            box-shadow: 0 12px 32px rgba(37,99,235,.18);
+            box-shadow: 0 12px 40px rgba(37,99,235,.22);
             overflow: hidden;
-            margin-top: 2px;
-            min-width: 280px;
+            min-width: 320px;
         }
         .ac-header {
             padding: 5px 12px;
@@ -705,6 +700,7 @@ const Icons = {
 function AutocompleteCell({ value, onSelect, products, inputRef, onKeyDown, onFocus }) {
     const [open, setOpen] = useState(false);
     const [selIdx, setSelIdx] = useState(-1);
+    const [dropPos, setDropPos] = useState({top:0, right:0, width:0});
     const wrapRef = useRef(null);
 
     const suggestions = useMemo(() => {
@@ -718,6 +714,18 @@ function AutocompleteCell({ value, onSelect, products, inputRef, onKeyDown, onFo
         document.addEventListener('mousedown', h);
         return () => document.removeEventListener('mousedown', h);
     }, []);
+
+    // Recalculate dropdown position on open
+    const updatePos = () => {
+        if (!wrapRef.current) return;
+        const r = wrapRef.current.getBoundingClientRect();
+        setDropPos({
+            top: r.bottom + 3,
+            // align to input right edge, extend leftward
+            right: window.innerWidth - r.right,
+            width: Math.max(r.width, 360),
+        });
+    };
 
     const pick = prod => {
         onSelect(prod.name, Number(prod.sell_price)||0);
@@ -750,12 +758,12 @@ function AutocompleteCell({ value, onSelect, products, inputRef, onKeyDown, onFo
                 value={value}
                 placeholder="اكتب اسم المادة..."
                 autoComplete="off"
-                onChange={e => { onSelect(e.target.value, null); setOpen(true); setSelIdx(-1); }}
-                onFocus={() => { setOpen(true); onFocus && onFocus(); }}
+                onChange={e => { onSelect(e.target.value, null); updatePos(); setOpen(true); setSelIdx(-1); }}
+                onFocus={() => { updatePos(); setOpen(true); onFocus && onFocus(); }}
                 onKeyDown={handleKey}
             />
             {open && suggestions.length > 0 && (
-                <div className="ac-dropdown">
+                <div className="ac-dropdown" style={{top: dropPos.top, right: dropPos.right, width: dropPos.width}}>
                     <div className="ac-header">▼ اختر من المخزن أو تابع الكتابة</div>
                     {suggestions.map((prod, i) => (
                         <div key={prod.name} className={`ac-item${i===selIdx?' selected':''}`}
@@ -989,6 +997,18 @@ function CreateView({ products, onLoadInvoice }) {
         }
     };
 
+    /* Reset invoice to blank new one */
+    const resetInvoice = async () => {
+        const n = await getNextInvoiceNumber();
+        setInv({
+            invoiceNumber:n, date:new Date().toISOString().split('T')[0],
+            customerName:'', customerPhone:'',
+            items:[newItem()], invoiceType:'sale', paidAmount:'',
+            notes:'البضاعة المباعة لا ترد ولا تستبدل بعد 24 ساعة.'
+        });
+        setActiveRow(null);
+    };
+
     /* PDF */
     const handlePDF = async () => {
         showLoading('جاري إنشاء ملف PDF...');
@@ -1002,9 +1022,8 @@ function CreateView({ products, onLoadInvoice }) {
                 html2canvas:{scale:2,useCORS:true,logging:false,backgroundColor:'#ffffff'},
                 jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}
             }).from(el).save();
-            const n = await getNextInvoiceNumber();
-            setInv(p=>({...p,invoiceNumber:n}));
             toast('تم الحفظ وتصدير PDF ✓','success');
+            await resetInvoice();
         } catch(e){ toast('خطأ أثناء التصدير','error'); console.error(e); }
         hideLoading();
     };
@@ -1032,9 +1051,8 @@ function CreateView({ products, onLoadInvoice }) {
                 const msg = encodeURIComponent(`مرحباً ${inv.customerName}،\nفاتورة رقم ${inv.invoiceNumber} من عالم ورق الكاشير.`);
                 setTimeout(()=>window.open(`https://wa.me/${wa}?text=${msg}`,'_blank'),800);
             }
-            const n = await getNextInvoiceNumber();
-            setInv(p=>({...p,invoiceNumber:n}));
             toast('تم الإرسال والحفظ ✓','success');
+            await resetInvoice();
         } catch(e){
             hideLoading();
             if(e.name!=='AbortError'){ toast('خطأ أثناء التجهيز','error'); console.error(e); }
@@ -1045,8 +1063,8 @@ function CreateView({ products, onLoadInvoice }) {
         showLoading('جاري الحفظ...');
         const ok = await saveToSupabase(inv, subtotal, paid, due);
         hideLoading();
-        if(ok){ const n=await getNextInvoiceNumber(); setInv(p=>({...p,invoiceNumber:n})); }
-        toast(ok?'تم الحفظ ✓':'فشل الحفظ',ok?'success':'error');
+        if(ok){ toast('تم الحفظ ✓','success'); await resetInvoice(); }
+        else toast('فشل الحفظ','error');
     };
 
     const filledCount = inv.items.filter(it=>it.description).length;
@@ -1316,6 +1334,8 @@ function RecordsView({ onLoadInvoice, onSwitch }) {
     const [loading, setLoading] = useState(true);
     const [filterType, setFilterType] = useState('all');
     const [search, setSearch] = useState('');
+    const [editRow, setEditRow] = useState(null); // row being edited inline
+    const [editData, setEditData] = useState({});
 
     useEffect(()=>{ load(); },[]);
 
@@ -1325,6 +1345,42 @@ function RecordsView({ onLoadInvoice, onSwitch }) {
         if (!error) setRecords(data||[]);
         else toast('فشل التحميل','error');
         setLoading(false);
+    };
+
+    const deleteRecord = async (id) => {
+        if(!confirm('هل تريد حذف هذه القائمة نهائياً؟')) return;
+        const {error} = await sb.from('invoices').delete().eq('id', id);
+        if(error){ toast('فشل الحذف','error'); return; }
+        toast('تم الحذف ✓','success');
+        load();
+    };
+
+    const startEdit = (row) => {
+        setEditRow(row.id);
+        setEditData({
+            customer_name: row.customer_name||'',
+            customer_phone: row.customer_phone||'',
+            date: row.date||'',
+            paid_amount: row.paid_amount||0,
+            notes: row.notes||'',
+        });
+    };
+
+    const saveEdit = async (row) => {
+        const newPaid = Number(editData.paid_amount)||0;
+        const newDue  = Math.max(0, Number(row.subtotal||0) - newPaid);
+        const {error} = await sb.from('invoices').update({
+            customer_name: editData.customer_name,
+            customer_phone: editData.customer_phone,
+            date: editData.date,
+            paid_amount: newPaid,
+            due_amount: newDue,
+            notes: editData.notes,
+        }).eq('id', row.id);
+        if(error){ toast('فشل الحفظ','error'); return; }
+        toast('تم الحفظ ✓','success');
+        setEditRow(null);
+        load();
     };
 
     const filtered = useMemo(()=> records.filter(r=>{
@@ -1351,17 +1407,24 @@ function RecordsView({ onLoadInvoice, onSwitch }) {
     const totSub  = filtered.reduce((s,r)=>s+Number(r.subtotal||0),0);
     const totPaid = filtered.reduce((s,r)=>s+Number(r.paid_amount||0),0);
     const totDue  = filtered.reduce((s,r)=>s+Number(r.due_amount||0),0);
+    const F = {fontFamily:'Cairo,sans-serif'};
+
+    const editInp = (key, placeholder, type='text', width=120) => (
+        <input type={type} value={editData[key]} placeholder={placeholder}
+            onChange={e=>setEditData(d=>({...d,[key]:e.target.value}))}
+            style={{width,padding:'4px 7px',border:'1.5px solid #2563eb',borderRadius:6,fontSize:12,fontWeight:600,outline:'none',...F}}/>
+    );
 
     return (
         <div className="full-tab">
             <div className="card">
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16,flexWrap:'wrap',gap:10}}>
-                    <h2 style={{fontWeight:900,fontSize:18,color:'#1a2744',margin:0}}>سجل الإصدارات</h2>
+                    <h2 style={{fontWeight:900,fontSize:18,color:'#1a2744',margin:0,...F}}>سجل الإصدارات</h2>
                     <div style={{display:'flex',gap:8}}>
-                        <button onClick={load} style={{display:'flex',alignItems:'center',gap:5,padding:'8px 14px',background:'#f1f5f9',border:'1px solid #e2e8f0',borderRadius:9,fontWeight:700,fontSize:12,cursor:'pointer',color:'#475569',fontFamily:'Cairo,sans-serif'}}>
+                        <button onClick={load} style={{display:'flex',alignItems:'center',gap:5,padding:'8px 14px',background:'#f1f5f9',border:'1px solid #e2e8f0',borderRadius:9,fontWeight:700,fontSize:12,cursor:'pointer',color:'#475569',...F}}>
                             <Icons.Refresh/> تحديث
                         </button>
-                        <button onClick={exportExcel} style={{display:'flex',alignItems:'center',gap:5,padding:'8px 14px',background:'#16a34a',color:'#fff',border:'none',borderRadius:9,fontWeight:700,fontSize:12,cursor:'pointer',fontFamily:'Cairo,sans-serif'}}>
+                        <button onClick={exportExcel} style={{display:'flex',alignItems:'center',gap:5,padding:'8px 14px',background:'#16a34a',color:'#fff',border:'none',borderRadius:9,fontWeight:700,fontSize:12,cursor:'pointer',...F}}>
                             <Icons.Excel/> تصدير Excel
                         </button>
                     </div>
@@ -1370,8 +1433,8 @@ function RecordsView({ onLoadInvoice, onSwitch }) {
                 <div className="stats-grid" style={{marginBottom:16}}>
                     {[['عدد السجلات',filtered.length,'#1a2744'],['إجمالي المبيعات',IQ(totSub),'#0f172a'],['إجمالي المدفوع',IQ(totPaid),'#16a34a'],['إجمالي المتبقي',IQ(totDue),totDue>0?'#dc2626':'#16a34a']].map(([lbl,val,col])=>(
                         <div key={lbl} className="stat-card">
-                            <div className="stat-card-val" style={{color:col}}>{val}</div>
-                            <div className="stat-card-lbl">{lbl}</div>
+                            <div className="stat-card-val" style={{color:col,...F}}>{val}</div>
+                            <div className="stat-card-lbl" style={F}>{lbl}</div>
                         </div>
                     ))}
                 </div>
@@ -1379,41 +1442,87 @@ function RecordsView({ onLoadInvoice, onSwitch }) {
                 <div style={{display:'flex',gap:8,marginBottom:14,flexWrap:'wrap',alignItems:'center'}}>
                     {[['all','الكل 📋'],['sale','قوائم البيع 🧾'],['receipt','سندات القبض 💰']].map(([val,lbl])=>(
                         <button key={val} onClick={()=>setFilterType(val)}
-                            style={{padding:'6px 14px',border:'2px solid',borderColor:filterType===val?'#1a2744':'#e2e8f0',background:filterType===val?'#1a2744':'#fff',color:filterType===val?'#fff':'#64748b',borderRadius:9,fontWeight:700,fontSize:12,cursor:'pointer',fontFamily:'Cairo,sans-serif'}}>
+                            style={{padding:'6px 14px',border:'2px solid',borderColor:filterType===val?'#1a2744':'#e2e8f0',background:filterType===val?'#1a2744':'#fff',color:filterType===val?'#fff':'#64748b',borderRadius:9,fontWeight:700,fontSize:12,cursor:'pointer',...F}}>
                             {lbl}
                         </button>
                     ))}
-                    <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 بحث..."
-                        style={{flex:1,minWidth:200,padding:'7px 12px',border:'2px solid #e2e8f0',borderRadius:9,fontSize:13,fontWeight:600,fontFamily:'Cairo,sans-serif',outline:'none'}}/>
+                    <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 بحث باسم الزبون أو رقم الوصل..."
+                        style={{flex:1,minWidth:200,padding:'7px 12px',border:'2px solid #e2e8f0',borderRadius:9,fontSize:13,fontWeight:600,outline:'none',...F}}/>
                 </div>
 
-                {loading ? <div style={{textAlign:'center',padding:60,color:'#94a3b8',fontWeight:700,fontFamily:'Cairo,sans-serif'}}>⏳ جاري التحميل...</div>
-                : filtered.length===0 ? <div style={{textAlign:'center',padding:60,color:'#94a3b8',fontWeight:700,fontFamily:'Cairo,sans-serif'}}>📭 لا توجد سجلات</div>
+                {loading ? <div style={{textAlign:'center',padding:60,color:'#94a3b8',fontWeight:700,...F}}>⏳ جاري التحميل...</div>
+                : filtered.length===0 ? <div style={{textAlign:'center',padding:60,color:'#94a3b8',fontWeight:700,...F}}>📭 لا توجد سجلات</div>
                 : (
                     <div style={{overflowX:'auto',borderRadius:12,border:'1px solid #e2e8f0'}}>
                         <table className="rec-table">
                             <thead><tr>
-                                {['#','رقم الوصل','التاريخ','اسم الزبون','النوع','المجموع','مدفوع','المتبقي','تحميل'].map(h=><th key={h} style={{fontFamily:'Cairo,sans-serif'}}>{h}</th>)}
+                                {['#','رقم الوصل','التاريخ','اسم الزبون','الهاتف','النوع','المجموع','مدفوع','المتبقي','الإجراءات'].map(h=>
+                                    <th key={h} style={F}>{h}</th>)}
                             </tr></thead>
                             <tbody>
                                 {filtered.map((row,i)=>{
                                     const sub=Number(row.subtotal||0), pd=Number(row.paid_amount||0), dv=Number(row.due_amount||0);
                                     const isR=row.invoice_type==='receipt';
+                                    const isEditing = editRow===row.id;
                                     return (
-                                        <tr key={row.id}>
-                                            <td style={{color:'#94a3b8',fontWeight:700,fontFamily:'Cairo,sans-serif'}}>{i+1}</td>
-                                            <td style={{fontWeight:900,color:'#1a2744',fontFamily:'Cairo,sans-serif'}}>#{row.invoice_number}</td>
-                                            <td style={{color:'#64748b',fontSize:11,fontFamily:'Cairo,sans-serif'}}>{row.date}</td>
-                                            <td style={{fontWeight:700,textAlign:'right',fontFamily:'Cairo,sans-serif'}}>{row.customer_name||'—'}</td>
-                                            <td><span className={`type-badge${isR?' type-receipt':' type-sale'}`} style={{fontFamily:'Cairo,sans-serif'}}>{isR?'سند قبض':'قائمة بيع'}</span></td>
-                                            <td style={{fontWeight:700,fontFamily:'Cairo,sans-serif'}}>{sub.toLocaleString()}</td>
-                                            <td style={{color:'#16a34a',fontWeight:700,fontFamily:'Cairo,sans-serif'}}>{pd.toLocaleString()}</td>
-                                            <td style={{fontWeight:900,color:dv>0?'#dc2626':'#16a34a',fontFamily:'Cairo,sans-serif'}}>{dv.toLocaleString()}</td>
+                                        <tr key={row.id} style={{background:isEditing?'#eff6ff':''}}>
+                                            <td style={{color:'#94a3b8',fontWeight:700,...F}}>{i+1}</td>
+                                            <td style={{fontWeight:900,color:'#1a2744',...F}}>#{row.invoice_number}</td>
+                                            <td style={{...F}}>
+                                                {isEditing ? editInp('date','التاريخ','date',120) :
+                                                    <span style={{color:'#64748b',fontSize:11,...F}}>{row.date}</span>}
+                                            </td>
+                                            <td style={{...F}}>
+                                                {isEditing ? editInp('customer_name','اسم الزبون','text',130) :
+                                                    <span style={{fontWeight:700,textAlign:'right',...F}}>{row.customer_name||'—'}</span>}
+                                            </td>
+                                            <td style={{...F}}>
+                                                {isEditing ? editInp('customer_phone','الهاتف','tel',110) :
+                                                    <span style={{fontSize:11,direction:'ltr',display:'block',...F}}>{row.customer_phone||'—'}</span>}
+                                            </td>
                                             <td>
-                                                <button onClick={()=>{onLoadInvoice(row);onSwitch('create');toast('تم تحميل الفاتورة','success');}}
-                                                    style={{display:'inline-flex',alignItems:'center',gap:4,padding:'4px 9px',background:'#1a2744',color:'#fff',border:'none',borderRadius:7,cursor:'pointer',fontWeight:700,fontSize:11,fontFamily:'Cairo,sans-serif'}}>
-                                                    <Icons.Eye/> تحميل
-                                                </button>
+                                                <span className={`type-badge${isR?' type-receipt':' type-sale'}`} style={F}>
+                                                    {isR?'سند قبض':'قائمة بيع'}
+                                                </span>
+                                            </td>
+                                            <td style={{fontWeight:700,...F}}>{sub.toLocaleString()}</td>
+                                            <td style={{...F}}>
+                                                {isEditing ? editInp('paid_amount','مدفوع','number',80) :
+                                                    <span style={{color:'#16a34a',fontWeight:700,...F}}>{pd.toLocaleString()}</span>}
+                                            </td>
+                                            <td style={{fontWeight:900,color:dv>0?'#dc2626':'#16a34a',...F}}>
+                                                {isEditing ? <span style={{color:Math.max(0,sub-Number(editData.paid_amount||0))>0?'#dc2626':'#16a34a',fontWeight:900,...F}}>{Math.max(0,sub-Number(editData.paid_amount||0)).toLocaleString()}</span> : dv.toLocaleString()}
+                                            </td>
+                                            <td>
+                                                <div style={{display:'flex',gap:4,justifyContent:'center',flexWrap:'nowrap'}}>
+                                                    {isEditing ? (
+                                                        <>
+                                                            <button onClick={()=>saveEdit(row)}
+                                                                style={{display:'inline-flex',alignItems:'center',gap:3,padding:'4px 9px',background:'#16a34a',color:'#fff',border:'none',borderRadius:7,cursor:'pointer',fontWeight:700,fontSize:11,...F}}>
+                                                                <Icons.Check/> حفظ
+                                                            </button>
+                                                            <button onClick={()=>setEditRow(null)}
+                                                                style={{display:'inline-flex',alignItems:'center',gap:3,padding:'4px 8px',background:'#f1f5f9',color:'#64748b',border:'1px solid #e2e8f0',borderRadius:7,cursor:'pointer',fontSize:11,...F}}>
+                                                                <Icons.X/>
+                                                            </button>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <button onClick={()=>{onLoadInvoice(row);onSwitch('create');toast('تم تحميل الفاتورة للمعاينة','success');}}
+                                                                style={{display:'inline-flex',alignItems:'center',gap:3,padding:'4px 8px',background:'#1a2744',color:'#fff',border:'none',borderRadius:7,cursor:'pointer',fontWeight:700,fontSize:11,...F}}>
+                                                                <Icons.Eye/> عرض
+                                                            </button>
+                                                            <button onClick={()=>startEdit(row)}
+                                                                style={{display:'inline-flex',alignItems:'center',gap:3,padding:'4px 8px',background:'#eff6ff',color:'#2563eb',border:'1px solid #bfdbfe',borderRadius:7,cursor:'pointer',fontWeight:700,fontSize:11,...F}}>
+                                                                <Icons.Edit/> تعديل
+                                                            </button>
+                                                            <button onClick={()=>deleteRecord(row.id)}
+                                                                style={{display:'inline-flex',alignItems:'center',gap:3,padding:'4px 8px',background:'#fef2f2',color:'#dc2626',border:'1px solid #fecaca',borderRadius:7,cursor:'pointer',fontWeight:700,fontSize:11,...F}}>
+                                                                <Icons.Trash/> حذف
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     );
@@ -1422,7 +1531,7 @@ function RecordsView({ onLoadInvoice, onSwitch }) {
                         </table>
                     </div>
                 )}
-                <div style={{textAlign:'center',marginTop:10,fontSize:11,color:'#94a3b8',fontWeight:600,fontFamily:'Cairo,sans-serif'}}>
+                <div style={{textAlign:'center',marginTop:10,fontSize:11,color:'#94a3b8',fontWeight:600,...F}}>
                     {filtered.length} من {records.length} سجل
                 </div>
             </div>
