@@ -66,6 +66,7 @@ html,body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);
   box-shadow:0 6px 40px rgba(0,0,0,.18);
   font-family:'Cairo',sans-serif;direction:rtl;
   position:relative;
+  display:flex;flex-direction:column;
 }
 /* Inline inputs on the invoice (transparent, blends in) */
 .inv-inp{
@@ -305,6 +306,7 @@ function CreateView({products,loadedRow,onLoadDone}){
   const [inv,setInv]=useState(blankInv);
   const [activeRow,setActiveRow]=useState(null);
   const [printMode,setPrintMode]=useState(false);
+  const [isEditMode,setIsEditMode]=useState(false); // true when viewing/editing existing invoice
 
   useEffect(()=>{getNextInvoiceNumber().then(n=>setInv(p=>({...p,invoiceNumber:n})));},[]);
 
@@ -327,6 +329,7 @@ function CreateView({products,loadedRow,onLoadDone}){
       discount:'',discountType:'amount',
       notes:loadedRow.notes||''
     });
+    setIsEditMode(true);
     onLoadDone();
   },[loadedRow]);
 
@@ -365,7 +368,7 @@ function CreateView({products,loadedRow,onLoadDone}){
 
   const resetInvoice=async()=>{
     const n=await getNextInvoiceNumber();
-    setInv({...blankInv(),invoiceNumber:n});setActiveRow(null);
+    setInv({...blankInv(),invoiceNumber:n});setActiveRow(null);setIsEditMode(false);
   };
 
   const handleCellKey=(e,itemId,field)=>{
@@ -396,7 +399,7 @@ function CreateView({products,loadedRow,onLoadDone}){
   const handlePDF=async()=>{
     showLoading('جاري إنشاء PDF...');
     try{
-      await saveToSupabase(inv,subtotal,discountVal,finalTotal,paid,due);
+      if(!isEditMode)await saveToSupabase(inv,subtotal,discountVal,finalTotal,paid,due);
       setPrintMode(true);
       await new Promise(r=>setTimeout(r,120));
       await exportPDF();
@@ -412,7 +415,7 @@ function CreateView({products,loadedRow,onLoadDone}){
     showLoading('جاري تجهيز الصورة...');
     try{
       await document.fonts.ready;
-      await saveToSupabase(inv,subtotal,discountVal,finalTotal,paid,due);
+      if(!isEditMode)await saveToSupabase(inv,subtotal,discountVal,finalTotal,paid,due);
       setPrintMode(true);
       await new Promise(r=>setTimeout(r,120));
       const el=sheetRef.current;
@@ -439,9 +442,9 @@ function CreateView({products,loadedRow,onLoadDone}){
 
   const handleSave=async()=>{
     showLoading('جاري الحفظ...');
-    const ok=await saveToSupabase(inv,subtotal,discountVal,finalTotal,paid,due);
+    const ok=isEditMode?true:await saveToSupabase(inv,subtotal,discountVal,finalTotal,paid,due);
     hideLoading();
-    if(ok){toast('تم الحفظ ✓','success');await resetInvoice();}
+    if(ok){toast(isEditMode?'تم عرض الفاتورة (لم تُحفظ مجدداً) ✓':'تم الحفظ ✓','success');await resetInvoice();}
     else toast('فشل الحفظ','error');
   };
 
@@ -595,9 +598,14 @@ function CreateView({products,loadedRow,onLoadDone}){
         </div>
         {/* Buttons */}
         <div className="sidebar-section" style={{display:'flex',flexDirection:'column',gap:7}}>
-          <button className="sb-btn btn-primary" onClick={handlePDF}><Icons.PDF/> PDF + حفظ</button>
-          <button className="sb-btn btn-green"   onClick={handleWA}><Icons.WA/>  واتساب + حفظ</button>
-          <button className="sb-btn btn-purple"  onClick={handleSave}><Icons.Save/> حفظ</button>
+          {isEditMode&&(
+            <div style={{background:'rgba(253,211,77,.15)',border:'1px solid rgba(253,211,77,.4)',borderRadius:8,padding:'6px 10px',color:'#fcd34d',fontSize:11,fontWeight:800,textAlign:'center'}}>
+              ✏️ وضع العرض — لن تُحفظ مجدداً
+            </div>
+          )}
+          <button className="sb-btn btn-primary" onClick={handlePDF}><Icons.PDF/> {isEditMode?'طباعة PDF':'PDF + حفظ'}</button>
+          <button className="sb-btn btn-green"   onClick={handleWA}><Icons.WA/>  {isEditMode?'إرسال واتساب':'واتساب + حفظ'}</button>
+          <button className="sb-btn btn-purple"  onClick={handleSave}><Icons.Save/> {isEditMode?'إغلاق':'حفظ'}</button>
           <button className="sb-btn btn-ghost"   onClick={resetInvoice}><Icons.New/> فاتورة جديدة</button>
           <button className="sb-btn btn-ghost" style={{marginTop:2}} onClick={addRow}><Icons.Plus/> إضافة صف</button>
         </div>
@@ -618,7 +626,7 @@ function CreateView({products,loadedRow,onLoadDone}){
               <div style={{fontSize:'26px',fontWeight:900,color:'#1a2744',lineHeight:1.1,...F}}>عالم ورق الكاشير</div>
               <div style={{fontSize:'11px',fontWeight:700,color:'#2563eb',marginTop:'3px',...F}}>الجودة التي تستحقها تجارتكم</div>
             </div>
-            <img src="logo.PNG" alt="" style={{height:'80px',width:'auto',maxWidth:'130px',objectFit:'contain'}} onError={e=>{e.target.style.display='none';}}/>
+            <img src="logo.PNG" alt="" style={{height:'110px',width:'auto',maxWidth:'170px',objectFit:'contain'}} onError={e=>{e.target.style.display='none';}}/>
           </div>
 
           {/* Invoice type badge */}
@@ -672,6 +680,7 @@ function CreateView({products,loadedRow,onLoadDone}){
           </div>
 
           {/* ── Items or Receipt ── */}
+          <div style={{flex:1,display:'flex',flexDirection:'column'}}>
           {inv.invoiceType==='sale'?(
             <>
               <table className="inv-tbl" style={{marginBottom:'10px'}}>
@@ -722,6 +731,10 @@ function CreateView({products,loadedRow,onLoadDone}){
               </div>
             </div>
           )}
+          </div>{/* end flex items area */}
+
+          {/* Spacer to push signatures to bottom */}
+          <div style={{flex:1}}></div>
 
           {/* Signatures */}
           <div style={{display:'flex',justifyContent:'space-between',padding:'18px 50px 14px',marginTop:'auto'}}>
@@ -877,9 +890,13 @@ function InventoryView(){
   const [showAddForm,setShowAddForm]=useState(false);
   const [stockModal,setStockModal]=useState(null);
   const [newExp,   setNewExp]   = useState({description:'',amount:'',date:new Date().toISOString().split('T')[0],category:''});
-  const [sortBy,   setSortBy]   = useState('profit_total'); // profit_total|profit_unit|margin|qty_sold|revenue|name
+  const [sortBy,   setSortBy]   = useState('profit_total');
   const [sortDir,  setSortDir]  = useState('desc');
   const [filterCat,setFilterCat]= useState('');
+  const [productSearch,setProductSearch]=useState('');
+  const [profitDateFrom,setProfitDateFrom]=useState('');
+  const [profitDateTo,setProfitDateTo]=useState('');
+  const [profitCat,setProfitCat]=useState('');
   const [dbReady,  setDbReady]  = useState(true);
 
   useEffect(()=>{loadAll();},[]);
@@ -890,7 +907,7 @@ function InventoryView(){
       const[pr,ex,inv]=await Promise.all([
         sb.from('products').select('*').order('name'),
         sb.from('expenses').select('*').order('date',{ascending:false}),
-        sb.from('invoices').select('items,invoice_type,subtotal,paid_amount').eq('invoice_type','sale'),
+        sb.from('invoices').select('items,invoice_type,subtotal,paid_amount,date').eq('invoice_type','sale'),
       ]);
       if(pr.error){setDbReady(false);setLoading(false);return;}
       setProducts(pr.data||[]);setExpenses(ex.data||[]);setInvoices(inv.data||[]);setDbReady(true);
@@ -940,27 +957,43 @@ function InventoryView(){
     let totalRevenue=0,totalCOGS=0;
     const byName={};
 
-    invoices.forEach(inv=>{
+    // filter invoices by date range
+    const filteredInvoices=invoices.filter(inv=>{
+      if(profitDateFrom&&inv.date<profitDateFrom)return false;
+      if(profitDateTo&&inv.date>profitDateTo)return false;
+      return true;
+    });
+
+    // filter expenses by date range
+    const filteredExpenses=profitDateFrom||profitDateTo
+      ?expenses.filter(e=>{
+          if(profitDateFrom&&e.date<profitDateFrom)return false;
+          if(profitDateTo&&e.date>profitDateTo)return false;
+          return true;
+        })
+      :expenses;
+
+    filteredInvoices.forEach(inv=>{
       const items=Array.isArray(inv.items)?inv.items:[];
-      /* الإيراد الفعلي للقائمة (بعد الخصم) مخزون في subtotal */
       const actualInvRevenue=Number(inv.subtotal||0);
-      /* مجموع أسعار البنود قبل الخصم */
       const rawItemsTotal=items.reduce((s,it)=>s+(Number(it.quantity)||0)*(Number(it.price)||0),0);
-      /* نسبة تطبيق الخصم على كل بند بالتناسب */
       const discRatio=rawItemsTotal>0?actualInvRevenue/rawItemsTotal:1;
 
       let invCOGS=0;
       items.forEach(it=>{
         if(!it.description||!it.price)return;
+        // filter by category
+        if(profitCat){
+          const prod=products.find(p=>p.name===it.description);
+          if(!prod||prod.category!==profitCat)return;
+        }
         const qty=Number(it.quantity)||0;
         const sellPrice=Number(it.price)||0;
-        /* التكلفة: من السطر أو من جدول المنتجات */
         let costPrice=Number(it.cost_price)||0;
         if(costPrice===0){
           const prod=products.find(p=>p.name===it.description);
           if(prod)costPrice=Number(prod.cost_price)||0;
         }
-        /* الإيراد الفعلي للبند بعد توزيع الخصم */
         const effectiveRevenue=(qty*sellPrice)*discRatio;
         const cogs=qty*costPrice;
         invCOGS+=cogs;
@@ -971,13 +1004,19 @@ function InventoryView(){
         byName[it.description].cogs+=cogs;
         byName[it.description].profit+=effectiveRevenue-cogs;
       });
-      totalRevenue+=actualInvRevenue;
+      totalRevenue+=Number(inv.subtotal||0);
       totalCOGS+=invCOGS;
     });
-    return{byName,totalRevenue,totalCOGS,realizedProfit:totalRevenue-totalCOGS};
-  },[invoices,products]);
+    // recalculate totalRevenue excluding non-matching categories if filtered
+    if(profitCat){
+      totalRevenue=Object.values(byName).reduce((s,v)=>s+v.revenue,0);
+      totalCOGS=Object.values(byName).reduce((s,v)=>s+v.cogs,0);
+    }
+    const filteredExpensesTotal=filteredExpenses.filter(e=>!profitCat||(e.category===profitCat)).reduce((s,e)=>s+Number(e.amount||0),0);
+    return{byName,totalRevenue,totalCOGS,realizedProfit:totalRevenue-totalCOGS,filteredExpensesTotal};
+  },[invoices,products,profitDateFrom,profitDateTo,profitCat,expenses]);
 
-  const totalExpenses=expenses.reduce((s,e)=>s+Number(e.amount||0),0);
+  const totalExpenses=salesStats.filteredExpensesTotal!==undefined?salesStats.filteredExpensesTotal:expenses.reduce((s,e)=>s+Number(e.amount||0),0);
   const netProfit=salesStats.realizedProfit-totalExpenses;
   const totalUnits=products.reduce((s,p)=>s+Number(p.quantity||0),0);
   const categories=[...new Set(products.map(p=>p.category).filter(Boolean))];
@@ -993,6 +1032,7 @@ function InventoryView(){
   const sorted=useMemo(()=>{
     let arr=[...enriched];
     if(filterCat)arr=arr.filter(p=>p.category===filterCat);
+    if(productSearch){const q=productSearch.toLowerCase();arr=arr.filter(p=>p.name.toLowerCase().includes(q)||(p.category||'').toLowerCase().includes(q));}
     arr.sort((a,b)=>{
       if(sortBy==='name')return sortDir==='asc'?a.name.localeCompare(b.name):b.name.localeCompare(a.name);
       const keyMap={profit_total:'profit',profit_unit:'unitProfit',margin:'margin',qty_sold:'qty_sold',revenue:'revenue',quantity:'quantity',sell_price:'sell_price',cost_price:'cost_price'};
@@ -1050,7 +1090,7 @@ function InventoryView(){
       <div className={`profit-banner${netProfit<0?' loss':''}`} style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:10}}>
         <div>
           <div style={{fontSize:11,fontWeight:700,opacity:.75,marginBottom:4,...F}}>
-            💹 صافي الربح / الخسارة (بعد البيع والصرفيات)
+            💹 صافي الربح / الخسارة (بعد البيع والصرفيات){(profitDateFrom||profitDateTo||profitCat)?<span style={{marginRight:6,background:'rgba(255,255,255,.2)',borderRadius:6,padding:'1px 7px',fontSize:10}}>مفلتر</span>:''}
           </div>
           <div style={{fontSize:34,fontWeight:900,...F}}>{netProfit>=0?'+':'-'}{fmt(Math.abs(netProfit))} <span style={{fontSize:14,opacity:.7}}>د.ع</span></div>
           <div style={{fontSize:11,opacity:.6,marginTop:4,...F}}>⚡ محسوب من التكلفة الفعلية لكل مادة مباعة</div>
@@ -1070,13 +1110,29 @@ function InventoryView(){
       </div>
 
       {/* ══ Tabs ══ */}
-      <div style={{display:'inline-flex',gap:4,margin:'14px 0',background:'#fff',borderRadius:10,padding:4,border:'1px solid #e2e8f0'}}>
-        <ITab id="products" lbl="المنتجات 📦" icon=""/>
-        <ITab id="expenses" lbl="الصرفيات 💸" icon=""/>
-        <ITab id="summary"  lbl="تقرير الأرباح 📊" icon=""/>
-        <button onClick={loadAll} style={{padding:'7px 12px',border:'none',background:'transparent',color:'#94a3b8',cursor:'pointer',display:'flex',alignItems:'center',gap:4,fontSize:12,...F}}>
-          <Icons.Refresh/> تحديث
-        </button>
+      <div style={{display:'flex',gap:4,margin:'14px 0',flexWrap:'wrap',alignItems:'center'}}>
+        <div style={{display:'inline-flex',gap:4,background:'#fff',borderRadius:10,padding:4,border:'1px solid #e2e8f0'}}>
+          <ITab id="products" lbl="المنتجات 📦" icon=""/>
+          <ITab id="expenses" lbl="الصرفيات 💸" icon=""/>
+          <ITab id="summary"  lbl="تقرير الأرباح 📊" icon=""/>
+          <button onClick={loadAll} style={{padding:'7px 12px',border:'none',background:'transparent',color:'#94a3b8',cursor:'pointer',display:'flex',alignItems:'center',gap:4,fontSize:12,...F}}>
+            <Icons.Refresh/> تحديث
+          </button>
+        </div>
+        {section==='summary'&&(
+          <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
+            {[
+              ['هذا الشهر',()=>{const n=new Date();const y=n.getFullYear();const m=String(n.getMonth()+1).padStart(2,'0');setProfitDateFrom(`${y}-${m}-01`);setProfitDateTo(`${y}-${m}-31`);}],
+              ['هذا العام',()=>{const y=new Date().getFullYear();setProfitDateFrom(`${y}-01-01`);setProfitDateTo(`${y}-12-31`);}],
+              ['الكل',()=>{setProfitDateFrom('');setProfitDateTo('');setProfitCat('');}],
+            ].map(([lbl,fn])=>(
+              <button key={lbl} onClick={fn}
+                style={{padding:'5px 11px',background:'#f1f5f9',border:'1px solid #e2e8f0',borderRadius:7,fontWeight:700,fontSize:11,cursor:'pointer',color:'#475569',...F}}>
+                {lbl}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {loading&&<div style={{textAlign:'center',padding:40,color:'#94a3b8',fontWeight:700,...F}}>⏳ جاري التحميل...</div>}
@@ -1129,6 +1185,18 @@ function InventoryView(){
 
           {/* Filters + Sort */}
           <div className="card" style={{padding:'10px 14px'}}>
+            <div style={{display:'flex',gap:7,flexWrap:'wrap',alignItems:'center',marginBottom:8}}>
+              <input value={productSearch} onChange={e=>setProductSearch(e.target.value)}
+                placeholder="🔍 بحث في المنتجات..."
+                style={{flex:1,minWidth:180,padding:'6px 11px',border:'2px solid #e2e8f0',borderRadius:8,fontSize:13,fontWeight:600,outline:'none',...F}}/>
+              {categories.length>0&&(
+                <select value={filterCat} onChange={e=>setFilterCat(e.target.value)}
+                  style={{padding:'6px 10px',border:'2px solid #e2e8f0',borderRadius:7,fontSize:12,fontWeight:600,outline:'none',...F}}>
+                  <option value="">كل الفئات</option>
+                  {categories.map(ct=><option key={ct} value={ct}>{ct}</option>)}
+                </select>
+              )}
+            </div>
             <div style={{display:'flex',gap:7,flexWrap:'wrap',alignItems:'center'}}>
               <span style={{fontSize:11,fontWeight:700,color:'#64748b',...F}}>ترتيب:</span>
               {[['name','الاسم'],['quantity','المخزون'],['sell_price','سعر البيع'],['cost_price','الكلفة'],['profit_unit','ربح الوحدة'],['margin','هامش%']].map(([col,lbl])=>(
@@ -1138,13 +1206,6 @@ function InventoryView(){
                   {lbl}{sortBy===col?sortDir==='desc'?'↓':'↑':''}
                 </button>
               ))}
-              {categories.length>0&&(
-                <select value={filterCat} onChange={e=>setFilterCat(e.target.value)}
-                  style={{padding:'4px 9px',border:'1.5px solid #e2e8f0',borderRadius:7,fontSize:11,fontWeight:600,outline:'none',...F}}>
-                  <option value="">كل الفئات</option>
-                  {categories.map(ct=><option key={ct} value={ct}>{ct}</option>)}
-                </select>
-              )}
               <span style={{marginRight:'auto',fontSize:11,color:'#94a3b8',fontWeight:600,...F}}>
                 🔴 نفد · 🟡 منخفض (&lt;5) · 🟢 متوفر
               </span>
@@ -1284,6 +1345,45 @@ function InventoryView(){
       {/* ══ Profit Summary ══ */}
       {!loading&&section==='summary'&&(
         <div style={{display:'flex',gap:14,flexWrap:'wrap'}}>
+          {/* Profit Filters */}
+          <div style={{width:'100%'}}>
+            <div className="card" style={{padding:'12px 16px',marginBottom:0}}>
+              <div style={{fontWeight:800,fontSize:12,color:'#1a2744',marginBottom:9,...F}}>🔍 فلاتر تقرير الأرباح</div>
+              <div style={{display:'flex',gap:9,flexWrap:'wrap',alignItems:'flex-end'}}>
+                <div>
+                  <div style={{fontSize:10,fontWeight:700,color:'#64748b',marginBottom:3,...F}}>من تاريخ</div>
+                  <input type="date" value={profitDateFrom} onChange={e=>setProfitDateFrom(e.target.value)}
+                    style={{padding:'6px 10px',border:'1.5px solid #e2e8f0',borderRadius:8,fontSize:12,fontWeight:600,outline:'none',...F}}/>
+                </div>
+                <div>
+                  <div style={{fontSize:10,fontWeight:700,color:'#64748b',marginBottom:3,...F}}>إلى تاريخ</div>
+                  <input type="date" value={profitDateTo} onChange={e=>setProfitDateTo(e.target.value)}
+                    style={{padding:'6px 10px',border:'1.5px solid #e2e8f0',borderRadius:8,fontSize:12,fontWeight:600,outline:'none',...F}}/>
+                </div>
+                {categories.length>0&&(
+                  <div>
+                    <div style={{fontSize:10,fontWeight:700,color:'#64748b',marginBottom:3,...F}}>الفئة</div>
+                    <select value={profitCat} onChange={e=>setProfitCat(e.target.value)}
+                      style={{padding:'6px 10px',border:'1.5px solid #e2e8f0',borderRadius:8,fontSize:12,fontWeight:600,outline:'none',...F}}>
+                      <option value="">كل الفئات</option>
+                      {categories.map(ct=><option key={ct} value={ct}>{ct}</option>)}
+                    </select>
+                  </div>
+                )}
+                {(profitDateFrom||profitDateTo||profitCat)&&(
+                  <button onClick={()=>{setProfitDateFrom('');setProfitDateTo('');setProfitCat('');}}
+                    style={{padding:'6px 14px',background:'#fef2f2',color:'#dc2626',border:'1px solid #fecaca',borderRadius:8,fontWeight:700,fontSize:12,cursor:'pointer',...F}}>
+                    ✕ مسح الفلاتر
+                  </button>
+                )}
+                {(profitDateFrom||profitDateTo)&&(
+                  <div style={{padding:'6px 12px',background:'#eff6ff',borderRadius:8,border:'1px solid #bfdbfe',fontSize:11,fontWeight:700,color:'#2563eb',...F}}>
+                    📅 {profitDateFrom||'البداية'} ← {profitDateTo||'اليوم'}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
           {/* Equation */}
           <div className="card" style={{minWidth:260,flex:1}}>
             <div style={{fontWeight:900,fontSize:14,color:'#1a2744',marginBottom:13,...F}}>🧮 معادلة الحساب الدقيق</div>
@@ -1406,3 +1506,4 @@ ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </script>
 </body>
 </html>
+
