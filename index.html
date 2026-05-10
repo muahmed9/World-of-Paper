@@ -320,7 +320,9 @@ function CreateView({products,loadedRow,onLoadDone}){
     return inv.discountType==='percent'?Math.round(subtotal*d/100):d;
   },[inv.discount,inv.discountType,subtotal]);
   const finalTotal=Math.max(0,subtotal-discountVal);
-  const paid=Number(inv.paidAmount)||0;
+  /* المدفوع = finalTotal افتراضياً ما لم يُدخل مبلغ جزئي */
+  const paidRaw=inv.paidAmount===''?finalTotal:Number(inv.paidAmount)||0;
+  const paid=Math.min(paidRaw,finalTotal);
   const due=Math.max(0,finalTotal-paid);
 
   const setField=(k,v)=>setInv(p=>({...p,[k]:v}));
@@ -505,10 +507,12 @@ function CreateView({products,loadedRow,onLoadDone}){
         {printMode
           ?<span style={{fontWeight:900,fontSize:'15px',color:'#0f172a',...F}}>{paid.toLocaleString()} <span style={{fontSize:10,color:'#94a3b8'}}>د.ع</span></span>
           :<input type="number" value={inv.paidAmount} onChange={e=>setField('paidAmount',e.target.value)}
-              placeholder="أدخل المبلغ الواصل"
-              style={{border:'none',background:'transparent',fontFamily:"'Cairo',sans-serif",fontWeight:900,fontSize:'15px',color:'#0f172a',width:'140px',outline:'none',textAlign:'left',direction:'ltr'}}/>
+              placeholder={finalTotal>0?finalTotal.toLocaleString():'المبلغ الواصل'}
+              style={{border:'none',background:'transparent',fontFamily:"'Cairo',sans-serif",fontWeight:900,fontSize:'15px',color:'#0f172a',width:'160px',outline:'none',textAlign:'left',direction:'ltr'}}/>
         }
-        <span style={{fontWeight:800,fontSize:'11px',color:'#475569',...F}}>الواصل (د.ع)</span>
+        <span style={{fontWeight:800,fontSize:'11px',color:'#475569',...F}}>
+          {inv.paidAmount===''?'الواصل (المجموع كاملاً)':'الواصل (جزئي)'}
+        </span>
       </div>
       {/* Due */}
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 14px',background:due>0?'#dc2626':'#1a2744'}}>
@@ -907,28 +911,37 @@ function InventoryView(){
 
     invoices.forEach(inv=>{
       const items=Array.isArray(inv.items)?inv.items:[];
+      /* الإيراد الفعلي للقائمة (بعد الخصم) مخزون في subtotal */
+      const actualInvRevenue=Number(inv.subtotal||0);
+      /* مجموع أسعار البنود قبل الخصم */
+      const rawItemsTotal=items.reduce((s,it)=>s+(Number(it.quantity)||0)*(Number(it.price)||0),0);
+      /* نسبة تطبيق الخصم على كل بند بالتناسب */
+      const discRatio=rawItemsTotal>0?actualInvRevenue/rawItemsTotal:1;
+
+      let invCOGS=0;
       items.forEach(it=>{
         if(!it.description||!it.price)return;
         const qty=Number(it.quantity)||0;
         const sellPrice=Number(it.price)||0;
-
-        /* التكلفة: من السطر مباشرة أو من جدول المنتجات */
+        /* التكلفة: من السطر أو من جدول المنتجات */
         let costPrice=Number(it.cost_price)||0;
         if(costPrice===0){
           const prod=products.find(p=>p.name===it.description);
           if(prod)costPrice=Number(prod.cost_price)||0;
         }
-
-        const revenue=qty*sellPrice;
+        /* الإيراد الفعلي للبند بعد توزيع الخصم */
+        const effectiveRevenue=(qty*sellPrice)*discRatio;
         const cogs=qty*costPrice;
-        totalRevenue+=revenue;totalCOGS+=cogs;
+        invCOGS+=cogs;
 
         if(!byName[it.description])byName[it.description]={qty_sold:0,revenue:0,cogs:0,profit:0};
         byName[it.description].qty_sold+=qty;
-        byName[it.description].revenue+=revenue;
+        byName[it.description].revenue+=effectiveRevenue;
         byName[it.description].cogs+=cogs;
-        byName[it.description].profit+=revenue-cogs;
+        byName[it.description].profit+=effectiveRevenue-cogs;
       });
+      totalRevenue+=actualInvRevenue;
+      totalCOGS+=invCOGS;
     });
     return{byName,totalRevenue,totalCOGS,realizedProfit:totalRevenue-totalCOGS};
   },[invoices,products]);
