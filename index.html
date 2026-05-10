@@ -177,7 +177,24 @@ async function saveToSupabase(inv,subtotal,discountVal,finalTotal,paid,due){
       subtotal:finalTotal,paid_amount:paid,due_amount:due,
       notes:inv.notes
     });
-    if(error)throw error;return true;
+    if(error)throw error;
+    /* خصم الكميات من المخزون عند البيع */
+    if(inv.invoiceType==='sale'){
+      const itemsToDeduct=inv.items.filter(it=>it.description&&Number(it.quantity)>0);
+      if(itemsToDeduct.length>0){
+        /* جلب المنتجات المعنية بالأسماء */
+        const names=itemsToDeduct.map(it=>it.description);
+        const{data:prods}=await sb.from('products').select('id,name,quantity').in('name',names);
+        if(prods&&prods.length>0){
+          await Promise.all(prods.map(prod=>{
+            const soldQty=itemsToDeduct.filter(it=>it.description===prod.name).reduce((s,it)=>s+Number(it.quantity||0),0);
+            const newQty=Math.max(0,Number(prod.quantity||0)-soldQty);
+            return sb.from('products').update({quantity:newQty}).eq('id',prod.id);
+          }));
+        }
+      }
+    }
+    return true;
   }catch(e){console.error(e);return false;}
 }
 
@@ -857,6 +874,8 @@ function InventoryView(){
   const [editId,   setEditId]   = useState(null);
   const [editData, setEditData] = useState({});
   const [newProd,  setNewProd]  = useState({name:'',cost_price:'',sell_price:'',quantity:'',category:''});
+  const [showAddForm,setShowAddForm]=useState(false);
+  const [stockModal,setStockModal]=useState(null);
   const [newExp,   setNewExp]   = useState({description:'',amount:'',date:new Date().toISOString().split('T')[0],category:''});
   const [sortBy,   setSortBy]   = useState('profit_total'); // profit_total|profit_unit|margin|qty_sold|revenue|name
   const [sortDir,  setSortDir]  = useState('desc');
@@ -888,6 +907,18 @@ function InventoryView(){
   };
   const delProduct=async id=>{if(!confirm('حذف؟'))return;await sb.from('products').delete().eq('id',id);toast('تم الحذف','success');loadAll();};
   const startEdit=row=>{setEditId(row.id);setEditData({...row});};
+  const quickStock=async(prod,delta)=>{
+    const newQty=Math.max(0,Number(prod.quantity||0)+delta);
+    await sb.from('products').update({quantity:newQty}).eq('id',prod.id);
+    loadAll();
+  };
+  const openStockModal=prod=>setStockModal({product:prod,inputVal:String(prod.quantity||0)});
+  const saveStockModal=async()=>{
+    if(!stockModal)return;
+    const newQty=Math.max(0,Number(stockModal.inputVal)||0);
+    await sb.from('products').update({quantity:newQty}).eq('id',stockModal.product.id);
+    toast('تم تحديث المخزون ✓','success');setStockModal(null);loadAll();
+  };
   const saveEdit=async()=>{
     await sb.from('products').update({name:editData.name,cost_price:Number(editData.cost_price)||0,sell_price:Number(editData.sell_price)||0,quantity:Number(editData.quantity)||0,category:editData.category||''}).eq('id',editId);
     toast('تم الحفظ ✓','success');setEditId(null);loadAll();
@@ -964,7 +995,7 @@ function InventoryView(){
     if(filterCat)arr=arr.filter(p=>p.category===filterCat);
     arr.sort((a,b)=>{
       if(sortBy==='name')return sortDir==='asc'?a.name.localeCompare(b.name):b.name.localeCompare(a.name);
-      const keyMap={profit_total:'profit',profit_unit:'unitProfit',margin:'margin',qty_sold:'qty_sold',revenue:'revenue'};
+      const keyMap={profit_total:'profit',profit_unit:'unitProfit',margin:'margin',qty_sold:'qty_sold',revenue:'revenue',quantity:'quantity',sell_price:'sell_price',cost_price:'cost_price'};
       const k=keyMap[sortBy]||'profit';
       const va=a[k]||0,vb=b[k]||0;
       return sortDir==='asc'?va-vb:vb-va;
@@ -1051,98 +1082,146 @@ function InventoryView(){
       {loading&&<div style={{textAlign:'center',padding:40,color:'#94a3b8',fontWeight:700,...F}}>⏳ جاري التحميل...</div>}
 
       {/* ══ Products ══ */}
+      {/* ══ Products / Stock Management ══ */}
       {!loading&&section==='products'&&(
-        <div style={{display:'flex',gap:14,alignItems:'flex-start',flexWrap:'wrap'}}>
-          {/* Add form */}
-          <div className="card" style={{width:250,flexShrink:0}}>
-            <div style={{fontWeight:900,fontSize:13,color:'#1a2744',marginBottom:11,...F}}>➕ إضافة منتج</div>
-            {[['اسم المنتج','name','text'],['كلفة الشراء (د.ع)','cost_price','number'],['سعر البيع (د.ع)','sell_price','number'],['الكمية','quantity','number'],['الفئة','category','text']].map(([ph,key,type])=>(
-              <input key={key} type={type} placeholder={ph} value={newProd[key]}
-                onChange={e=>setNewProd(p=>({...p,[key]:e.target.value}))}
-                style={{width:'100%',padding:'7px 10px',border:'1.5px solid #e2e8f0',borderRadius:8,fontSize:13,fontWeight:600,marginBottom:7,outline:'none',...F}}/>
-            ))}
-            {newProd.sell_price&&newProd.cost_price&&(
-              <div style={{background:(Number(newProd.sell_price)-Number(newProd.cost_price))>=0?'#f0fdf4':'#fef2f2',borderRadius:8,padding:'6px 10px',marginBottom:8,fontSize:12,fontWeight:800,color:(Number(newProd.sell_price)-Number(newProd.cost_price))>=0?'#16a34a':'#dc2626',...F}}>
-                ربح الوحدة: {fmt(Number(newProd.sell_price)-Number(newProd.cost_price))} د.ع
-              </div>
-            )}
-            <button onClick={addProduct} style={{width:'100%',padding:9,background:'#1a2744',color:'#fff',border:'none',borderRadius:8,fontWeight:800,fontSize:13,cursor:'pointer',...F}}>حفظ المنتج</button>
-          </div>
+        <div style={{display:'flex',flexDirection:'column',gap:12}}>
 
-          {/* Products table */}
-          <div className="card" style={{flex:1,overflowX:'auto',minWidth:0}}>
-            {/* Sort + Filter */}
-            <div style={{display:'flex',gap:6,marginBottom:10,flexWrap:'wrap',alignItems:'center'}}>
+          {/* Add product form — inline at top */}
+          {showAddForm?(
+            <div className="card" style={{borderRight:'4px solid #1a2744'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:11}}>
+                <span style={{fontWeight:900,fontSize:13,color:'#1a2744',...F}}>➕ إضافة منتج جديد</span>
+                <button onClick={()=>setShowAddForm(false)} style={{border:'none',background:'transparent',cursor:'pointer',color:'#94a3b8',fontSize:16}}>✕</button>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(130px,1fr))',gap:8}}>
+                {[['اسم المنتج *','name','text'],['كلفة الشراء (د.ع)','cost_price','number'],['سعر البيع (د.ع)','sell_price','number'],['الكمية الأولية','quantity','number'],['الفئة','category','text']].map(([ph,key,type])=>(
+                  <div key={key}>
+                    <div style={{fontSize:10,fontWeight:700,color:'#64748b',marginBottom:3,...F}}>{ph}</div>
+                    <input type={type} value={newProd[key]} onChange={e=>setNewProd(p=>({...p,[key]:e.target.value}))}
+                      style={{width:'100%',padding:'8px 10px',border:'1.5px solid #e2e8f0',borderRadius:8,fontSize:13,fontWeight:600,outline:'none',...F}}/>
+                  </div>
+                ))}
+              </div>
+              <div style={{display:'flex',alignItems:'center',gap:10,marginTop:10}}>
+                {newProd.sell_price&&newProd.cost_price&&(
+                  <div style={{padding:'5px 12px',borderRadius:20,fontSize:12,fontWeight:800,
+                    background:(Number(newProd.sell_price)-Number(newProd.cost_price))>=0?'#f0fdf4':'#fef2f2',
+                    color:(Number(newProd.sell_price)-Number(newProd.cost_price))>=0?'#16a34a':'#dc2626',...F}}>
+                    ربح الوحدة: {fmt(Number(newProd.sell_price)-Number(newProd.cost_price))} د.ع
+                  </div>
+                )}
+                <button onClick={addProduct} style={{padding:'8px 22px',background:'#1a2744',color:'#fff',border:'none',borderRadius:8,fontWeight:800,fontSize:13,cursor:'pointer',marginRight:'auto',...F}}>
+                  حفظ المنتج
+                </button>
+              </div>
+            </div>
+          ):(
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <div style={{fontSize:13,fontWeight:700,color:'#64748b',...F}}>
+                {products.length} منتج · {totalUnits} وحدة إجمالاً
+              </div>
+              <button onClick={()=>setShowAddForm(true)}
+                style={{display:'flex',alignItems:'center',gap:6,padding:'8px 18px',background:'#1a2744',color:'#fff',border:'none',borderRadius:9,fontWeight:800,fontSize:13,cursor:'pointer',...F}}>
+                <Icons.Plus/> إضافة منتج
+              </button>
+            </div>
+          )}
+
+          {/* Filters + Sort */}
+          <div className="card" style={{padding:'10px 14px'}}>
+            <div style={{display:'flex',gap:7,flexWrap:'wrap',alignItems:'center'}}>
               <span style={{fontSize:11,fontWeight:700,color:'#64748b',...F}}>ترتيب:</span>
-              {[
-                ['profit_total','ربح محقق'],['profit_unit','ربح الوحدة'],
-                ['margin','هامش%'],['qty_sold','كمية مباعة'],
-                ['revenue','إيراد'],['name','الاسم'],
-              ].map(([col,lbl])=>(
+              {[['name','الاسم'],['quantity','المخزون'],['sell_price','سعر البيع'],['cost_price','الكلفة'],['profit_unit','ربح الوحدة'],['margin','هامش%']].map(([col,lbl])=>(
                 <button key={col} onClick={()=>toggleSort(col)}
-                  style={{padding:'4px 9px',border:'1.5px solid',fontSize:11,fontWeight:700,cursor:'pointer',borderRadius:7,transition:'all .12s',
+                  style={{padding:'4px 9px',border:'1.5px solid',fontSize:11,fontWeight:700,cursor:'pointer',borderRadius:7,
                     borderColor:sortBy===col?'#2563eb':'#e2e8f0',background:sortBy===col?'#eff6ff':'#fff',color:sortBy===col?'#2563eb':'#64748b',...F}}>
                   {lbl}{sortBy===col?sortDir==='desc'?'↓':'↑':''}
                 </button>
               ))}
               {categories.length>0&&(
                 <select value={filterCat} onChange={e=>setFilterCat(e.target.value)}
-                  style={{padding:'4px 9px',border:'1.5px solid #e2e8f0',borderRadius:7,fontSize:11,fontWeight:600,...F}}>
+                  style={{padding:'4px 9px',border:'1.5px solid #e2e8f0',borderRadius:7,fontSize:11,fontWeight:600,outline:'none',...F}}>
                   <option value="">كل الفئات</option>
-                  {categories.map(c=><option key={c} value={c}>{c}</option>)}
+                  {categories.map(ct=><option key={ct} value={ct}>{ct}</option>)}
                 </select>
               )}
+              <span style={{marginRight:'auto',fontSize:11,color:'#94a3b8',fontWeight:600,...F}}>
+                🔴 نفد · 🟡 منخفض (&lt;5) · 🟢 متوفر
+              </span>
             </div>
-            <div style={{fontSize:11,color:'#94a3b8',fontWeight:600,marginBottom:8,...F}}>
-              ⚡ الربح المحقق = (سعر البيع − الكلفة) × الكمية المباعة فعلياً من قوائم البيع
-            </div>
+          </div>
 
+          {/* Products table */}
+          <div className="card" style={{overflowX:'auto',padding:0,overflow:'hidden'}}>
             {sorted.length===0?(
-              <div style={{textAlign:'center',padding:40,color:'#94a3b8',fontWeight:700,...F}}>لا توجد منتجات</div>
+              <div style={{textAlign:'center',padding:40,color:'#94a3b8',fontWeight:700,...F}}>لا توجد منتجات — أضف منتجاً أولاً</div>
             ):(
-              <table className="rec-table">
+              <table className="rec-table" style={{fontSize:12}}>
                 <thead><tr>
-                  {['#','المنتج','الكلفة','سعر البيع','ربح الوحدة','هامش%','مباع','ربح محقق','إجراء'].map(h=>(
-                    <th key={h} style={{...F,whiteSpace:'nowrap',fontSize:10}}>{h}</th>
+                  {['#','المنتج','الفئة','كلفة الشراء','سعر البيع','ربح الوحدة','هامش%','المخزون','تعديل المخزون','إجراء'].map(h=>(
+                    <th key={h} style={{...F,whiteSpace:'nowrap',fontSize:11,padding:'10px 10px'}}>{h}</th>
                   ))}
                 </tr></thead>
                 <tbody>
                   {sorted.map((p,i)=>{
                     const isE=editId===p.id;
+                    const qty=Number(p.quantity||0);
+                    const stockColor=qty===0?'#dc2626':qty<5?'#d97706':'#16a34a';
+                    const stockBg=qty===0?'#fef2f2':qty<5?'#fffbeb':'#f0fdf4';
+                    const stockIcon=qty===0?'🔴':qty<5?'🟡':'🟢';
                     return(
-                      <tr key={p.id}>
-                        <td style={{color:'#94a3b8',fontSize:11,...F}}>{i+1}</td>
-                        <td style={{textAlign:'right',fontWeight:800,...F}}>
-                          {isE?<input value={editData.name} onChange={e=>setEditData(d=>({...d,name:e.target.value}))} className="edit-input" style={{width:120}}/>:p.name}
+                      <tr key={p.id} style={{borderBottom:'1px solid #f1f5f9'}}>
+                        <td style={{color:'#94a3b8',fontSize:11,padding:'8px 10px',...F}}>{i+1}</td>
+                        <td style={{textAlign:'right',fontWeight:800,padding:'8px 10px',...F}}>
+                          {isE?<input value={editData.name} onChange={e=>setEditData(d=>({...d,name:e.target.value}))} className="edit-input" style={{width:130}}/>:p.name}
                         </td>
-                        <td style={{fontSize:11,...F}}>
-                          {isE?<input type="number" value={editData.cost_price} onChange={e=>setEditData(d=>({...d,cost_price:e.target.value}))} className="edit-input" style={{width:65,textAlign:'center'}}/>:fmt(p.cost_price)}
+                        <td style={{color:'#64748b',fontSize:11,padding:'8px 10px',...F}}>
+                          {isE?<input value={editData.category||''} onChange={e=>setEditData(d=>({...d,category:e.target.value}))} className="edit-input" style={{width:70}}/>:p.category||'—'}
                         </td>
-                        <td style={{fontSize:11,...F}}>
-                          {isE?<input type="number" value={editData.sell_price} onChange={e=>setEditData(d=>({...d,sell_price:e.target.value}))} className="edit-input" style={{width:65,textAlign:'center'}}/>:fmt(p.sell_price)}
+                        <td style={{padding:'8px 10px',...F}}>
+                          {isE?<input type="number" value={editData.cost_price} onChange={e=>setEditData(d=>({...d,cost_price:e.target.value}))} className="edit-input" style={{width:75,textAlign:'center'}}/>:fmt(p.cost_price)}
                         </td>
-                        <td style={{fontWeight:900,fontSize:12,color:p.unitProfit>=0?'#16a34a':'#dc2626',...F}}>
+                        <td style={{fontWeight:700,padding:'8px 10px',...F}}>
+                          {isE?<input type="number" value={editData.sell_price} onChange={e=>setEditData(d=>({...d,sell_price:e.target.value}))} className="edit-input" style={{width:75,textAlign:'center'}}/>:fmt(p.sell_price)}
+                        </td>
+                        <td style={{fontWeight:900,color:p.unitProfit>=0?'#16a34a':'#dc2626',padding:'8px 10px',...F}}>
                           {p.unitProfit>=0?'+':''}{fmt(p.unitProfit)}
                         </td>
-                        <td>
+                        <td style={{padding:'8px 10px'}}>
                           <span style={{padding:'2px 8px',borderRadius:99,background:p.margin>=20?'#f0fdf4':p.margin>0?'#fffbeb':'#fef2f2',color:p.margin>=20?'#16a34a':p.margin>0?'#d97706':'#dc2626',fontWeight:800,fontSize:10,...F}}>
                             {p.margin}%
                           </span>
                         </td>
-                        <td style={{color:'#0369a1',fontWeight:700,fontSize:11,...F}}>{fmt(p.qty_sold)}</td>
-                        <td>
-                          <span style={{display:'inline-block',padding:'2px 9px',borderRadius:99,fontSize:11,fontWeight:900,
-                            background:p.profit>0?'#f0fdf4':p.profit<0?'#fef2f2':'#f8fafc',
-                            color:p.profit>0?'#16a34a':p.profit<0?'#dc2626':'#94a3b8',...F}}>
-                            {p.profit!==0?(p.profit>0?'+':'')+fmt(p.profit):'—'}
-                          </span>
+                        {/* المخزون — قابل للتعديل */}
+                        <td style={{padding:'8px 10px'}}>
+                          <div style={{display:'inline-flex',alignItems:'center',gap:4,background:stockBg,border:'1.5px solid',borderColor:stockColor+'33',borderRadius:9,padding:'3px 8px'}}>
+                            <span style={{fontSize:11}}>{stockIcon}</span>
+                            {isE
+                              ?<input type="number" value={editData.quantity} onChange={e=>setEditData(d=>({...d,quantity:e.target.value}))} className="edit-input" style={{width:55,textAlign:'center',border:'none',background:'transparent',color:stockColor,fontWeight:900,fontSize:13}}/>
+                              :<span style={{fontWeight:900,fontSize:13,color:stockColor,...F}}>{qty}</span>
+                            }
+                            <span style={{fontSize:9,color:stockColor,fontWeight:700,...F}}>وحدة</span>
+                          </div>
                         </td>
-                        <td>
+                        {/* أزرار ± للمخزون السريع */}
+                        <td style={{padding:'8px 8px'}}>
+                          {!isE&&(
+                            <div style={{display:'flex',gap:4,justifyContent:'center',alignItems:'center'}}>
+                              <button onClick={()=>quickStock(p,-1)} title="خصم وحدة"
+                                style={{width:24,height:24,border:'1.5px solid #fecaca',background:'#fef2f2',color:'#dc2626',borderRadius:6,cursor:'pointer',fontWeight:900,fontSize:14,display:'flex',alignItems:'center',justifyContent:'center'}}>−</button>
+                              <button onClick={()=>openStockModal(p)} title="تعديل المخزون"
+                                style={{padding:'2px 7px',border:'1.5px solid #bfdbfe',background:'#eff6ff',color:'#2563eb',borderRadius:6,cursor:'pointer',fontWeight:700,fontSize:10,...F}}>تعديل</button>
+                              <button onClick={()=>quickStock(p,1)} title="إضافة وحدة"
+                                style={{width:24,height:24,border:'1.5px solid #bbf7d0',background:'#f0fdf4',color:'#16a34a',borderRadius:6,cursor:'pointer',fontWeight:900,fontSize:14,display:'flex',alignItems:'center',justifyContent:'center'}}>+</button>
+                            </div>
+                          )}
+                        </td>
+                        <td style={{padding:'8px 8px'}}>
                           <div style={{display:'flex',gap:4,justifyContent:'center'}}>
                             {isE?(
                               <>
-                                <button onClick={saveEdit} style={{padding:'3px 8px',background:'#16a34a',color:'#fff',border:'none',borderRadius:5,cursor:'pointer',fontSize:11,fontWeight:700,display:'flex',alignItems:'center',gap:2,...F}}><Icons.Check/>حفظ</button>
-                                <button onClick={()=>setEditId(null)} style={{padding:'3px 6px',background:'#f1f5f9',color:'#64748b',border:'1px solid #e2e8f0',borderRadius:5,cursor:'pointer'}}><Icons.X/></button>
+                                <button onClick={saveEdit} style={{padding:'3px 8px',background:'#16a34a',color:'#fff',border:'none',borderRadius:5,cursor:'pointer',fontSize:11,fontWeight:700,...F}}>✓ حفظ</button>
+                                <button onClick={()=>setEditId(null)} style={{padding:'3px 6px',background:'#f1f5f9',color:'#64748b',border:'1px solid #e2e8f0',borderRadius:5,cursor:'pointer',fontSize:11}}>✕</button>
                               </>
                             ):(
                               <>
@@ -1162,7 +1241,7 @@ function InventoryView(){
         </div>
       )}
 
-      {/* ══ Expenses ══ */}
+            {/* ══ Expenses ══ */}
       {!loading&&section==='expenses'&&(
         <div style={{display:'flex',gap:14,alignItems:'flex-start',flexWrap:'wrap'}}>
           <div className="card" style={{width:250,flexShrink:0}}>
@@ -1261,6 +1340,27 @@ function InventoryView(){
                 </tbody>
               </table>
             )}
+          </div>
+        </div>
+      )}
+      {/* Stock Modal */}
+      {stockModal&&(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.55)',zIndex:9000,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={()=>setStockModal(null)}>
+          <div style={{background:'#fff',borderRadius:16,padding:28,width:280,boxShadow:'0 20px 60px rgba(0,0,0,.3)'}} onClick={e=>e.stopPropagation()}>
+            <div style={{fontWeight:900,fontSize:15,color:'#1a2744',marginBottom:4,fontFamily:'Cairo,sans-serif'}}>{stockModal.product.name}</div>
+            <div style={{fontSize:12,color:'#64748b',marginBottom:16,fontFamily:'Cairo,sans-serif'}}>تحديث كمية المخزون</div>
+            <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:18,justifyContent:'center'}}>
+              <button onClick={()=>setStockModal(s=>({...s,inputVal:String(Math.max(0,Number(s.inputVal||0)-1))}))}
+                style={{width:36,height:36,border:'2px solid #fecaca',background:'#fef2f2',color:'#dc2626',borderRadius:9,cursor:'pointer',fontWeight:900,fontSize:18}}>−</button>
+              <input type="number" value={stockModal.inputVal} onChange={e=>setStockModal(s=>({...s,inputVal:e.target.value}))} min="0"
+                style={{width:90,textAlign:'center',padding:'8px',border:'2px solid #bfdbfe',borderRadius:9,fontSize:22,fontWeight:900,color:'#1a2744',fontFamily:'Cairo,sans-serif',outline:'none'}}/>
+              <button onClick={()=>setStockModal(s=>({...s,inputVal:String(Number(s.inputVal||0)+1)}))}
+                style={{width:36,height:36,border:'2px solid #bbf7d0',background:'#f0fdf4',color:'#16a34a',borderRadius:9,cursor:'pointer',fontWeight:900,fontSize:18}}>+</button>
+            </div>
+            <div style={{display:'flex',gap:8}}>
+              <button onClick={saveStockModal} style={{flex:1,padding:'10px',background:'#1a2744',color:'#fff',border:'none',borderRadius:9,fontWeight:800,fontSize:13,cursor:'pointer',fontFamily:'Cairo,sans-serif'}}>حفظ</button>
+              <button onClick={()=>setStockModal(null)} style={{padding:'10px 16px',background:'#f1f5f9',color:'#64748b',border:'1px solid #e2e8f0',borderRadius:9,fontWeight:700,fontSize:13,cursor:'pointer',fontFamily:'Cairo,sans-serif'}}>إلغاء</button>
+            </div>
           </div>
         </div>
       )}
