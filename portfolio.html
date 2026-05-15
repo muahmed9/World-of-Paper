@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Pallet Ross - Portfolio</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed": "#fcdebd",
+                        "primary-fixed": "#e3dffe",
+                        "surface-container": "#eeeeef",
+                        "inverse-on-surface": "#f0f1f2",
+                        "on-tertiary": "#ffffff",
+                        "tertiary": "#000000",
+                        "surface-tint": "#5d5c76",
+                        "on-primary-container": "#83819d",
+                        "vibrant-rose": "#EA4C89",
+                        "secondary-fixed-dim": "#ffb1c6",
+                        "on-secondary-container": "#61002f",
+                        "surface-container-low": "#f3f3f4",
+                        "error": "#ba1a1a",
+                        "surface": "#f9f9fa",
+                        "pure-white": "#FFFFFF",
+                        "on-secondary-fixed-variant": "#8e0048",
+                        "soft-alabaster": "#F3F3F4",
+                        "primary": "#000000",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed": "#ffd9e1",
+                        "primary-container": "#1a1930",
+                        "on-error": "#ffffff",
+                        "secondary-container": "#fc5a97",
+                        "inverse-primary": "#c7c3e2",
+                        "error-container": "#ffdad6",
+                        "on-secondary-fixed": "#3f001c",
+                        "on-primary": "#ffffff",
+                        "surface-container-highest": "#e2e2e3",
+                        "inverse-surface": "#2f3132",
+                        "tertiary-container": "#271905",
+                        "surface-dim": "#dadadb",
+                        "on-surface": "#1a1c1d",
+                        "deep-onyx": "#0D0C22",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-fixed-dim": "#c7c3e2",
+                        "surface-variant": "#e2e2e3",
+                        "outline-variant": "#c8c5cd",
+                        "tertiary-fixed-dim": "#dec2a3",
+                        "on-tertiary-fixed": "#271905",
+                        "on-tertiary-container": "#988064",
+                        "on-surface-variant": "#47464d",
+                        "surface-container-high": "#e8e8e9",
+                        "secondary": "#b31d5f",
+                        "on-primary-fixed-variant": "#46445d",
+                        "outline": "#78767d",
+                        "background": "#f9f9fa",
+                        "on-error-container": "#93000a",
+                        "surface-bright": "#f9f9fa",
+                        "on-tertiary-fixed-variant": "#57432b",
+                        "on-primary-fixed": "#1a1930",
+                        "on-background": "#1a1c1d"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-desktop": "64px",
+                        "margin-mobile": "20px",
+                        "margin-tablet": "32px",
+                        "unit": "8px",
+                        "gutter": "32px",
+                        "container-max": "1440px"
+                    },
+                    "fontFamily": {
+                        "display-xl": ["Hanken Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "headline-lg-mobile": ["Hanken Grotesk"],
+                        "label-sm": ["Hanken Grotesk"],
+                        "display-xl-mobile": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "display-xl": ["72px", { "lineHeight": "80px", "letterSpacing": "-0.04em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "500" }],
+                        "headline-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "display-xl-mobile": ["44px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased min-h-screen flex flex-col pt-20">
+<!-- TopNavBar -->
+<header class="bg-surface/80 dark:bg-deep-onyx/80 backdrop-blur-md fixed top-0 w-full z-50 border-b border-on-surface/10 dark:border-pure-white/10">
+<div class="flex justify-between items-center w-full px-margin-desktop h-20 max-w-container-max mx-auto">
+<a class="font-display-xl text-headline-md font-bold text-primary dark:text-pure-white tracking-tighter" href="index.html">
+                Pallet Ross
+            </a>
+<nav class="hidden md:flex items-center space-x-8">
+<a class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-pure-white transition-colors cursor-pointer transition-all duration-300" href="services.html">
+                    Services
+                </a>
+<a aria-current="page" class="font-label-sm text-label-sm uppercase tracking-widest text-primary dark:text-pure-white border-b-2 border-primary dark:border-pure-white pb-1 cursor-pointer transition-all duration-300" href="portfolio.html">
+                    Portfolio
+                </a>
+<a class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-pure-white transition-colors cursor-pointer transition-all duration-300" href="about.html">
+                    About
+                </a>
+<a class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-pure-white transition-colors cursor-pointer transition-all duration-300" href="#Contact">اتصل بنا</a>
+</nav>
+<button class="hidden md:inline-flex items-center justify-center bg-deep-onyx text-pure-white px-6 py-3 rounded hover:opacity-70 transition-opacity duration-300 cursor-pointer font-label-sm text-label-sm uppercase tracking-widest">
+                استفسر الآن
+            </button>
+<button class="md:hidden text-primary dark:text-pure-white">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-20" dir="rtl">
+<!-- Hero Section -->
+<section class="mb-24 md:mb-32 max-w-3xl">
+<h1 class="font-display-xl-mobile text-display-xl-mobile md:font-display-xl md:text-display-xl text-primary mb-6">
+                معرض الأعمال
+            </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+                مجموعة مختارة بعناية من المشاريع المؤسسية التي تجسد التزامنا بالتصميم المعماري الدقيق والمستدام. كل مساحة مصممة لتعكس الوضوح والهوية الراقية.
+            </p>
+</section>
+<!-- Asymmetrical Portfolio Grid -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-y-16 md:gap-gutter">
+<!-- Project 1 (Large, spans 8 cols) -->
+<article class="md:col-span-8 group cursor-pointer">
+<div class="relative overflow-hidden bg-soft-alabaster aspect-[16/9] mb-6">
+<img alt="Project 1" class="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-700 ease-in-out" data-alt="A striking architectural photograph of a modern glass skyscraper complex rising dramatically into a clear blue sky. The composition utilizes an extreme low-angle perspective, emphasizing the sleek, minimal geometric lines of the glass and steel facades. Lighting is high-key and brilliant, creating a crisp, modern light-mode aesthetic characterized by deep onyx shadows and pure white highlights. The image conveys immense scale, permanence, and high-end corporate luxury without unnecessary ornamentation." src="assets/images/img_5f7a9addd3.jpg"/>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-outline mb-2">مقر رئيسي</span>
+<h2 class="font-headline-md text-headline-md text-primary mb-2">مركز الملك عبدالله المالي</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">تصميم الواجهات الزجاجية والهيكل المعدني بأعلى معايير الاستدامة.</p>
+</div>
+</article>
+<!-- Project 2 (Small, spans 4 cols, aligned bottom) -->
+<article class="md:col-span-4 md:mt-auto group cursor-pointer">
+<div class="relative overflow-hidden bg-soft-alabaster aspect-[4/5] mb-6">
+<img alt="Project 2" class="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-700 ease-in-out" data-alt="An interior shot of a stark, ultra-modern corporate lobby bathed in natural daylight filtering through expansive windows. The space features minimalist white walls, polished concrete floors, and a structural steel staircase in deep black. The lighting creates subtle, soft tonal shifts rather than harsh shadows, perfectly aligning with a quiet luxury, light-mode design system. The atmosphere is serene, architectural, and completely devoid of clutter." src="assets/images/img_ea5d347a81.jpg"/>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-outline mb-2">ثقافي</span>
+<h2 class="font-headline-md text-headline-md text-primary mb-2">متحف المستقبل</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">هندسة إنشائية معقدة لمساحات العرض الداخلية.</p>
+</div>
+</article>
+<!-- Project 3 (Medium, spans 5 cols) -->
+<article class="md:col-span-5 group cursor-pointer mt-0 md:mt-24">
+<div class="relative overflow-hidden bg-soft-alabaster aspect-square mb-6">
+<img alt="Project 3" class="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-700 ease-in-out" data-alt="A minimalist exterior view of a contemporary cultural building featuring massive concrete monoliths and sharp geometric shadows. The brutalist yet refined architecture stands against a stark, pale sky. The bright, high-key lighting casts precise, low-contrast outlines across the facade, emphasizing the tactile quality of the soft alabaster concrete. The image invokes a sense of institutional permanence and curated, premium design." src="assets/images/img_305b9c125b.jpg"/>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-outline mb-2">تعليمي</span>
+<h2 class="font-headline-md text-headline-md text-primary mb-2">جامعة الأميرة نورة</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">تخطيط الحرم الجامعي والمرافق الأكاديمية.</p>
+</div>
+</article>
+<!-- Project 4 (Medium, spans 7 cols) -->
+<article class="md:col-span-7 group cursor-pointer mt-0 md:mt-12">
+<div class="relative overflow-hidden bg-soft-alabaster aspect-[16/10] mb-6 border border-on-surface/5">
+<img alt="Project 4" class="object-cover w-full h-full transform group-hover:scale-105 transition-transform duration-700 ease-in-out" data-alt="A pristine interior view of a vast modern library or institutional space featuring rows of symmetrical reading desks beneath a sweeping, curved architectural ceiling. The space is flooded with diffuse, soft white light that minimizes harsh drop shadows, adhering to a sophisticated tonal layering aesthetic. The color palette relies heavily on pure whites, soft greys, and warm wood accents, communicating high-end academic rigor and calm elegance." src="assets/images/img_5c6a48d13a.jpg"/>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-outline mb-2">مؤسسي</span>
+<h2 class="font-headline-md text-headline-md text-primary mb-2">مكتبة الملك فهد الوطنية</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">تجديد الواجهة الخارجية وإعادة هيكلة المساحات الداخلية.</p>
+</div>
+</article>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface dark:bg-deep-onyx border-t border-on-surface/5 dark:border-pure-white/5 w-full py-20 mt-auto">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter px-margin-desktop max-w-container-max mx-auto">
+<div class="flex flex-col justify-between">
+<span class="font-display-xl text-headline-md font-bold text-primary dark:text-pure-white mb-8 md:mb-0">
+                    Pallet Ross
+                </span>
+<p class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant">
+                    © 2024 Pallet Ross. All rights reserved.
+                </p>
+</div>
+<div class="flex flex-col md:items-end justify-between space-y-4 md:space-y-0">
+<nav class="flex flex-col md:flex-row gap-4 md:gap-8">
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-secondary dark:hover:text-secondary-fixed transition-all duration-200" href="#">
+                        Privacy Policy
+                    </a>
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-secondary dark:hover:text-secondary-fixed transition-all duration-200" href="#">
+                        Terms of Service
+                    </a>
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-secondary dark:hover:text-secondary-fixed transition-all duration-200" href="#">
+                        LinkedIn
+                    </a>
+<a class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-secondary dark:hover:text-secondary-fixed transition-all duration-200" href="#">
+                        Instagram
+                    </a>
+</nav>
+</div>
+</div>
+</footer>
+</body></html>
