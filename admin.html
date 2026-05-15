@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم | عالم ورق الكاشير</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: #fff; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .tab-active { border-bottom: 2px solid #fff; color: #fff; }
+        input, textarea { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 10px; width: 100%; color: #fff; outline: none; }
+        input:focus, textarea:focus { border-color: rgba(255, 255, 255, 0.3); }
+        .btn-save { background: #fff; color: #000; font-weight: 600; padding: 12px 24px; border-radius: 8px; transition: all 0.3s; }
+        .btn-save:hover { background: #e5e5e5; transform: translateY(-2px); }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-5xl mx-auto">
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-12">
+            <div>
+                <h1 class="text-3xl font-bold mb-2">لوحة التحكم</h1>
+                <p class="text-neutral-400">إدارة محتوى موقع عالم ورق الكاشير</p>
+            </div>
+            <a href="index.html" class="text-sm border border-neutral-700 px-4 py-2 rounded-full hover:bg-white hover:text-black transition">معاينة الموقع</a>
+        </header>
+
+        <!-- Main Content -->
+        <div class="glass rounded-3xl p-6 md:p-8">
+            <!-- Tabs -->
+            <div class="flex gap-8 mb-8 border-b border-neutral-800 overflow-x-auto">
+                <button onclick="switchTab('home')" id="tab-home" class="pb-4 tab-active text-neutral-400 whitespace-nowrap">الصفحة الرئيسية</button>
+                <button onclick="switchTab('services')" id="tab-services" class="pb-4 text-neutral-400 whitespace-nowrap">الخدمات</button>
+                <button onclick="switchTab('portfolio')" id="tab-portfolio" class="pb-4 text-neutral-400 whitespace-nowrap">أعمالنا</button>
+            </div>
+
+            <!-- Home Tab Content -->
+            <div id="content-home" class="tab-content space-y-8">
+                <div>
+                    <h3 class="text-lg font-semibold mb-4 text-neutral-200">قسم الهيرو (Hero Section)</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <label class="block text-sm text-neutral-500">العنوان الرئيسي</label>
+                            <input type="text" id="home_hero_title" placeholder="أدخل العنوان الرئيسي">
+                        </div>
+                        <div class="space-y-4">
+                            <label class="block text-sm text-neutral-500">الوصف الرئيسي</label>
+                            <textarea id="home_hero_desc" rows="3" placeholder="أدخل الوصف"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-8 border-t border-neutral-800">
+                    <h3 class="text-lg font-semibold mb-4 text-neutral-200">الصور والفيديوهات</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <label class="block text-sm text-neutral-500">رابط صورة الهيرو</label>
+                            <input type="text" id="home_hero_img" placeholder="assets/images/hero.jpg">
+                        </div>
+                        <div class="space-y-4">
+                            <label class="block text-sm text-neutral-500">رابط فيديو الخلفية (إن وجد)</label>
+                            <input type="text" id="home_hero_video" placeholder="أدخل رابط الفيديو">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-12 flex justify-end gap-4">
+                <button onclick="resetData()" class="px-6 py-3 text-neutral-500 hover:text-white transition">إعادة ضبط</button>
+                <button onclick="saveData()" class="btn-save">حفظ التغييرات</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Default Data Structure
+        const defaultData = {
+            home_hero_title: "جودة استثنائية في عالم ورق الكاشير",
+            home_hero_desc: "نقدم أفضل حلول الورق الحراري ومستلزمات نقاط البيع في العراق، بجودة تضمن استمرارية أعمالك.",
+            home_hero_img: "assets/images/hero.jpg",
+            home_hero_video: ""
+        };
+
+        // Initialize Data
+        let siteData = JSON.parse(localStorage.getItem('siteContent')) || defaultData;
+
+        // Load Data into inputs
+        function loadInputs() {
+            Object.keys(siteData).forEach(key => {
+                const el = document.getElementById(key);
+                if (el) el.value = siteData[key];
+            });
+        }
+
+        // Save Data to LocalStorage
+        function saveData() {
+            Object.keys(siteData).forEach(key => {
+                const el = document.getElementById(key);
+                if (el) siteData[key] = el.value;
+            });
+            localStorage.setItem('siteContent', JSON.stringify(siteData));
+            alert('تم حفظ التغييرات بنجاح! سيتم تحديث الموقع تلقائياً.');
+        }
+
+        function resetData() {
+            if(confirm('هل أنت متأكد من إعادة ضبط البيانات للوضع الافتراضي؟')) {
+                siteData = {...defaultData};
+                loadInputs();
+                localStorage.setItem('siteContent', JSON.stringify(siteData));
+            }
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.querySelectorAll('button[id^="tab-"]').forEach(b => b.classList.remove('tab-active'));
+            
+            const content = document.getElementById(`content-${tab}`);
+            if (content) content.classList.remove('hidden');
+            document.getElementById(`tab-${tab}`).classList.add('tab-active');
+        }
+
+        // Run on load
+        window.onload = () => {
+            loadInputs();
+            // Default to home tab
+            switchTab('home');
+        };
+    </script>
+</body>
+</html>
