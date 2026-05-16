@@ -1,77 +1,49 @@
 <!DOCTYPE html>
-
-<html dir="rtl" lang="ar"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Pallet Ross - Services</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title id="site-title">عالم ورق الكاشير - الخدمات</title>
+    <meta name="description" id="meta-desc" content="متخصصون في توريد ورق الكاشير والحلول التقنية">
+    <link rel="icon" id="favicon" href="assets/images/favicon.png">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&family=Cairo:wght@400;600;700&family=Almarai:wght@400;700&family=El+Messiri:wght@400;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet"/>
+    <style id="dynamic-theme">
+        :root {
+            --color-primary: #000000;
+            --color-secondary: #b31d5f;
+            --color-background: #f9f9fa;
+            --color-surface: #f9f9fa;
+            --font-main: 'Tajawal', sans-serif;
+        }
+    </style>
+    <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
             theme: {
                 extend: {
-                    colors: {
-                        "tertiary-fixed": "#fcdebd",
-                        "primary-fixed": "#e3dffe",
-                        "surface-container": "#eeeeef",
-                        "inverse-on-surface": "#f0f1f2",
-                        "on-tertiary": "#ffffff",
-                        "tertiary": "#000000",
-                        "surface-tint": "#5d5c76",
-                        "on-primary-container": "#83819d",
-                        "vibrant-rose": "#EA4C89",
-                        "secondary-fixed-dim": "#ffb1c6",
-                        "on-secondary-container": "#61002f",
-                        "surface-container-low": "#f3f3f4",
-                        "error": "#ba1a1a",
-                        "surface": "#f9f9fa",
-                        "pure-white": "#FFFFFF",
-                        "on-secondary-fixed-variant": "#8e0048",
-                        "soft-alabaster": "#F3F3F4",
-                        "primary": "#000000",
-                        "on-secondary": "#ffffff",
-                        "secondary-fixed": "#ffd9e1",
-                        "primary-container": "#1a1930",
-                        "on-error": "#ffffff",
-                        "secondary-container": "#fc5a97",
-                        "inverse-primary": "#c7c3e2",
-                        "error-container": "#ffdad6",
-                        "on-secondary-fixed": "#3f001c",
-                        "on-primary": "#ffffff",
-                        "surface-container-highest": "#e2e2e3",
-                        "inverse-surface": "#2f3132",
-                        "tertiary-container": "#271905",
-                        "surface-dim": "#dadadb",
+                    "colors": {
+                        "primary": "var(--color-primary)",
+                        "secondary": "var(--color-secondary)",
+                        "background": "var(--color-background)",
+                        "surface": "var(--color-surface)",
+                        "deep-onyx": "var(--color-primary)",
                         "on-surface": "#1a1c1d",
-                        "deep-onyx": "#0D0C22",
-                        "surface-container-lowest": "#ffffff",
-                        "primary-fixed-dim": "#c7c3e2",
-                        "surface-variant": "#e2e2e3",
-                        "outline-variant": "#c8c5cd",
-                        "tertiary-fixed-dim": "#dec2a3",
-                        "on-tertiary-fixed": "#271905",
-                        "on-tertiary-container": "#988064",
-                        "on-surface-variant": "#47464d",
-                        "surface-container-high": "#e8e8e9",
-                        "secondary": "#b31d5f",
-                        "on-primary-fixed-variant": "#46445d",
-                        "outline": "#78767d",
-                        "background": "#f9f9fa",
-                        "on-error-container": "#93000a",
-                        "surface-bright": "#f9f9fa",
-                        "on-tertiary-fixed-variant": "#57432b",
-                        "on-primary-fixed": "#1a1930",
-                        "on-background": "#1a1c1d"
+                        "pure-white": "#FFFFFF",
+                        "soft-alabaster": "#F3F3F4",
+                        "on-primary": "#ffffff",
+                        "on-secondary": "#ffffff"
                     },
-                    borderRadius: {
-                        DEFAULT: "0.125rem",
-                        lg: "0.25rem",
-                        xl: "0.5rem",
-                        full: "0.75rem"
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
                     },
-                    spacing: {
+                    "spacing": {
                         "margin-desktop": "64px",
                         "margin-mobile": "20px",
                         "margin-tablet": "32px",
@@ -79,160 +51,198 @@
                         "gutter": "32px",
                         "container-max": "1440px"
                     },
-                    fontFamily: {
-                        "display-xl": ["hankenGrotesk", "sans-serif"],
-                        "body-md": ["hankenGrotesk", "sans-serif"],
-                        "headline-md": ["hankenGrotesk", "sans-serif"],
-                        "headline-lg-mobile": ["hankenGrotesk", "sans-serif"],
-                        "label-sm": ["hankenGrotesk", "sans-serif"],
-                        "display-xl-mobile": ["hankenGrotesk", "sans-serif"],
-                        "headline-lg": ["hankenGrotesk", "sans-serif"],
-                        "body-lg": ["hankenGrotesk", "sans-serif"]
-                    },
-                    fontSize: {
-                        "display-xl": ["72px", { lineHeight: "80px", letterSpacing: "-0.04em", fontWeight: "700" }],
-                        "body-md": ["16px", { lineHeight: "24px", fontWeight: "400" }],
-                        "headline-md": ["24px", { lineHeight: "32px", fontWeight: "500" }],
-                        "headline-lg-mobile": ["32px", { lineHeight: "40px", letterSpacing: "-0.01em", fontWeight: "600" }],
-                        "label-sm": ["12px", { lineHeight: "16px", letterSpacing: "0.05em", fontWeight: "600" }],
-                        "display-xl-mobile": ["44px", { lineHeight: "48px", letterSpacing: "-0.02em", fontWeight: "700" }],
-                        "headline-lg": ["40px", { lineHeight: "48px", letterSpacing: "-0.02em", fontWeight: "600" }],
-                        "body-lg": ["18px", { lineHeight: "28px", fontWeight: "400" }]
+                    "fontFamily": {
+                        "display-xl": ["var(--font-main)", "sans-serif"],
+                        "body-md": ["var(--font-main)", "sans-serif"],
+                        "headline-md": ["var(--font-main)", "sans-serif"],
+                        "headline-lg-mobile": ["var(--font-main)", "sans-serif"],
+                        "label-sm": ["var(--font-main)", "sans-serif"],
+                        "display-xl-mobile": ["var(--font-main)", "sans-serif"],
+                        "headline-lg": ["var(--font-main)", "sans-serif"],
+                        "body-lg": ["var(--font-main)", "sans-serif"]
                     }
-                }
-            }
+                },
+            },
         }
     </script>
-<style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
-    </style>
 </head>
-<body class="bg-surface text-on-surface font-body-md antialiased selection:bg-surface-tint selection:text-pure-white">
-<nav class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-deep-onyx/80 backdrop-blur-md border-b border-on-surface/10 dark:border-pure-white/10" dir="ltr">
-<div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop h-20 max-w-container-max mx-auto">
-<div class="font-display-xl text-headline-md font-bold text-primary dark:text-pure-white tracking-tighter">
-                Pallet Ross
+<body class="bg-background text-on-background font-body-md antialiased overflow-x-hidden min-h-screen flex flex-col">
+    <!-- TopNavBar -->
+    <nav class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-deep-onyx/80 backdrop-blur-md border-b border-on-surface/10 dark:border-pure-white/10 transition-all duration-300">
+        <div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop h-20 max-w-container-max mx-auto">
+            <!-- Brand -->
+            <a id="brand-name" class="font-display-xl text-headline-md font-bold text-primary dark:text-pure-white tracking-tighter cursor-pointer transition-all duration-300 hover:opacity-70" href="index.html">عالم ورق الكاشير</a>
+            <!-- Navigation Links (Desktop) -->
+            <div class="hidden md:flex space-x-8 space-x-reverse items-center">
+                <a id="nav-link-1" class="font-label-sm text-label-sm uppercase tracking-widest text-primary dark:text-pure-white border-b-2 border-primary dark:border-pure-white pb-1 cursor-pointer duration-300" href="services.html">الخدمات</a>
+                <a id="nav-link-2" class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-pure-white transition-colors cursor-pointer duration-300" href="gallery.html">المعرض</a>
+                <a id="nav-link-3" class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-pure-white transition-colors cursor-pointer duration-300" href="about.html">عن الشركة</a>
+                <a id="nav-link-4" class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-pure-white transition-colors cursor-pointer duration-300" href="#Contact">اتصل بنا</a>
             </div>
-<div class="hidden md:flex space-x-8 items-center">
-<a class="font-label-sm text-label-sm uppercase tracking-widest text-primary dark:text-pure-white border-b-2 border-primary dark:border-pure-white pb-1 cursor-pointer transition-all duration-300" href="services.html">الخدمات</a>
-<a class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-pure-white transition-colors cursor-pointer transition-all duration-300" href="portfolio.html">أعمالنا</a>
-<a class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-pure-white transition-colors cursor-pointer transition-all duration-300" href="about.html">عن الشركة</a>
-<a class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-pure-white transition-colors cursor-pointer transition-all duration-300" href="#Contact">اتصل بنا</a>
-</div>
-<div class="hidden md:block">
-<button class="bg-deep-onyx text-pure-white px-6 py-3 rounded hover:bg-surface-tint transition-colors font-label-sm text-label-sm uppercase tracking-widest">
-                    استفسر الآن
+            <!-- Trailing Action (Desktop) -->
+            <div class="hidden md:block">
+                <button id="nav-cta-btn" class="bg-deep-onyx text-pure-white font-label-sm text-label-sm uppercase tracking-widest px-6 py-3 rounded hover:bg-secondary-container transition-colors duration-300 cursor-pointer">استفسر الآن</button>
+            </div>
+            <!-- Mobile Menu Icon -->
+            <div class="md:hidden flex items-center">
+                <button class="text-primary cursor-pointer hover:opacity-70 transition-opacity duration-300">
+                    <span class="material-symbols-outlined text-headline-md">menu</span>
                 </button>
-</div>
-<div class="md:hidden flex items-center">
-<span class="material-symbols-outlined text-primary text-2xl">menu</span>
-</div>
-</div>
-</nav>
-<main class="pt-32 pb-24 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
-<header class="mb-24 md:w-2/3">
-<h1 class="font-display-xl-mobile md:font-display-xl text-display-xl-mobile md:text-display-xl text-primary mb-6">
-                الخدمات المؤسسية
-            </h1>
-<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl leading-relaxed">
-                نقدم حلولاً استراتيجية متكاملة مصممة خصيصاً لتلبية متطلبات الشركات والمؤسسات الكبرى، مع التركيز على الدقة، الكفاءة، وتحقيق النمو المستدام في بيئة الأعمال المتغيرة.
-            </p>
-</header>
-<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
-<div class="bg-surface-container-low p-8 border border-deep-onyx/10 rounded group hover:border-deep-onyx/30 transition-colors duration-300">
-<div class="mb-6 h-12 w-12 flex items-center justify-center bg-pure-white rounded-full border border-deep-onyx/10 group-hover:bg-deep-onyx group-hover:text-pure-white transition-colors duration-300">
-<span class="material-symbols-outlined" data-icon="account_balance">account_balance</span>
-</div>
-<h3 class="font-headline-md text-headline-md text-primary mb-4">الاستشارات المالية</h3>
-<p class="font-body-md text-body-md text-on-surface-variant">
-                    تحليل مالي دقيق وهيكلة رأس المال لضمان الاستقرار المالي وتعظيم عوائد الاستثمار لمؤسستك.
-                </p>
-</div>
-<div class="bg-surface-container-low p-8 border border-deep-onyx/10 rounded group hover:border-deep-onyx/30 transition-colors duration-300">
-<div class="mb-6 h-12 w-12 flex items-center justify-center bg-pure-white rounded-full border border-deep-onyx/10 group-hover:bg-deep-onyx group-hover:text-pure-white transition-colors duration-300">
-<span class="material-symbols-outlined" data-icon="shield">shield</span>
-</div>
-<h3 class="font-headline-md text-headline-md text-primary mb-4">إدارة المخاطر</h3>
-<p class="font-body-md text-body-md text-on-surface-variant">
-                    تحديد وتقييم وتخفيف المخاطر التشغيلية والمالية لحماية أصول الشركة وضمان استمرارية الأعمال.
-                </p>
-</div>
-<div class="bg-surface-container-low p-8 border border-deep-onyx/10 rounded group hover:border-deep-onyx/30 transition-colors duration-300">
-<div class="mb-6 h-12 w-12 flex items-center justify-center bg-pure-white rounded-full border border-deep-onyx/10 group-hover:bg-deep-onyx group-hover:text-pure-white transition-colors duration-300">
-<span class="material-symbols-outlined" data-icon="explore">explore</span>
-</div>
-<h3 class="font-headline-md text-headline-md text-primary mb-4">التخطيط الاستراتيجي</h3>
-<p class="font-body-md text-body-md text-on-surface-variant">
-                    صياغة خطط طويلة المدى تتماشى مع رؤية الشركة، مع التركيز على الميزة التنافسية وتوسيع الحصة السوقية.
-                </p>
-</div>
-<div class="bg-surface-container-low p-8 border border-deep-onyx/10 rounded group hover:border-deep-onyx/30 transition-colors duration-300">
-<div class="mb-6 h-12 w-12 flex items-center justify-center bg-pure-white rounded-full border border-deep-onyx/10 group-hover:bg-deep-onyx group-hover:text-pure-white transition-colors duration-300">
-<span class="material-symbols-outlined" data-icon="architecture">architecture</span>
-</div>
-<h3 class="font-headline-md text-headline-md text-primary mb-4">إعادة الهيكلة</h3>
-<p class="font-body-md text-body-md text-on-surface-variant">
-                    تحسين الهياكل التنظيمية والعمليات الداخلية لزيادة الكفاءة وتقليل التكاليف التشغيلية.
-                </p>
-</div>
-<div class="bg-surface-container-low p-8 border border-deep-onyx/10 rounded group hover:border-deep-onyx/30 transition-colors duration-300">
-<div class="mb-6 h-12 w-12 flex items-center justify-center bg-pure-white rounded-full border border-deep-onyx/10 group-hover:bg-deep-onyx group-hover:text-pure-white transition-colors duration-300">
-<span class="material-symbols-outlined" data-icon="trending_up">trending_up</span>
-</div>
-<h3 class="font-headline-md text-headline-md text-primary mb-4">التقييم المؤسسي</h3>
-<p class="font-body-md text-body-md text-on-surface-variant">
-                    تقييمات دقيقة للشركات والأصول غير الملموسة لدعم عمليات الدمج والاستحواذ واتخاذ القرارات الاستثمارية.
-                </p>
-</div>
-<div class="bg-surface-container-low p-8 border border-deep-onyx/10 rounded group hover:border-deep-onyx/30 transition-colors duration-300">
-<div class="mb-6 h-12 w-12 flex items-center justify-center bg-pure-white rounded-full border border-deep-onyx/10 group-hover:bg-deep-onyx group-hover:text-pure-white transition-colors duration-300">
-<span class="material-symbols-outlined" data-icon="gavel">gavel</span>
-</div>
-<h3 class="font-headline-md text-headline-md text-primary mb-4">حوكمة الشركات</h3>
-<p class="font-body-md text-body-md text-on-surface-variant">
-                    تطوير أطر عمل فعالة للحوكمة تضمن الامتثال التنظيمي وتعزز الشفافية والمساءلة الإدارية.
-                </p>
-</div>
-</section>
-<section class="mt-32 border-t border-on-surface/10 pt-24 grid md:grid-cols-2 gap-16 items-center">
-<div>
-<h2 class="font-headline-lg text-headline-lg text-primary mb-6">نهجنا الاستشاري</h2>
-<p class="font-body-lg text-body-lg text-on-surface-variant mb-8 leading-relaxed">
-                    نحن لا نقدم مجرد نصائح، بل نبني شراكات استراتيجية. منهجيتنا تعتمد على الفهم العميق لثقافة مؤسستك وأهدافها، مما يمكننا من تصميم حلول قابلة للتنفيذ وتحدث تأثيراً ملموساً.
-                </p>
-<button class="bg-deep-onyx text-pure-white px-8 py-4 rounded hover:bg-surface-tint transition-colors font-label-sm text-label-sm uppercase tracking-widest inline-flex items-center gap-2">
-<span>طلب استشارة</span>
-<span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
-</button>
-</div>
-<div class="relative h-[400px] w-full rounded overflow-hidden bg-surface-container">
-<div class="absolute inset-0 bg-gradient-to-tr from-surface-container-high to-surface-container-lowest"></div>
-<img alt="Corporate Boardroom" class="w-full h-full object-cover mix-blend-multiply opacity-80 grayscale" data-alt="A sophisticated, high-end corporate boardroom setting viewed from a wide angle. The space is minimalist and architectural, featuring a large sleek table and minimal chairs. Natural light streams in through large windows, creating soft tonal layers and quiet luxury. The color palette is predominantly muted whites, soft greys, and deep onyx shadows, emphasizing a professional, authoritative atmosphere." src="assets/images/img_b07e6270be.jpg"/>
-</div>
-</section>
-</main>
-<footer class="bg-surface dark:bg-deep-onyx w-full py-20 border-t border-on-surface/5 dark:border-pure-white/5 transition-all duration-200" dir="ltr">
-<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
-<div>
-<div class="font-display-xl text-headline-md font-bold text-primary dark:text-pure-white mb-6">
-                    Pallet Ross
-                </div>
-<p class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant">
-                    © 2024 Pallet Ross. All rights reserved.
-                </p>
-</div>
-<div class="flex flex-col md:flex-row md:justify-end gap-6 md:gap-12">
-<div class="flex flex-col gap-4">
-<a class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Privacy Policy</a>
-<a class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Terms of Service</a>
-</div>
-<div class="flex flex-col gap-4">
-<a class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">LinkedIn</a>
-<a class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors" href="#">Instagram</a>
-</div>
-</div>
-</div>
-</footer>
-</body></html>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow pt-32 pb-24 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+        <header class="mb-24 md:w-2/3">
+            <h1 id="services-hero-title" class="font-display-xl-mobile md:font-display-xl text-display-xl-mobile md:text-display-xl text-primary mb-6">الخدمات المؤسسية</h1>
+            <p id="services-hero-desc" class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl leading-relaxed">نقدم حلولاً استراتيجية متكاملة مصممة خصيصاً لتلبية متطلبات الشركات والمؤسسات الكبرى.</p>
+        </header>
+
+        <div id="category-filters" class="flex flex-wrap gap-4 mb-12">
+            <button onclick="loadServices()" class="bg-primary text-pure-white px-6 py-2 rounded-full text-sm hover:bg-secondary transition-colors">الكل</button>
+        </div>
+
+        <section id="services-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+            <!-- Dynamic Services will load here -->
+            <div class="animate-pulse bg-surface-container h-64 rounded"></div>
+            <div class="animate-pulse bg-surface-container h-64 rounded"></div>
+            <div class="animate-pulse bg-surface-container h-64 rounded"></div>
+        </section>
+
+        <section class="mt-32 border-t border-on-surface/10 pt-24 grid md:grid-cols-2 gap-16 items-center">
+            <div>
+                <h2 id="services-approach-title" class="font-headline-lg text-headline-lg text-primary mb-6">نهجنا الاستشاري</h2>
+                <p id="services-approach-desc" class="font-body-lg text-body-lg text-on-surface-variant mb-8 leading-relaxed">نحن لا نقدم مجرد نصائح، بل نبني شراكات استراتيجية. منهجيتنا تعتمد على الفهم العميق لثقافة مؤسستك وأهدافها.</p>
+                <a id="services-approach-link" href="#" class="bg-deep-onyx text-pure-white px-8 py-4 rounded hover:bg-secondary transition-colors font-label-sm text-label-sm uppercase tracking-widest inline-flex items-center gap-2">
+                    <span id="services-approach-btn">طلب استشارة</span>
+                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                </a>
+            </div>
+            <div class="relative h-[400px] w-full rounded overflow-hidden bg-surface-container">
+                <img id="services-approach-img" alt="Corporate Boardroom" class="w-full h-full object-cover" src="assets/images/img_b07e6270be.jpg"/>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-surface dark:bg-deep-onyx border-t border-on-surface/5 dark:border-pure-white/5 w-full py-20 transition-all duration-200">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-gutter px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+            <div class="flex flex-col items-start text-right">
+                <span id="footer-brand" class="font-display-xl text-headline-md font-bold text-primary dark:text-pure-white mb-6">عالم ورق الكاشير</span>
+                <p id="footer-copyright" class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant">© 2026 جميع الحقوق محفوظة.</p>
+            </div>
+            <div class="flex flex-col md:flex-row md:justify-end items-start md:items-center gap-6 mt-8 md:mt-0 text-right">
+                <a id="social-fb" class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors duration-200" href="#">فيسبوك</a>
+                <a id="social-wa" class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors duration-200" href="#">واتساب</a>
+                <a id="social-ig" class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors duration-200" href="#">انستغرام</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-config.js"></script>
+    <script>
+        const _supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+        async function updateContent() {
+            let data = JSON.parse(localStorage.getItem('siteContent'));
+            
+            // Fetch from Supabase
+            try {
+                const { data: cloudData, error } = await _supabase.from('site_settings').select('content').eq('id', 1).single();
+                if (cloudData && cloudData.content) {
+                    data = cloudData.content;
+                    localStorage.setItem('siteContent', JSON.stringify(data));
+                }
+            } catch (e) {
+                console.log("Supabase fetch failed, using local data");
+            }
+
+            if (!data) return;
+
+            Object.keys(data).forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    if (el.tagName === 'IMG') {
+                        el.src = data[id];
+                    } else if (el.tagName === 'A' && (id.startsWith('social-') || id.startsWith('nav-link-') || id.includes('cta') || id.includes('link') || id.includes('btn'))) {
+                        if (id === 'social-wa') {
+                            let phone = data[id].toString().replace(/\s+/g, '');
+                            if (phone.startsWith('0')) phone = phone.substring(1);
+                            el.href = `https://wa.me/964${phone}`;
+                        } else if (id.startsWith('social-') || id.includes('link') || id.includes('cta') || id.includes('btn')) {
+                            el.href = data[id];
+                        } else {
+                            el.innerText = data[id];
+                        }
+                    } else if (id === 'site-title') {
+                        document.title = data[id];
+                    } else if (id === 'meta-desc') {
+                        el.content = data[id];
+                    } else if (id === 'favicon') {
+                        el.href = data[id];
+                    } else {
+                        el.innerText = data[id];
+                    }
+                }
+            });
+
+            // Theme Variables
+            const root = document.documentElement;
+            if (data['theme-primary']) root.style.setProperty('--color-primary', data['theme-primary']);
+            if (data['theme-secondary']) root.style.setProperty('--color-secondary', data['theme-secondary']);
+            if (data['theme-background']) root.style.setProperty('--color-background', data['theme-background']);
+            if (data['theme-surface']) root.style.setProperty('--color-surface', data['theme-surface']);
+            if (data['theme-font']) root.style.setProperty('--font-main', data['theme-font']);
+
+            loadCategories();
+            loadServices();
+        }
+
+        async function loadCategories() {
+            try {
+                const { data: categories, error } = await _supabase
+                    .from('categories')
+                    .select('*')
+                    .eq('type', 'service');
+
+                if (categories) {
+                    const container = document.getElementById('category-filters');
+                    const currentHtml = container.innerHTML;
+                    container.innerHTML = currentHtml + categories.map(c => `
+                        <button onclick="loadServices('${c.id}')" class="bg-surface-container border border-deep-onyx/10 text-on-surface px-6 py-2 rounded-full text-sm hover:bg-primary hover:text-pure-white transition-colors">${c.name}</button>
+                    `).join('');
+                }
+            } catch (e) {
+                console.error("Categories load failed", e);
+            }
+        }
+
+        async function loadServices(categoryId = null) {
+            try {
+                let query = _supabase.from('services').select('*').eq('is_active', true);
+                if (categoryId) query = query.eq('category_id', categoryId);
+                
+                const { data: services, error } = await query.order('order_index', { ascending: true });
+
+                const grid = document.getElementById('services-grid');
+                if (grid && services) {
+                    grid.innerHTML = services.map(s => `
+                        <div class="bg-surface-container-low p-8 border border-deep-onyx/10 rounded group hover:border-deep-onyx/30 transition-colors duration-300">
+                            <div class="mb-6 h-12 w-12 flex items-center justify-center bg-pure-white rounded-full border border-deep-onyx/10 group-hover:bg-deep-onyx group-hover:text-pure-white transition-colors duration-300">
+                                <span class="material-symbols-outlined">receipt_long</span>
+                            </div>
+                            <h3 class="font-headline-md text-headline-md text-primary mb-4">${s.title}</h3>
+                            <p class="font-body-md text-body-md text-on-surface-variant">${s.description}</p>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {
+                console.error("Services load failed", e);
+            }
+        }
+
+        window.addEventListener('load', updateContent);
+        window.addEventListener('storage', updateContent);
+    </script>
+</body>
+</html>
