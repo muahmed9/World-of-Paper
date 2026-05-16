@@ -3,131 +3,778 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم | عالم ورق الكاشير</title>
+    <title>لوحة التحكم الشاملة | عالم ورق الكاشير</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: #fff; }
-        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .tab-active { border-bottom: 2px solid #fff; color: #fff; }
-        input, textarea { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 10px; width: 100%; color: #fff; outline: none; }
-        input:focus, textarea:focus { border-color: rgba(255, 255, 255, 0.3); }
-        .btn-save { background: #fff; color: #000; font-weight: 600; padding: 12px 24px; border-radius: 8px; transition: all 0.3s; }
-        .btn-save:hover { background: #e5e5e5; transform: translateY(-2px); }
+        body { font-family: 'Tajawal', sans-serif; background: #0a0a0a; color: #fff; }
+        .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .tab-active { border-bottom: 2px solid #fff; color: #fff; font-weight: bold; }
+        input, textarea { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 12px; width: 100%; color: #fff; outline: none; transition: all 0.3s; }
+        input:focus, textarea:focus { border-color: rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.05); }
+        label { display: block; font-size: 0.85rem; color: #888; margin-bottom: 8px; margin-top: 16px; }
+        .btn-save { background: #fff; color: #000; font-weight: 700; padding: 14px 32px; border-radius: 12px; transition: all 0.3s; cursor: pointer; }
+        .btn-save:hover { background: #e0e0e0; transform: scale(1.02); }
+        .section-title { font-size: 1.25rem; font-weight: bold; border-right: 4px solid #fff; padding-right: 12px; margin-top: 32px; margin-bottom: 16px; color: #eee; }
     </style>
 </head>
-<body class="p-4 md:p-8">
-    <div class="max-w-5xl mx-auto">
-        <!-- Header -->
-        <header class="flex justify-between items-center mb-12">
-            <div>
-                <h1 class="text-3xl font-bold mb-2">لوحة التحكم</h1>
-                <p class="text-neutral-400">إدارة محتوى موقع عالم ورق الكاشير</p>
+<body class="p-4 md:p-10">
+    <!-- Login Overlay -->
+    <div id="login-overlay" class="fixed inset-0 z-[100] bg-black flex items-center justify-center p-6">
+        <div class="glass p-8 rounded-2xl shadow-2xl max-w-sm w-full text-center border border-white/10">
+            <div class="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
             </div>
-            <a href="index.html" class="text-sm border border-neutral-700 px-4 py-2 rounded-full hover:bg-white hover:text-black transition">معاينة الموقع</a>
-        </header>
-
-        <!-- Main Content -->
-        <div class="glass rounded-3xl p-6 md:p-8">
-            <!-- Tabs -->
-            <div class="flex gap-8 mb-8 border-b border-neutral-800 overflow-x-auto">
-                <button onclick="switchTab('home')" id="tab-home" class="pb-4 tab-active text-neutral-400 whitespace-nowrap">الصفحة الرئيسية</button>
-                <button onclick="switchTab('services')" id="tab-services" class="pb-4 text-neutral-400 whitespace-nowrap">الخدمات</button>
-                <button onclick="switchTab('portfolio')" id="tab-portfolio" class="pb-4 text-neutral-400 whitespace-nowrap">أعمالنا</button>
-            </div>
-
-            <!-- Home Tab Content -->
-            <div id="content-home" class="tab-content space-y-8">
-                <div>
-                    <h3 class="text-lg font-semibold mb-4 text-neutral-200">قسم الهيرو (Hero Section)</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="space-y-4">
-                            <label class="block text-sm text-neutral-500">العنوان الرئيسي</label>
-                            <input type="text" id="home_hero_title" placeholder="أدخل العنوان الرئيسي">
-                        </div>
-                        <div class="space-y-4">
-                            <label class="block text-sm text-neutral-500">الوصف الرئيسي</label>
-                            <textarea id="home_hero_desc" rows="3" placeholder="أدخل الوصف"></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="pt-8 border-t border-neutral-800">
-                    <h3 class="text-lg font-semibold mb-4 text-neutral-200">الصور والفيديوهات</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="space-y-4">
-                            <label class="block text-sm text-neutral-500">رابط صورة الهيرو</label>
-                            <input type="text" id="home_hero_img" placeholder="assets/images/hero.jpg">
-                        </div>
-                        <div class="space-y-4">
-                            <label class="block text-sm text-neutral-500">رابط فيديو الخلفية (إن وجد)</label>
-                            <input type="text" id="home_hero_video" placeholder="أدخل رابط الفيديو">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="mt-12 flex justify-end gap-4">
-                <button onclick="resetData()" class="px-6 py-3 text-neutral-500 hover:text-white transition">إعادة ضبط</button>
-                <button onclick="saveData()" class="btn-save">حفظ التغييرات</button>
-            </div>
+            <h2 class="text-2xl font-bold mb-2">لوحة التحكم</h2>
+            <p class="text-neutral-500 mb-6">يرجى إدخال كلمة المرور للمتابعة</p>
+            <input type="password" id="admin-password" class="mb-4 text-center text-lg" placeholder="••••••">
+            <button onclick="checkPassword()" class="btn-save w-full">دخول</button>
+            <p id="login-error" class="text-red-500 mt-4 hidden">كلمة المرور غير صحيحة!</p>
         </div>
     </div>
 
-    <script>
-        // Default Data Structure
+    <div id="admin-content" class="hidden max-w-6xl mx-auto">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
+            <div>
+                <h1 class="text-4xl font-bold tracking-tight">إدارة المحتوى</h1>
+                <p class="text-neutral-500 mt-1">تحكم في كل تفصيلة بموقعك من مكان واحد</p>
+            </div>
+            <div class="flex gap-4">
+                <a href="index.html" target="_blank" class="px-5 py-2.5 rounded-xl border border-neutral-800 hover:bg-neutral-900 transition flex items-center gap-2">
+                    <span>عرض الموقع</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                </a>
+            </div>
+        </header>
+
+        <!-- Main Dashboard -->
+        <div class="glass rounded-[2rem] p-6 md:p-10">
+            <!-- Tabs Navigation -->
+                <button onclick="switchTab('brand')" id="tab-brand" class="pb-4 tab-active whitespace-nowrap">الهوية والعام</button>
+                <button onclick="switchTab('hero')" id="tab-hero" class="pb-4 text-neutral-500 whitespace-nowrap">الرئيسية</button>
+                <button onclick="switchTab('about')" id="tab-about" class="pb-4 text-neutral-500 whitespace-nowrap">عن الشركة</button>
+                <button onclick="switchTab('services')" id="tab-services" class="pb-4 text-neutral-500 whitespace-nowrap">الخدمات</button>
+                <button onclick="switchTab('gallery')" id="tab-gallery" class="pb-4 text-neutral-500 whitespace-nowrap">المعرض</button>
+                <button onclick="switchTab('partners')" id="tab-partners" class="pb-4 text-neutral-500 whitespace-nowrap">الشركاء</button>
+                <button onclick="switchTab('testimonials')" id="tab-testimonials" class="pb-4 text-neutral-500 whitespace-nowrap">آراء العملاء</button>
+                <button onclick="switchTab('faqs')" id="tab-faqs" class="pb-4 text-neutral-500 whitespace-nowrap">الأسئلة الشائعة</button>
+
+                <button onclick="switchTab('menu')" id="tab-menu" class="pb-4 text-neutral-500 whitespace-nowrap">القائمة</button>
+                <button onclick="switchTab('social')" id="tab-social" class="pb-4 text-neutral-500 whitespace-nowrap">التواصل</button>
+                <button onclick="switchTab('seo')" id="tab-seo" class="pb-4 text-neutral-500 whitespace-nowrap">SEO والإعدادات</button>
+                <button onclick="switchTab('footer')" id="tab-footer" class="pb-4 text-neutral-500 whitespace-nowrap">التذييل</button>
+                <button onclick="switchTab('design')" id="tab-design" class="pb-4 text-neutral-500 whitespace-nowrap">التصميم والألوان</button>
+                <button onclick="switchTab('categories')" id="tab-categories" class="pb-4 text-neutral-500 whitespace-nowrap">الفئات</button>
+                <button onclick="switchTab('messages')" id="tab-messages" class="pb-4 text-neutral-500 whitespace-nowrap">الرسائل</button>
+                <button onclick="switchTab('subscribers')" id="tab-subscribers" class="pb-4 text-neutral-500 whitespace-nowrap">المشتركين</button>
+            </div>
+
+            <!-- TAB: Brand & General -->
+            <div id="content-brand" class="tab-content space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label>اسم العلامة التجارية (Header)</label>
+                        <input type="text" id="brand-name">
+                    </div>
+                    <div>
+                        <label>نص زر الاستفسار (Navbar)</label>
+                        <input type="text" id="nav-cta-btn">
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: Hero Section -->
+            <div id="content-hero" class="tab-content hidden space-y-6">
+                <div class="section-title">إعدادات القسم الرئيسي (Home)</div>
+                <label>العنوان الرئيسي العريض</label>
+                <textarea id="hero-title" rows="2"></textarea>
+                
+                <label>الوصف التفصيلي</label>
+                <textarea id="hero-desc" rows="3"></textarea>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label>نص زر الدعوة للعمل (CTA)</label>
+                        <input type="text" id="hero-cta-text">
+                    </div>
+                    <div>
+                        <label>رابط صورة الخلفية الكبيرة</label>
+                        <input type="text" id="hero-img">
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: About Page -->
+            <div id="content-about" class="tab-content hidden space-y-6">
+                <div class="section-title">صفحة عن الشركة</div>
+                <label>عنوان الهيرو (About)</label>
+                <input type="text" id="about-hero-title">
+                <label>وصف الهيرو (About)</label>
+                <textarea id="about-hero-desc" rows="2"></textarea>
+
+                <div class="section-title">من نحن</div>
+                <label>عنوان القسم</label>
+                <input type="text" id="about-who-title">
+                <label>النص التعريفي (الفقرة الأولى)</label>
+                <textarea id="about-who-p1" rows="3"></textarea>
+                <label>النص التعريفي (الفقرة الثانية)</label>
+                <textarea id="about-who-p2" rows="3"></textarea>
+                <label>رابط صورة "من نحن"</label>
+                <input type="text" id="about-who-img">
+
+                <div class="flex justify-between items-center mb-6 mt-10">
+                    <div class="section-title">فريق العمل</div>
+                    <button onclick="addItem('team_members')" class="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl border border-neutral-800 transition text-sm">+ إضافة عضو</button>
+                </div>
+                <div id="list-team_members" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Dynamic Team Members -->
+                </div>
+            </div>
+
+
+            <!-- TAB: Services Section -->
+            <div id="content-services" class="tab-content hidden">
+                <div class="section-title">عناوين صفحة الخدمات</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label>عنوان هيرو الخدمات</label>
+                        <input type="text" id="services-hero-title">
+                    </div>
+                    <div>
+                        <label>وصف هيرو الخدمات</label>
+                        <input type="text" id="services-hero-desc">
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center mb-6 mt-10">
+                    <div class="section-title">الخدمات</div>
+                    <button onclick="addItem('services')" class="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl border border-neutral-800 transition text-sm">+ إضافة خدمة</button>
+                </div>
+                <div id="list-services" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Dynamic Services -->
+                </div>
+
+                <div class="section-title mt-10">نهجنا الاستشاري</div>
+                <label>العنوان</label>
+                <input type="text" id="services-approach-title">
+                <label>الوصف</label>
+                <textarea id="services-approach-desc" rows="3"></textarea>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label>نص زر الاستشارة</label>
+                        <input type="text" id="services-approach-btn">
+                    </div>
+                    <div>
+                        <label>رابط زر الاستشارة</label>
+                        <input type="text" id="services-approach-link">
+                    </div>
+                </div>
+                <label>رابط الصورة</label>
+                <input type="text" id="services-approach-img">
+            </div>
+
+            <!-- TAB: Partners -->
+            <div id="content-partners" class="tab-content hidden space-y-6">
+                <div class="flex justify-between items-center mb-6">
+                    <div class="section-title">شركاء النجاح</div>
+                    <button onclick="addItem('partners')" class="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl border border-neutral-800 transition text-sm">+ إضافة شريك</button>
+                </div>
+                <div id="list-partners" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Dynamic Partners -->
+                </div>
+            </div>
+
+            <!-- TAB: Testimonials -->
+            <div id="content-testimonials" class="tab-content hidden space-y-6">
+                <div class="flex justify-between items-center mb-6">
+                    <div class="section-title">آراء العملاء</div>
+                    <button onclick="addItem('testimonials')" class="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl border border-neutral-800 transition text-sm">+ إضافة رأي</button>
+                </div>
+                <div id="list-testimonials" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Dynamic Testimonials -->
+                </div>
+            </div>
+
+            <!-- TAB: FAQs -->
+            <div id="content-faqs" class="tab-content hidden space-y-6">
+                <div class="flex justify-between items-center mb-6">
+                    <div class="section-title">الأسئلة الشائعة</div>
+                    <button onclick="addItem('faqs')" class="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl border border-neutral-800 transition text-sm">+ إضافة سؤال</button>
+                </div>
+                <div id="list-faqs" class="space-y-4">
+                    <!-- Dynamic FAQs -->
+                </div>
+            </div>
+
+            <!-- TAB: Gallery -->
+            <div id="content-gallery" class="tab-content hidden space-y-6">
+                <div class="section-title">صفحة المعرض</div>
+                <label>عنوان الصفحة الرئيسي</label>
+                <input type="text" id="gallery-title">
+                <label>الوصف الفرعي</label>
+                <textarea id="gallery-desc" rows="2"></textarea>
+
+                <div class="flex justify-between items-center mb-6 mt-10">
+                    <div class="section-title">معرض الصور والمنتجات</div>
+                    <button onclick="addItem('gallery')" class="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl border border-neutral-800 transition text-sm">+ إضافة صورة/منتج</button>
+                </div>
+                <div id="list-gallery" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Dynamic Gallery -->
+                </div>
+            </div>
+
+            <!-- TAB: Menu -->
+            <div id="content-menu" class="tab-content hidden space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div><label>الرابط 1</label><input type="text" id="nav-link-1"></div>
+                    <div><label>الرابط 2</label><input type="text" id="nav-link-2"></div>
+                    <div><label>الرابط 3</label><input type="text" id="nav-link-3"></div>
+                    <div><label>الرابط 4</label><input type="text" id="nav-link-4"></div>
+                </div>
+            </div>
+
+            <!-- TAB: Social -->
+            <div id="content-social" class="tab-content hidden space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div><label>رابط فيسبوك</label><input type="text" id="social-fb"></div>
+                    <div><label>رابط انستغرام</label><input type="text" id="social-ig"></div>
+                </div>
+                <div class="p-4 bg-white/5 rounded-xl border border-neutral-800">
+                    <label>رقم الواتساب (مثال: 07868483823)</label>
+                    <div class="flex gap-2">
+                        <span class="bg-neutral-800 px-4 py-3 rounded-xl flex items-center">964+</span>
+                        <input type="text" id="social-wa" placeholder="07868483823">
+                    </div>
+                    <p class="text-xs text-neutral-500 mt-2">سيتم تحويل هذا الرقم تلقائياً إلى رابط واتساب فعال (سواء أضفت الصفر أم لا).</p>
+                </div>
+            </div>
+
+            <!-- TAB: SEO -->
+            <div id="content-seo" class="tab-content hidden space-y-6">
+                <div class="space-y-4">
+                    <div><label>عنوان المتصفح (Meta Title)</label><input type="text" id="site-title"></div>
+                    <div><label>وصف الموقع (Meta Description)</label><textarea id="meta-desc" class="w-full h-24 bg-[#1a1a1a] border border-neutral-800 p-3 rounded-lg"></textarea></div>
+                    <div><label>رابط الأيقونة (Favicon)</label><input type="text" id="favicon"></div>
+                </div>
+            </div>
+
+            <!-- TAB: Footer -->
+            <div id="content-footer" class="tab-content hidden space-y-6">
+                <div class="section-title">أسفل الصفحة</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label>اسم الشركة في التذييل</label>
+                        <input type="text" id="footer-brand">
+                    </div>
+                    <div>
+                        <label>نص حقوق النشر</label>
+                        <input type="text" id="footer-copyright">
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: Design -->
+            <div id="content-design" class="tab-content hidden space-y-8">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="space-y-4 p-4 bg-[#1a1a1a] rounded-xl border border-neutral-800">
+                        <h3 class="font-bold text-lg border-b border-neutral-800 pb-2 flex items-center gap-2">الألوان الأساسية</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <label>اللون الأساسي</label>
+                                <input type="color" id="theme-primary" class="h-10 w-20 cursor-pointer">
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <label>اللون الثانوي</label>
+                                <input type="color" id="theme-secondary" class="h-10 w-20 cursor-pointer">
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <label>لون الخلفية</label>
+                                <input type="color" id="theme-background" class="h-10 w-20 cursor-pointer">
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <label>لون الأسطح (Cards)</label>
+                                <input type="color" id="theme-surface" class="h-10 w-20 cursor-pointer">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-4 p-4 bg-[#1a1a1a] rounded-xl border border-neutral-800">
+                        <h3 class="font-bold text-lg border-b border-neutral-800 pb-2 flex items-center gap-2">الخطوط</h3>
+                        <div class="space-y-2">
+                            <label>نوع الخط الأساسي</label>
+                            <select id="theme-font">
+                                <option value="'Tajawal', sans-serif">Tajawal</option>
+                                <option value="'Cairo', sans-serif">Cairo</option>
+                                <option value="'Almarai', sans-serif">Almarai</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="space-y-4 p-4 bg-white/5 rounded-xl border border-dashed border-neutral-800 flex flex-col items-center justify-center text-center">
+                        <div id="preview-box" class="w-24 h-24 rounded-full shadow-lg mb-2 flex items-center justify-center text-white font-bold">Aa</div>
+                        <p class="text-sm text-neutral-400">معاينة</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: Categories -->
+            <div id="content-categories" class="tab-content hidden space-y-6">
+                <div class="flex justify-between items-center">
+                    <div class="section-title">إدارة الفئات (Categories)</div>
+                    <button onclick="addItem('categories')" class="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl border border-neutral-800 transition text-sm">+ إضافة فئة</button>
+                </div>
+                <div id="list-categories" class="space-y-4"></div>
+            </div>
+
+            <!-- TAB: Messages -->
+            <div id="content-messages" class="tab-content hidden space-y-6">
+                <div class="flex justify-between items-center mb-6">
+                    <div class="section-title">رسائل العملاء وطلبات التواصل</div>
+                    <button onclick="loadMessages()" class="p-2 hover:bg-white/10 rounded-lg transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    </button>
+                </div>
+                <div id="messages-list" class="space-y-4">
+                    <p class="text-neutral-500 italic">جاري تحميل الرسائل...</p>
+                </div>
+            </div>
+
+            <!-- TAB: Newsletter Subscribers -->
+            <div id="content-subscribers" class="tab-content hidden space-y-6">
+                <div class="section-title">المشتركين في النشرة البريدية</div>
+                <div id="subscribers-list" class="space-y-4"></div>
+            </div>
+
+            <!-- Action Bar -->
+            <div class="mt-16 flex flex-col md:flex-row justify-between items-center gap-6 pt-10 border-t border-neutral-800">
+                <p class="text-neutral-500 text-sm">ملاحظة: يتم حفظ التعديلات محلياً وتظهر فوراً عند تحديث الموقع.</p>
+                <div class="flex gap-4">
+                    <button onclick="resetData()" class="px-8 py-3 rounded-xl hover:bg-red-900/20 text-red-500 transition">إعادة ضبط الكل</button>
+                    <button onclick="saveData()" class="btn-save shadow-xl shadow-white/5">حفظ وتطبيق التغييرات</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> <!-- End of admin-content -->
+
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="assets/js/supabase-config.js"></script>
+        <script>
+        const _supabase = supabase.createClient(supabaseUrl, supabaseServiceKey);
+
         const defaultData = {
-            home_hero_title: "جودة استثنائية في عالم ورق الكاشير",
-            home_hero_desc: "نقدم أفضل حلول الورق الحراري ومستلزمات نقاط البيع في العراق، بجودة تضمن استمرارية أعمالك.",
-            home_hero_img: "assets/images/hero.jpg",
-            home_hero_video: ""
+            "brand-name": "عالم ورق الكاشير",
+            "nav-cta-btn": "استفسر الآن",
+            "hero-title": "جودة استثنائية في عالم ورق الكاشير",
+            "hero-desc": "نقدم أفضل حلول الورق الحراري ومستلزمات نقاط البيع في العراق، بجودة تضمن استمرارية أعمالك.",
+            "hero-cta-text": "اكتشف منتجاتنا",
+            "hero-img": "assets/images/img_d939f13a3c.jpg",
+            "services-subtitle": "خبراتنا",
+            "services-title": "منتجاتنا وحلولنا",
+            "services-hero-title": "الخدمات المؤسسية",
+            "services-hero-desc": "نقدم حلولاً استراتيجية متكاملة مصممة خصيصاً لتلبية متطلبات الشركات والمؤسسات الكبرى.",
+            "services-approach-title": "نهجنا الاستشاري",
+            "services-approach-desc": "نحن لا نقدم مجرد نصائح، بل نبني شراكات استراتيجية. منهجيتنا تعتمد على الفهم العميق لثقافة مؤسستك وأهدافها.",
+            "services-approach-btn": "طلب استشارة",
+            "services-approach-link": "#",
+            "services-approach-img": "assets/images/img_b07e6270be.jpg",
+            "about-hero-title": "صياغة التميز في عالم الورق",
+            "about-hero-desc": "نحن في عالم ورق الكاشير نؤمن بأن الجودة هي أساس كل تجارة ناجحة.",
+            "about-who-title": "من نحن",
+            "about-who-p1": "تأسست شركتنا لتكون الرائدة في توفير حلول الورق الحراري ومستلزمات نقاط البيع في العراق.",
+            "about-who-p2": "نحن نخدم آلاف الشركات والمتاجر، ونفتخر بتقديم منتجات تصمد أمام ضغط العمل اليومي.",
+            "about-who-img": "assets/images/img_5a5a720ad6.jpg",
+            "about-team-title": "قيادتنا",
+            "about-team-desc": "الرؤى وراء نهجنا المتميز.",
+            "gallery-title": "المعرض",
+            "gallery-desc": "استعرض مجموعتنا الواسعة من مستلزمات الكاشير وحلول نقاط البيع المتكاملة.",
+            "footer-brand": "عالم ورق الكاشير",
+            "footer-copyright": "© 2026 جميع الحقوق محفوظة.",
+            "nav-link-1": "الخدمات",
+            "nav-link-2": "gallery.html",
+            "nav-link-3": "عن الشركة",
+            "nav-link-4": "اتصل بنا",
+            "social-fb": "#",
+            "social-wa": "07868483823",
+            "social-ig": "#",
+            "site-title": "عالم ورق الكاشير",
+            "meta-desc": "متخصصون في توريد ورق الكاشير والحلول التقنية",
+            "favicon": "assets/images/favicon.png",
+            "theme-primary": "#000000",
+            "theme-secondary": "#b31d5f",
+            "theme-background": "#f9f9fa",
+            "theme-surface": "#ffffff",
+            "theme-font": "'Tajawal', sans-serif"
         };
 
-        // Initialize Data
-        let siteData = JSON.parse(localStorage.getItem('siteContent')) || defaultData;
+        async function loadInputs() {
+            // Try loading from Supabase first
+            try {
+                const { data, error } = await _supabase.from('site_settings').select('content').eq('id', 1).single();
+                if (data && data.content) {
+                    siteData = data.content;
+                    localStorage.setItem('siteContent', JSON.stringify(siteData));
+                }
+            } catch (e) {
+                console.log("Supabase load failed, using local storage");
+            }
 
-        // Load Data into inputs
-        function loadInputs() {
             Object.keys(siteData).forEach(key => {
                 const el = document.getElementById(key);
                 if (el) el.value = siteData[key];
             });
+            updatePreview();
         }
 
-        // Save Data to LocalStorage
-        function saveData() {
-            Object.keys(siteData).forEach(key => {
-                const el = document.getElementById(key);
-                if (el) siteData[key] = el.value;
+        function updatePreview() {
+            const preview = document.getElementById('preview-box');
+            if (preview) {
+                preview.style.backgroundColor = document.getElementById('theme-primary').value;
+                preview.style.fontFamily = document.getElementById('theme-font').value;
+            }
+        }
+
+        document.getElementById('theme-primary').addEventListener('input', updatePreview);
+        document.getElementById('theme-font').addEventListener('change', updatePreview);
+
+        async function saveData() {
+            const saveBtn = document.querySelector('button[onclick="saveData()"]');
+            saveBtn.innerText = "جاري الحفظ...";
+            saveBtn.disabled = true;
+
+            const fields = document.querySelectorAll('input[id], textarea[id], select[id]');
+            fields.forEach(el => {
+                if (siteData.hasOwnProperty(el.id)) {
+                    siteData[el.id] = el.value;
+                }
             });
-            localStorage.setItem('siteContent', JSON.stringify(siteData));
-            alert('تم حفظ التغييرات بنجاح! سيتم تحديث الموقع تلقائياً.');
+
+            try {
+                const { error } = await _supabase.from('site_settings').upsert({ id: 1, content: siteData });
+                if (error) throw error;
+
+                localStorage.setItem('siteContent', JSON.stringify(siteData));
+                alert('تم حفظ الإعدادات العامة بنجاح!');
+            } catch (e) {
+                console.error(e);
+                alert('حدث خطأ أثناء الحفظ في السحابة.');
+            } finally {
+                saveBtn.innerText = "حفظ وتطبيق التغييرات";
+                saveBtn.disabled = false;
+            }
         }
 
         function resetData() {
-            if(confirm('هل أنت متأكد من إعادة ضبط البيانات للوضع الافتراضي؟')) {
+            if(confirm('هل تريد فعلاً استعادة البيانات الأصلية للموقع؟')) {
                 siteData = {...defaultData};
                 loadInputs();
                 localStorage.setItem('siteContent', JSON.stringify(siteData));
             }
         }
 
-        function switchTab(tab) {
+        async function switchTab(tab) {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-            document.querySelectorAll('button[id^="tab-"]').forEach(b => b.classList.remove('tab-active'));
+            document.querySelectorAll('button[id^="tab-"]').forEach(b => {
+                b.classList.remove('tab-active');
+                b.classList.add('text-neutral-500');
+            });
             
-            const content = document.getElementById(`content-${tab}`);
-            if (content) content.classList.remove('hidden');
+            document.getElementById(`content-${tab}`).classList.remove('hidden');
             document.getElementById(`tab-${tab}`).classList.add('tab-active');
+            document.getElementById(`tab-${tab}`).classList.remove('text-neutral-500');
+
+            if (tab === 'messages') loadMessages();
+            if (tab === 'services') {
+                await loadRelationalData('categories'); // Ensure categories are loaded for the dropdown
+                loadRelationalData('services');
+            }
+            if (tab === 'about') loadRelationalData('team_members');
+            if (tab === 'partners') loadRelationalData('partners');
+            if (tab === 'testimonials') loadRelationalData('testimonials');
+            if (tab === 'faqs') loadRelationalData('faqs');
+            if (tab === 'gallery') {
+                await loadRelationalData('categories');
+                loadRelationalData('gallery');
+            }
+            if (tab === 'categories') loadRelationalData('categories');
+            if (tab === 'subscribers') loadSubscribers();
         }
 
-        // Run on load
-        window.onload = () => {
-            loadInputs();
-            // Default to home tab
-            switchTab('home');
+        // Generic CRUD for Relational Tables
+        const tableConfigs = {
+            services: { title: 'الخدمات', fields: ['title', 'description', 'image_url', 'category_id', 'order_index'] },
+            team_members: { title: 'الفريق', fields: ['name', 'role', 'image_url', 'order_index'] },
+            partners: { title: 'الشركاء', fields: ['name', 'image_url', 'order_index'] },
+            testimonials: { title: 'آراء العملاء', fields: ['name', 'role', 'company', 'content', 'rating'] },
+            faqs: { title: 'الأسئلة الشائعة', fields: ['question', 'answer', 'order_index'] },
+            gallery: { title: 'المعرض', fields: ['title', 'description', 'image_url', 'category_id'] },
+            categories: { title: 'الفئات', fields: ['name', 'type'] }
         };
+
+        let _categories = []; // Global cache for categories
+
+        async function loadRelationalData(table) {
+            const container = document.getElementById(`list-${table}`);
+            if (!container) return;
+            
+            container.innerHTML = '<p class="text-neutral-500 italic">جاري التحميل...</p>';
+            
+            try {
+                let query = _supabase.from(table).select('*');
+                if (tableConfigs[table].fields.includes('order_index')) {
+                    query = query.order('order_index', { ascending: true });
+                } else {
+                    query = query.order('created_at', { ascending: false });
+                }
+                
+                const { data, error } = await query;
+                if (error) throw error;
+
+                if (table === 'categories') {
+                    _categories = data;
+                }
+
+                if (data.length === 0) {
+                    container.innerHTML = `<div class="text-center py-10 text-neutral-500">لا يوجد بيانات حالياً.</div>`;
+                } else {
+                    container.innerHTML = data.map(item => renderItem(table, item)).join('');
+                }
+            } catch (e) {
+                container.innerHTML = '<p class="text-red-500">فشل التحميل.</p>';
+            }
+        }
+
+        function renderItem(table, item) {
+            const fields = tableConfigs[table].fields;
+            return `
+                <div class="p-6 bg-white/5 border border-neutral-800 rounded-2xl mb-4 group hover:border-neutral-700 transition">
+                    <div class="flex flex-col md:flex-row gap-6">
+                        ${item.image_url ? `<img src="${item.image_url}" class="w-20 h-20 object-cover rounded-xl bg-black/20">` : '<div class="w-20 h-20 bg-neutral-900 rounded-xl flex items-center justify-center text-neutral-700"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>'}
+                        <div class="flex-1">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="text-xl font-bold">${item.title || item.name}</h4>
+                                    <p class="text-neutral-500 text-sm line-clamp-1">${item.description || item.role || ''}</p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="editItem('${table}', '${item.id}')" class="p-2 hover:bg-white/10 rounded-lg text-neutral-400 hover:text-white transition">تعديل</button>
+                                    <button onclick="deleteItem('${table}', '${item.id}')" class="p-2 hover:bg-red-500/10 rounded-lg text-red-500/50 hover:text-red-500 transition">حذف</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function openModal(table, id = null) {
+            const config = tableConfigs[table];
+            let item = { id: null };
+            
+            if (id) {
+                const { data } = await _supabase.from(table).select('*').eq('id', id).single();
+                item = data;
+            }
+
+            const modalHtml = `
+                <div id="modal-overlay" class="fixed inset-0 z-[110] bg-black/80 flex items-center justify-center p-6 backdrop-blur-sm">
+                    <div class="glass p-8 rounded-[2rem] shadow-2xl max-w-2xl w-full border border-white/10">
+                        <h2 class="text-2xl font-bold mb-6">${id ? 'تعديل' : 'إضافة'} ${config.title}</h2>
+                        <form id="item-form" class="space-y-4">
+                            <input type="hidden" name="id" value="${item.id || ''}">
+                            ${config.fields.map(f => {
+                                if (f === 'description' || f === 'bio') {
+                                    return `<div><label>${translateField(f)}</label><textarea name="${f}" rows="3">${item[f] || ''}</textarea></div>`;
+                                } else if (f === 'category_id') {
+                                    const type = table === 'services' ? 'service' : 'gallery';
+                                    const filteredCats = _categories.filter(c => c.type === type);
+                                    return `<div>
+                                        <label>${translateField(f)}</label>
+                                        <select name="${f}" class="w-full bg-[#1a1a1a] border border-neutral-800 rounded-xl p-3 text-white">
+                                            <option value="">اختر الفئة...</option>
+                                            ${filteredCats.map(c => `<option value="${c.id}" ${item[f] === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+                                        </select>
+                                    </div>`;
+                                } else if (f === 'type') {
+                                    return `<div>
+                                        <label>${translateField(f)}</label>
+                                        <select name="${f}" class="w-full bg-[#1a1a1a] border border-neutral-800 rounded-xl p-3 text-white">
+                                            <option value="service" ${item[f] === 'service' ? 'selected' : ''}>خدمة (Service)</option>
+                                            <option value="gallery" ${item[f] === 'gallery' ? 'selected' : ''}>معرض (Gallery)</option>
+                                        </select>
+                                    </div>`;
+                                } else if (f === 'rating') {
+                                     return `<div>
+                                        <label>${translateField(f)}</label>
+                                        <select name="${f}" class="w-full bg-[#1a1a1a] border border-neutral-800 rounded-xl p-3 text-white">
+                                            ${[1,2,3,4,5].map(v => `<option value="${v}" ${item[f] == v ? 'selected' : ''}>${v} نجوم</option>`).join('')}
+                                        </select>
+                                    </div>`;
+                                } else {
+                                    return `<div><label>${translateField(f)}</label><input type="${f === 'order_index' ? 'number' : 'text'}" name="${f}" value="${item[f] || ''}"></div>`;
+                                }
+                            }).join('')}
+                            <div class="flex gap-4 mt-8">
+                                <button type="button" onclick="closeModal()" class="flex-1 px-6 py-3 rounded-xl border border-neutral-800 hover:bg-neutral-900">إلغاء</button>
+                                <button type="submit" class="flex-1 btn-save">حفظ</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            document.getElementById('item-form').onsubmit = async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const data = Object.fromEntries(formData.entries());
+                if (!data.id) delete data.id;
+                
+                const btn = e.target.querySelector('button[type="submit"]');
+                btn.innerText = "جاري الحفظ...";
+                btn.disabled = true;
+
+                try {
+                    const { error } = await _supabase.from(table).upsert(data);
+                    if (error) throw error;
+                    closeModal();
+                    loadRelationalData(table);
+                } catch (err) {
+                    alert('خطأ في الحفظ: ' + err.message);
+                } finally {
+                    btn.innerText = "حفظ";
+                    btn.disabled = false;
+                }
+            };
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modal-overlay');
+            if (modal) modal.remove();
+        }
+
+        window.editItem = openModal;
+        window.addItem = openModal;
+
+        async function deleteItem(table, id) {
+            if (!confirm('هل أنت متأكد من حذف هذا العنصر؟')) return;
+            try {
+                const { error } = await _supabase.from(table).delete().eq('id', id);
+                if (error) throw error;
+                loadRelationalData(table);
+            } catch (err) {
+                alert('فشل الحذف: ' + err.message);
+            }
+        }
+
+        function translateField(f) {
+            const dict = {
+                title: 'العنوان',
+                name: 'الاسم',
+                description: 'الوصف',
+                role: 'المنصب',
+                bio: 'السيرة الذاتية',
+                image_url: 'رابط الصورة',
+                order_index: 'الترتيب',
+                client_name: 'اسم العميل',
+                company: 'الشركة',
+                content: 'المحتوى',
+                rating: 'التقييم (1-5)',
+                question: 'السؤال',
+                answer: 'الجواب',
+                category_id: 'الفئة'
+            };
+            return dict[f] || f;
+        }
+
+        async function loadMessages() {
+            const list = document.getElementById('messages-list');
+            list.innerHTML = '<p class="text-neutral-500 italic">جاري تحميل الرسائل...</p>';
+            
+            try {
+                const { data, error } = await _supabase
+                    .from('contact_messages')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                if (data.length === 0) {
+                    list.innerHTML = '<p class="text-neutral-500 text-center py-10">لا توجد رسائل حالياً.</p>';
+                    return;
+                }
+
+                list.innerHTML = data.map(msg => `
+                    <div class="p-6 bg-white/5 border border-neutral-800 rounded-2xl hover:border-neutral-700 transition">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h4 class="text-xl font-bold">${msg.name}</h4>
+                                <p class="text-sm text-neutral-500">${new Date(msg.created_at).toLocaleString('ar-EG')}</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <a href="tel:${msg.phone}" class="px-3 py-1 bg-white/5 rounded-lg hover:bg-white/10 text-xs">اتصال</a>
+                                <a href="mailto:${msg.email}" class="px-3 py-1 bg-white/5 rounded-lg hover:bg-white/10 text-xs">إيميل</a>
+                            </div>
+                        </div>
+                        <p class="text-neutral-300 leading-relaxed">${msg.message}</p>
+                    </div>
+                `).join('');
+            } catch (e) {
+                list.innerHTML = '<p class="text-red-500">فشل تحميل الرسائل.</p>';
+            }
+        }
+
+        async function loadSubscribers() {
+            const list = document.getElementById('subscribers-list');
+            list.innerHTML = '<p class="text-neutral-500 italic">جاري التحميل...</p>';
+            try {
+                const { data, error } = await _supabase.from('newsletter_subscribers').select('*').order('created_at', { ascending: false });
+                if (error) throw error;
+                if (data.length === 0) {
+                    list.innerHTML = '<p class="text-neutral-500 text-center py-10">لا يوجد مشتركين حالياً.</p>';
+                    return;
+                }
+                list.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    ${data.map(sub => `
+                        <div class="p-4 bg-white/5 border border-neutral-800 rounded-xl flex justify-between items-center">
+                            <div>
+                                <p class="font-bold">${sub.email}</p>
+                                <p class="text-xs text-neutral-500">${new Date(sub.created_at).toLocaleDateString('ar-EG')}</p>
+                            </div>
+                            <button onclick="deleteItem('newsletter_subscribers', '${sub.id}')" class="text-red-500/50 hover:text-red-500">حذف</button>
+                        </div>
+                    `).join('')}
+                </div>`;
+            } catch (e) {
+                list.innerHTML = '<p class="text-red-500">فشل التحميل.</p>';
+            }
+        }
+
+        // Password Security
+        const CORRECT_PASSWORD = "1234"; // يمكنك تغييرها من هنا
+
+        function checkPassword() {
+            const pass = document.getElementById('admin-password').value;
+            if (pass === CORRECT_PASSWORD) {
+                document.getElementById('login-overlay').classList.add('hidden');
+                document.getElementById('admin-content').classList.remove('hidden');
+                sessionStorage.setItem('admin_authenticated', 'true');
+            } else {
+                const error = document.getElementById('login-error');
+                error.classList.remove('hidden');
+                setTimeout(() => error.classList.add('hidden'), 2000);
+            }
+        }
+
+        // Check session on load
+        if (sessionStorage.getItem('admin_authenticated') === 'true') {
+            document.getElementById('login-overlay').classList.add('hidden');
+            document.getElementById('admin-content').classList.remove('hidden');
+        }
+
+        window.onload = loadInputs;
     </script>
+    </div> <!-- End of admin-content -->
 </body>
 </html>
