@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title id="site-title">المعرض | عالم ورق الكاشير</title>
+    <meta name="description" id="meta-desc" content="معرض منتجات وحلول عالم ورق الكاشير">
+    <link rel="icon" id="favicon" href="assets/images/favicon.png">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&family=Cairo:wght@400;600;700&family=Almarai:wght@400;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700&display=swap" rel="stylesheet"/>
+    
+    <style id="dynamic-theme">
+        :root {
+            --color-primary: #000000;
+            --color-secondary: #b31d5f;
+            --color-background: #f9f9fa;
+            --color-surface: #f9f9fa;
+            --font-main: 'Tajawal', sans-serif;
+        }
+    </style>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "var(--color-primary)",
+                        "secondary": "var(--color-secondary)",
+                        "background": "var(--color-background)",
+                        "surface": "var(--color-surface)",
+                        "deep-onyx": "var(--color-primary)",
+                        "pure-white": "#FFFFFF",
+                        "soft-alabaster": "#F3F3F4",
+                        "on-surface": "#1a1c1d",
+                        "on-surface-variant": "#47464d",
+                    },
+                    "fontFamily": {
+                        "display-xl": ["var(--font-main)", "sans-serif"],
+                        "body-md": ["var(--font-main)", "sans-serif"],
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased min-h-screen flex flex-col pt-20">
+
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md border-b border-on-surface/10 transition-all duration-300">
+    <div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop h-20 max-w-container-max mx-auto">
+        <a id="brand-name" class="text-2xl font-bold text-primary tracking-tighter" href="index.html">عالم ورق الكاشير</a>
+        <div class="hidden md:flex space-x-8 space-x-reverse items-center">
+            <a id="nav-link-1" class="text-sm uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="services.html">الخدمات</a>
+            <a id="nav-link-2" class="text-sm uppercase tracking-widest text-primary border-b-2 border-primary pb-1" href="gallery.html">المعرض</a>
+            <a id="nav-link-3" class="text-sm uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="about.html">عن الشركة</a>
+            <a id="nav-link-4" class="text-sm uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="index.html#Contact">اتصل بنا</a>
+        </div>
+        <button id="nav-cta-btn" class="hidden md:block bg-deep-onyx text-pure-white px-6 py-3 rounded hover:opacity-80 transition-opacity">استفسر الآن</button>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<main class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-20">
+    <section class="mb-12 max-w-3xl">
+        <h1 id="gallery-title" class="text-4xl md:text-6xl font-bold text-primary mb-6">معرض المنتجات</h1>
+        <p id="gallery-desc" class="text-lg text-on-surface-variant leading-relaxed">
+            استعرض مجموعتنا الواسعة من مستلزمات الكاشير وحلول نقاط البيع المتكاملة.
+        </p>
+    </section>
+
+    <!-- Filters -->
+    <div id="gallery-filters" class="flex flex-wrap gap-4 mb-12">
+        <button onclick="loadGallery()" class="bg-primary text-pure-white px-6 py-2 rounded-full text-sm hover:bg-secondary transition-colors">الكل</button>
+    </div>
+
+    <!-- Gallery Grid -->
+    <section id="gallery-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <!-- Dynamic Gallery Items will be loaded here -->
+        <div class="animate-pulse bg-surface-container h-64 rounded-xl"></div>
+        <div class="animate-pulse bg-surface-container h-64 rounded-xl"></div>
+        <div class="animate-pulse bg-surface-container h-64 rounded-xl"></div>
+        <div class="animate-pulse bg-surface-container h-64 rounded-xl"></div>
+    </section>
+</main>
+
+<!-- Footer -->
+<footer class="bg-surface border-t border-on-surface/5 w-full py-20 mt-auto">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-10 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+        <div class="flex flex-col">
+            <span id="footer-brand" class="text-2xl font-bold text-primary mb-6">عالم ورق الكاشير</span>
+            <p id="footer-copyright" class="text-on-surface-variant">© 2026 جميع الحقوق محفوظة.</p>
+        </div>
+        <div class="flex flex-col md:flex-row md:justify-end gap-6">
+            <a id="social-fb" class="text-on-surface-variant hover:text-secondary transition-colors" href="#">فيسبوك</a>
+            <a id="social-wa" class="text-on-surface-variant hover:text-secondary transition-colors" href="#">واتساب</a>
+            <a id="social-ig" class="text-on-surface-variant hover:text-secondary transition-colors" href="#">انستغرام</a>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/supabase-config.js"></script>
+<script>
+    const _supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+    async function updateContent() {
+        let data = JSON.parse(localStorage.getItem('siteContent'));
+        
+        try {
+            const { data: cloudData, error } = await _supabase.from('site_settings').select('content').eq('id', 1).single();
+            if (cloudData && cloudData.content) {
+                data = cloudData.content;
+                localStorage.setItem('siteContent', JSON.stringify(data));
+            }
+        } catch (e) {
+            console.log("Supabase fetch failed, using local data");
+        }
+
+        if (!data) return;
+
+        Object.keys(data).forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                if (el.tagName === 'IMG') {
+                    el.src = data[id];
+                } else if (el.tagName === 'A' && (id.startsWith('social-') || id.startsWith('nav-link-') || id.includes('cta') || id.includes('link') || id.includes('btn'))) {
+                    if (id === 'social-wa') {
+                        let phone = data[id].toString().replace(/\s+/g, '');
+                        if (phone.startsWith('0')) phone = phone.substring(1);
+                        el.href = `https://wa.me/964${phone}`;
+                    } else if (id.startsWith('social-') || id.includes('link') || id.includes('cta') || id.includes('btn')) {
+                        el.href = data[id];
+                    } else {
+                        el.innerText = data[id];
+                    }
+                } else if (id === 'site-title') {
+                    document.title = data[id];
+                } else if (id === 'meta-desc') {
+                    el.content = data[id];
+                } else if (id === 'favicon') {
+                    el.href = data[id];
+                } else {
+                    el.innerText = data[id];
+                }
+            }
+        });
+
+        // Theme Variables
+        const root = document.documentElement;
+        if (data['theme-primary']) root.style.setProperty('--color-primary', data['theme-primary']);
+        if (data['theme-secondary']) root.style.setProperty('--color-secondary', data['theme-secondary']);
+        if (data['theme-background']) root.style.setProperty('--color-background', data['theme-background']);
+        if (data['theme-surface']) root.style.setProperty('--color-surface', data['theme-surface']);
+        if (data['theme-font']) root.style.setProperty('--font-main', data['theme-font']);
+
+        loadCategories();
+        loadGallery();
+    }
+
+    async function loadCategories() {
+        try {
+            const { data: categories, error } = await _supabase
+                .from('categories')
+                .select('*')
+                .eq('type', 'gallery');
+
+            if (categories) {
+                const container = document.getElementById('gallery-filters');
+                const initialBtn = '<button onclick="loadGallery()" class="bg-primary text-pure-white px-6 py-2 rounded-full text-sm hover:bg-secondary transition-colors">الكل</button>';
+                container.innerHTML = initialBtn + categories.map(c => `
+                    <button onclick="loadGallery('${c.id}')" class="bg-surface-container border border-on-surface/10 text-on-surface px-6 py-2 rounded-full text-sm hover:bg-primary hover:text-pure-white transition-colors">${c.name}</button>
+                `).join('');
+            }
+        } catch (e) {
+            console.error("Categories load failed", e);
+        }
+    }
+
+    async function loadGallery(categoryId = null) {
+        try {
+            let query = _supabase.from('gallery').select('*');
+            if (categoryId) query = query.eq('category_id', categoryId);
+            
+            const { data: items, error } = await query.order('created_at', { ascending: false });
+
+            const grid = document.getElementById('gallery-grid');
+            if (grid && items) {
+                grid.innerHTML = items.map(item => `
+                    <div class="group relative overflow-hidden rounded-xl bg-soft-alabaster aspect-square">
+                        <img src="${item.image_url}" alt="${item.title || ''}" class="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
+                            <h3 class="text-white font-bold text-lg">${item.title || ''}</h3>
+                            ${item.description ? `<p class="text-white/80 text-sm mt-2 line-clamp-2">${item.description}</p>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            }
+        } catch (e) {
+            console.error("Gallery load failed", e);
+        }
+    }
+
+    window.addEventListener('load', updateContent);
+    window.addEventListener('storage', updateContent);
+</script>
+</body>
+</html>
