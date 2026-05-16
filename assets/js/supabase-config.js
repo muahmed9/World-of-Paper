@@ -1,0 +1,3 @@
+const supabaseUrl = 'https://xjekrdmtewopugoklfza.supabase.co';
+const supabaseAnonKey = 'sb_publishable_xvVc3YYJ6ZU1eUsoEKpIqg_2g5migo3';
+const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhqZWtyZG10ZXdvcHVnb2tsZnphIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODI2MzEwOCwiZXhwIjoyMDkzODM5MTA4fQ.eSAXhH4AEMRhrJ-mxiL03a7jWxPUOU1yCu5pUOPeZfY';
