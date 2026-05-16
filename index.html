@@ -3,70 +3,40 @@
 <html dir="rtl" lang="ar"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Pallet Ross - Home</title>
+<title id="site-title">عالم ورق الكاشير</title>
+<meta name="description" id="meta-desc" content="متخصصون في توريد ورق الكاشير والحلول التقنية">
+<link rel="icon" id="favicon" href="assets/images/favicon.png">
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&family=Cairo:wght@400;600;700&family=Almarai:wght@400;700&family=El+Messiri:wght@400;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
+    <style id="dynamic-theme">
+        :root {
+            --color-primary: #000000;
+            --color-secondary: #b31d5f;
+            --color-background: #f9f9fa;
+            --color-surface: #f9f9fa;
+            --font-main: 'Tajawal', sans-serif;
+        }
+    </style>
+    <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
             theme: {
                 extend: {
                     "colors": {
-                        "tertiary-fixed": "#fcdebd",
-                        "primary-fixed": "#e3dffe",
-                        "surface-container": "#eeeeef",
-                        "inverse-on-surface": "#f0f1f2",
-                        "on-tertiary": "#ffffff",
-                        "tertiary": "#000000",
-                        "surface-tint": "#5d5c76",
-                        "on-primary-container": "#83819d",
-                        "vibrant-rose": "#EA4C89",
-                        "secondary-fixed-dim": "#ffb1c6",
-                        "on-secondary-container": "#61002f",
-                        "surface-container-low": "#f3f3f4",
-                        "error": "#ba1a1a",
-                        "surface": "#f9f9fa",
-                        "pure-white": "#FFFFFF",
-                        "on-secondary-fixed-variant": "#8e0048",
-                        "soft-alabaster": "#F3F3F4",
-                        "primary": "#000000",
-                        "on-secondary": "#ffffff",
-                        "secondary-fixed": "#ffd9e1",
-                        "primary-container": "#1a1930",
-                        "on-error": "#ffffff",
-                        "secondary-container": "#fc5a97",
-                        "inverse-primary": "#c7c3e2",
-                        "error-container": "#ffdad6",
-                        "on-secondary-fixed": "#3f001c",
-                        "on-primary": "#ffffff",
-                        "surface-container-highest": "#e2e2e3",
-                        "inverse-surface": "#2f3132",
-                        "tertiary-container": "#271905",
-                        "surface-dim": "#dadadb",
+                        "primary": "var(--color-primary)",
+                        "secondary": "var(--color-secondary)",
+                        "background": "var(--color-background)",
+                        "surface": "var(--color-surface)",
+                        "deep-onyx": "var(--color-primary)",
                         "on-surface": "#1a1c1d",
-                        "deep-onyx": "#0D0C22",
-                        "surface-container-lowest": "#ffffff",
-                        "primary-fixed-dim": "#c7c3e2",
-                        "surface-variant": "#e2e2e3",
-                        "outline-variant": "#c8c5cd",
-                        "tertiary-fixed-dim": "#dec2a3",
-                        "on-tertiary-fixed": "#271905",
-                        "on-tertiary-container": "#988064",
-                        "on-surface-variant": "#47464d",
-                        "surface-container-high": "#e8e8e9",
-                        "secondary": "#b31d5f",
-                        "on-primary-fixed-variant": "#46445d",
-                        "outline": "#78767d",
-                        "background": "#f9f9fa",
-                        "on-error-container": "#93000a",
-                        "surface-bright": "#f9f9fa",
-                        "on-tertiary-fixed-variant": "#57432b",
-                        "on-primary-fixed": "#1a1930",
-                        "on-background": "#1a1c1d"
+                        "pure-white": "#FFFFFF",
+                        "soft-alabaster": "#F3F3F4",
+                        "on-primary": "#ffffff",
+                        "on-secondary": "#ffffff"
                     },
                     "borderRadius": {
                         "DEFAULT": "0.125rem",
@@ -83,24 +53,14 @@
                         "container-max": "1440px"
                     },
                     "fontFamily": {
-                        "display-xl": ["Tajawal", "sans-serif"],
-                        "body-md": ["Tajawal", "sans-serif"],
-                        "headline-md": ["Tajawal", "sans-serif"],
-                        "headline-lg-mobile": ["Tajawal", "sans-serif"],
-                        "label-sm": ["Tajawal", "sans-serif"],
-                        "display-xl-mobile": ["Tajawal", "sans-serif"],
-                        "headline-lg": ["Tajawal", "sans-serif"],
-                        "body-lg": ["Tajawal", "sans-serif"]
-                    },
-                    "fontSize": {
-                        "display-xl": ["72px", { "lineHeight": "80px", "letterSpacing": "-0.04em", "fontWeight": "700" }],
-                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
-                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "500" }],
-                        "headline-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
-                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
-                        "display-xl-mobile": ["44px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
-                        "headline-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
-                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }]
+                        "display-xl": ["var(--font-main)", "sans-serif"],
+                        "body-md": ["var(--font-main)", "sans-serif"],
+                        "headline-md": ["var(--font-main)", "sans-serif"],
+                        "headline-lg-mobile": ["var(--font-main)", "sans-serif"],
+                        "label-sm": ["var(--font-main)", "sans-serif"],
+                        "display-xl-mobile": ["var(--font-main)", "sans-serif"],
+                        "headline-lg": ["var(--font-main)", "sans-serif"],
+                        "body-lg": ["var(--font-main)", "sans-serif"]
                     }
                 },
             },
@@ -117,20 +77,19 @@
 <nav class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-deep-onyx/80 backdrop-blur-md border-b border-on-surface/10 dark:border-pure-white/10 transition-all duration-300">
 <div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop h-20 max-w-container-max mx-auto">
 <!-- Brand -->
-<a class="font-display-xl text-headline-md font-bold text-primary dark:text-pure-white tracking-tighter cursor-pointer transition-all duration-300 hover:opacity-70" href="index.html">
-                Pallet Ross
+<a id="brand-name" class="font-display-xl text-headline-md font-bold text-primary dark:text-pure-white tracking-tighter cursor-pointer transition-all duration-300 hover:opacity-70" href="index.html">
+                عالم ورق الكاشير
             </a>
 <!-- Navigation Links (Desktop) -->
 <div class="hidden md:flex space-x-8 space-x-reverse items-center">
-<!-- No 'active' match found from intents, defaulting all to inactive based on logic constraints (requires exact or intent match). Wait, primary intent of Home doesn't map directly to Services, Portfolio, About, Contact. I'll leave them inactive. -->
-<a class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-pure-white transition-colors cursor-pointer duration-300" href="services.html">الخدمات</a>
-<a class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-pure-white transition-colors cursor-pointer duration-300" href="portfolio.html">أعمالنا</a>
-<a class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-pure-white transition-colors cursor-pointer duration-300" href="about.html">عن الشركة</a>
-<a class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-pure-white transition-colors cursor-pointer duration-300" href="#Contact">اتصل بنا</a>
+<a id="nav-link-1" class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-pure-white transition-colors cursor-pointer duration-300" href="services.html">الخدمات</a>
+<a id="nav-link-2" class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-pure-white transition-colors cursor-pointer duration-300" href="gallery.html">المعرض</a>
+<a id="nav-link-3" class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-pure-white transition-colors cursor-pointer duration-300" href="about.html">عن الشركة</a>
+<a id="nav-link-4" class="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-pure-white transition-colors cursor-pointer duration-300" href="#contact">اتصل بنا</a>
 </div>
 <!-- Trailing Action (Desktop) -->
 <div class="hidden md:block">
-<button class="bg-deep-onyx text-pure-white font-label-sm text-label-sm uppercase tracking-widest px-6 py-3 rounded hover:bg-secondary-container transition-colors duration-300 cursor-pointer">
+<button id="nav-cta-btn" class="bg-deep-onyx text-pure-white font-label-sm text-label-sm uppercase tracking-widest px-6 py-3 rounded hover:bg-secondary-container transition-colors duration-300 cursor-pointer">
                     استفسر الآن
                 </button>
 </div>
@@ -145,21 +104,21 @@
 <!-- Main Content -->
 <main class="pt-20">
 <!-- Cinematic Hero Section -->
-<section class="relative w-full min-h-[921px] flex flex-col justify-center px-margin-mobile md:px-margin-desktop bg-surface overflow-hidden">
+<section id="hero-section" class="relative w-full min-h-[921px] flex flex-col justify-center px-margin-mobile md:px-margin-desktop bg-surface overflow-hidden">
 <div class="absolute inset-0 z-0">
-<img alt="Hero Image" class="w-full h-full object-cover opacity-80 mix-blend-multiply" data-alt="A grand, high-end architectural structure featuring minimalist geometric concrete forms and expansive floor-to-ceiling glass windows. The scene is bathed in warm, directional morning light casting sharp, dramatic shadows across the light grey surfaces. The mood is serene, prestigious, and highly institutional, reflecting a modern corporate aesthetic with a muted color palette dominated by whites, cool greys, and deep onyx accents." src="assets/images/img_d939f13a3c.jpg"/>
+<img id="hero-img" alt="Hero Image" class="w-full h-full object-cover opacity-80 mix-blend-multiply" src="assets/images/img_d939f13a3c.jpg"/>
 <div class="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-surface/30"></div>
 </div>
 <div class="relative z-10 max-w-container-max mx-auto w-full grid grid-cols-1 md:grid-cols-12 gap-gutter mt-32 md:mt-0">
 <div class="md:col-span-8 flex flex-col items-start justify-center text-right" dir="rtl">
-<h1 class="font-display-xl-mobile md:font-display-xl text-display-xl-mobile md:text-display-xl text-primary mb-6 max-w-4xl">
-                        تصميم هندسي يتجاوز <br/><span class="text-secondary">المألوف</span>.
+<h1 id="hero-title" class="font-display-xl-mobile md:font-display-xl text-display-xl-mobile md:text-display-xl text-primary mb-6 max-w-4xl">
+                        جودة استثنائية في عالم ورق الكاشير
                     </h1>
-<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mb-10">
-                        نحن في Pallet Ross نصيغ مساحات تجمع بين الرؤية الفنية والوظيفة المؤسسية المتقنة. استكشف نهجنا في المعمار الحديث حيث تلتقي الفخامة الهادئة بالدقة الهندسية.
+<p id="hero-desc" class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mb-10">
+                        نقدم أفضل حلول الورق الحراري ومستلزمات نقاط البيع في العراق، بجودة تضمن استمرارية أعمالك.
                     </p>
-<button class="bg-deep-onyx text-pure-white font-label-sm text-label-sm px-8 py-4 rounded hover:bg-secondary transition-colors duration-300 flex items-center gap-2">
-<span>اكتشف مشاريعنا</span>
+<button id="hero-cta-btn" class="bg-deep-onyx text-pure-white font-label-sm text-label-sm px-8 py-4 rounded hover:bg-secondary transition-colors duration-300 flex items-center gap-2">
+<span id="hero-cta-text">اكتشف منتجاتنا</span>
 <span class="material-symbols-outlined text-[16px] rtl:rotate-180">arrow_forward</span>
 </button>
 </div>
@@ -168,24 +127,24 @@
 <!-- Our Services Section (Bento Grid) -->
 <section class="py-24 md:py-32 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto bg-background">
 <div class="mb-16 md:mb-24 text-right">
-<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-4 block">خبراتنا</span>
-<h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary">
-                    خدمات التصميم <br/>والاستشارات
+<span id="services-subtitle" class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-4 block">خبراتنا</span>
+<h2 id="services-title" class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary">
+                    منتجاتنا <br/>وحلولنا
                 </h2>
 </div>
 <div class="grid grid-cols-1 md:grid-cols-12 gap-unit md:gap-gutter">
 <!-- Service 1 (Large) -->
 <div class="md:col-span-8 bg-soft-alabaster p-8 md:p-12 flex flex-col justify-end min-h-[400px] relative overflow-hidden group">
 <div class="absolute inset-0 z-0">
-<img alt="Architecture" class="w-full h-full object-cover opacity-0 group-hover:opacity-40 transition-opacity duration-700 mix-blend-luminosity" data-alt="A low angle view of a sleek, modern corporate skyscraper against a clear sky. The building features an intricate grid pattern of glass and steel reflecting the surrounding cityscape. The lighting is bright and clear, emphasizing the clean lines and minimalist aesthetic of the structure. The color palette focuses on cool tones, whites, and subtle greys, aligning with a high-end, prestigious corporate identity." src="assets/images/img_85f35914cb.jpg"/>
+<img id="service1-img" alt="Architecture" class="w-full h-full object-cover opacity-0 group-hover:opacity-40 transition-opacity duration-700 mix-blend-luminosity" src="assets/images/img_85f35914cb.jpg"/>
 </div>
 <div class="relative z-10 text-right">
 <div class="w-12 h-12 rounded-full bg-pure-white flex items-center justify-center mb-6 shadow-sm border border-deep-onyx/10">
-<span class="material-symbols-outlined text-primary">architecture</span>
+<span class="material-symbols-outlined text-primary">receipt_long</span>
 </div>
-<h3 class="font-headline-md text-headline-md text-primary mb-3">التصميم المعماري</h3>
-<p class="font-body-md text-body-md text-on-surface-variant max-w-md">
-                            حلول معمارية مبتكرة تركز على الاستدامة والجماليات الخالدة، مصممة خصيصاً لتلبية متطلبات المشاريع التجارية والمؤسسية الكبرى.
+<h3 id="service1-title" class="font-headline-md text-headline-md text-primary mb-3">الورق الحراري</h3>
+<p id="service1-desc" class="font-body-md text-body-md text-on-surface-variant max-w-md">
+                            ورق كاشير عالي الجودة بجميع الأحجام، يضمن طباعة واضحة وحماية لرؤوس الطباعة في أجهزتكم.
                         </p>
 </div>
 </div>
@@ -193,11 +152,11 @@
 <div class="md:col-span-4 bg-surface-container-low border border-deep-onyx/10 p-8 flex flex-col justify-between min-h-[400px]">
 <div class="text-right">
 <div class="w-10 h-10 rounded-full bg-pure-white flex items-center justify-center mb-6 shadow-sm border border-deep-onyx/10">
-<span class="material-symbols-outlined text-primary">chair</span>
+<span class="material-symbols-outlined text-primary">print</span>
 </div>
-<h3 class="font-headline-md text-headline-md text-primary mb-3">التصميم الداخلي</h3>
-<p class="font-body-md text-body-md text-on-surface-variant">
-                            تصميم مساحات داخلية تعكس هوية العلامة التجارية وتعزز الإنتاجية من خلال التوزيع الذكي للضوء والمواد.
+<h3 id="service2-title" class="font-headline-md text-headline-md text-primary mb-3">طابعات الكاشير</h3>
+<p id="service2-desc" class="font-body-md text-body-md text-on-surface-variant">
+                            مجموعة واسعة من طابعات الفواتير الحرارية المتوافقة مع كافة أنظمة المبيعات العالمية.
                         </p>
 </div>
 <div class="mt-8 flex justify-end">
@@ -208,11 +167,11 @@
 <div class="md:col-span-4 bg-surface-container-low border border-deep-onyx/10 p-8 flex flex-col justify-between min-h-[400px]">
 <div class="text-right">
 <div class="w-10 h-10 rounded-full bg-pure-white flex items-center justify-center mb-6 shadow-sm border border-deep-onyx/10">
-<span class="material-symbols-outlined text-primary">landscape</span>
+<span class="material-symbols-outlined text-primary">point_of_sale</span>
 </div>
-<h3 class="font-headline-md text-headline-md text-primary mb-3">تخطيط المساحات</h3>
-<p class="font-body-md text-body-md text-on-surface-variant">
-                            تحليل وتطوير المواقع الحضرية لخلق بيئات متكاملة تدمج الطبيعة مع الهيكل المعماري بانسجام تام.
+<h3 id="service3-title" class="font-headline-md text-headline-md text-primary mb-3">أجهزة POS</h3>
+<p id="service3-desc" class="font-body-md text-body-md text-on-surface-variant">
+                            أنظمة نقاط بيع متكاملة تشمل الأجهزة والبرمجيات لإدارة أعمالكم بكفاءة تامة.
                         </p>
 </div>
 <div class="mt-8 flex justify-end">
@@ -223,38 +182,300 @@
 <div class="md:col-span-8 bg-pure-white border border-deep-onyx/10 p-8 md:p-12 flex flex-col justify-center min-h-[400px]">
 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
 <div class="text-right order-2 md:order-1">
-<h3 class="font-headline-md text-headline-md text-primary mb-3">إدارة المشاريع</h3>
-<p class="font-body-md text-body-md text-on-surface-variant mb-6">
-                                إشراف دقيق على كل مرحلة من مراحل التنفيذ لضمان أعلى معايير الجودة والالتزام بالجدول الزمني والميزانية المحددة.
+<h3 id="service4-title" class="font-headline-md text-headline-md text-primary mb-3">الدعم الفني</h3>
+<p id="service4-desc" class="font-body-md text-body-md text-on-surface-variant mb-6">
+                                فريق متخصص للدعم الفني والصيانة لضمان عمل أجهزتكم دون توقف على مدار الساعة.
                             </p>
-<a class="font-label-sm text-label-sm text-primary uppercase tracking-widest border-b border-primary pb-1 hover:text-secondary-container transition-colors inline-block" href="#">معرفة المزيد</a>
+<a id="service4-link" class="font-label-sm text-label-sm text-primary uppercase tracking-widest border-b border-primary pb-1 hover:text-secondary-container transition-colors inline-block" href="#">اتصل بالدعم</a>
 </div>
 <div class="order-1 md:order-2 h-48 md:h-full bg-surface-variant rounded flex items-center justify-center relative overflow-hidden">
-<img alt="Project Management" class="absolute inset-0 w-full h-full object-cover opacity-80 mix-blend-luminosity" data-alt="A close-up shot of architectural blueprints and structural plans laid out on a clean, light grey minimalist desk. A sleek metallic compass and a black fine-liner pen rest on top of the schematics. The lighting is bright and diffuse, casting very soft shadows. The overall aesthetic is highly professional, precise, and sophisticated, perfectly aligned with a high-end corporate identity relying on whites, deep onyx, and soft alabaster tones." src="assets/images/img_ef55a78445.jpg"/>
+<img id="service4-img" alt="Support" class="absolute inset-0 w-full h-full object-cover opacity-80 mix-blend-luminosity" src="assets/images/img_ef55a78445.jpg"/>
 </div>
 </div>
 </div>
 </div>
-</section>
-</main>
-<!-- Footer -->
-<footer class="bg-surface dark:bg-deep-onyx border-t border-on-surface/5 dark:border-pure-white/5 w-full py-20 transition-all duration-200">
-<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
-<!-- Brand & Copyright -->
-<div class="flex flex-col items-start text-right">
-<span class="font-display-xl text-headline-md font-bold text-primary dark:text-pure-white mb-6">Pallet Ross</span>
-<p class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant">
-                    © 2024 Pallet Ross. All rights reserved.
-                </p>
-</div>
-<!-- Links -->
-<div class="flex flex-col md:flex-row md:justify-end items-start md:items-center gap-6 mt-8 md:mt-0 text-right">
-<!-- Using JSON links exactly -->
-<a class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors duration-200" href="#">Privacy Policy</a>
-<a class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors duration-200" href="#">Terms of Service</a>
-<a class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors duration-200" href="#">LinkedIn</a>
-<a class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors duration-200" href="#">Instagram</a>
-</div>
-</div>
-</footer>
-</body></html>
+            <!-- Partners Section -->
+            <section class="py-16 bg-surface/30 border-y border-on-surface/5">
+                <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+                    <div id="partners-container" class="flex flex-wrap items-center justify-center gap-8 md:gap-16 opacity-50 grayscale hover:opacity-100 transition-opacity duration-500">
+                        <!-- Partners will be loaded here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Testimonials Section -->
+            <section id="testimonials" class="py-24 md:py-32 bg-background overflow-hidden">
+                <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+                    <div class="mb-16 text-center">
+                        <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-4 block">قالوا عنا</span>
+                        <h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary">ثقة عملائنا <br/>سر نجاحنا</h2>
+                    </div>
+                    <div id="testimonials-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <!-- Testimonials will be loaded here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Newsletter Section -->
+            <section class="py-20 bg-deep-onyx text-pure-white">
+                <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop flex flex-col md:flex-row items-center justify-between gap-12">
+                    <div class="text-right md:w-1/2">
+                        <h2 class="font-headline-lg mb-4">اشترك في نشرتنا الإخبارية</h2>
+                        <p class="font-body-md text-pure-white/70">كن أول من يعرف عن عروضنا الجديدة وأحدث تقنيات ورق الكاشير ونقاط البيع.</p>
+                    </div>
+                    <div class="md:w-1/2 w-full">
+                        <form id="newsletter-form" class="flex flex-col sm:flex-row gap-4">
+                            <input type="email" id="newsletter-email" placeholder="بريدك الإلكتروني" required class="flex-grow bg-pure-white/10 border border-pure-white/20 p-4 rounded-xl outline-none focus:border-secondary transition text-right text-pure-white">
+                            <button type="submit" class="bg-secondary text-pure-white px-8 py-4 rounded-xl font-bold hover:scale-[1.02] transition active:scale-95 whitespace-nowrap">اشترك الآن</button>
+                        </form>
+                        <p id="newsletter-status" class="hidden mt-4 text-sm text-center"></p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Contact Section -->
+            <section id="contact" class="py-24 bg-pure-white dark:bg-deep-onyx transition-colors duration-300">
+                <div class="max-w-4xl mx-auto px-margin-mobile md:px-margin-desktop text-right">
+                    <h2 class="font-display-xl text-display-md text-primary dark:text-pure-white mb-4">اتصل بنا</h2>
+                    <p class="font-body-lg text-on-surface-variant dark:text-outline-variant mb-12">لديك استفسار؟ نحن هنا للمساعدة. اترك رسالتك وسنعاود الاتصال بك في أقرب وقت.</p>
+                    
+                    <form id="contact-form" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">الاسم</label>
+                                <input type="text" id="msg-name" required class="w-full bg-surface-container-low dark:bg-white/5 border border-on-surface/10 p-4 rounded-xl outline-none focus:border-primary transition text-right">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">رقم الهاتف</label>
+                                <input type="tel" id="msg-phone" required class="w-full bg-surface-container-low dark:bg-white/5 border border-on-surface/10 p-4 rounded-xl outline-none focus:border-primary transition text-right">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">البريد الإلكتروني</label>
+                            <input type="email" id="msg-email" required class="w-full bg-surface-container-low dark:bg-white/5 border border-on-surface/10 p-4 rounded-xl outline-none focus:border-primary transition text-right">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">الرسالة</label>
+                            <textarea id="msg-content" rows="5" required class="w-full bg-surface-container-low dark:bg-white/5 border border-on-surface/10 p-4 rounded-xl outline-none focus:border-primary transition text-right"></textarea>
+                        </div>
+                        <div class="flex justify-start">
+                            <button type="submit" class="w-full md:w-auto bg-primary text-pure-white px-10 py-4 rounded-xl font-bold hover:scale-[1.02] transition active:scale-95">إرسال الرسالة</button>
+                        </div>
+                        <p id="contact-status" class="hidden text-center font-medium mt-4"></p>
+                    </form>
+                </div>
+            </section>
+        </main>
+        <!-- Footer -->
+        <footer class="bg-surface dark:bg-deep-onyx border-t border-on-surface/5 dark:border-pure-white/5 w-full py-20 transition-all duration-200">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-gutter px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto">
+                <!-- Brand & Copyright -->
+                <div class="flex flex-col items-start text-right">
+                    <span id="footer-brand" class="font-display-xl text-headline-md font-bold text-primary dark:text-pure-white mb-6">عالم ورق الكاشير</span>
+                    <p id="footer-copyright" class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant">
+                        © 2026 جميع الحقوق محفوظة.
+                    </p>
+                </div>
+                <!-- Links -->
+                <div class="flex flex-col md:flex-row md:justify-end items-start md:items-center gap-6 mt-8 md:mt-0 text-right">
+                    <a id="social-fb" class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors duration-200" href="#">فيسبوك</a>
+                    <a id="social-wa" class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors duration-200" href="#">واتساب</a>
+                    <a id="social-ig" class="font-body-md text-body-md text-on-surface-variant dark:text-outline-variant hover:text-secondary dark:hover:text-secondary-fixed transition-colors duration-200" href="#">انستغرام</a>
+                </div>
+            </div>
+        </footer>
+    
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="assets/js/supabase-config.js"></script>
+        <script>
+            const _supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
+    
+            async function updateContent() {
+                let data = JSON.parse(localStorage.getItem('siteContent'));
+                
+                try {
+                    const { data: cloudData, error } = await _supabase.from('site_settings').select('content').eq('id', 1).single();
+                    if (cloudData && cloudData.content) {
+                        data = cloudData.content;
+                        localStorage.setItem('siteContent', JSON.stringify(data));
+                    }
+                } catch (e) {
+                    console.log("Supabase fetch failed");
+                }
+    
+                if (!data) return;
+    
+                Object.keys(data).forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        if (el.tagName === 'IMG') {
+                            el.src = data[id];
+                        } else if (el.tagName === 'A' && (id.startsWith('social-') || id.startsWith('nav-link-') || id.includes('cta') || id.includes('link') || id.includes('btn'))) {
+                            if (id === 'social-wa') {
+                                let phone = data[id].toString().replace(/\s+/g, '');
+                                if (phone.startsWith('0')) phone = phone.substring(1);
+                                el.href = `https://wa.me/964${phone}`;
+                            } else if (id.startsWith('social-') || id.includes('link') || id.includes('cta') || id.includes('btn')) {
+                                el.href = data[id];
+                            } else {
+                                el.innerText = data[id];
+                            }
+                        } else if (id === 'site-title') {
+                            document.title = data[id];
+                        } else if (id === 'meta-desc') {
+                            el.content = data[id];
+                        } else if (id === 'favicon') {
+                            el.href = data[id];
+                        } else {
+                            el.innerText = data[id];
+                        }
+                    }
+                });
+    
+                const root = document.documentElement;
+                if (data['theme-primary']) root.style.setProperty('--color-primary', data['theme-primary']);
+                if (data['theme-secondary']) root.style.setProperty('--color-secondary', data['theme-secondary']);
+                if (data['theme-background']) root.style.setProperty('--color-background', data['theme-background']);
+                if (data['theme-surface']) root.style.setProperty('--color-surface', data['theme-surface']);
+                if (data['theme-font']) root.style.setProperty('--font-main', data['theme-font']);
+    
+                loadDynamicContent();
+            }
+    
+            async function loadDynamicContent() {
+                try {
+                    // Load Services (First 4 for Home Bento Grid)
+                    const { data: services, error: sError } = await _supabase.from('services').select('*').eq('is_active', true).order('order_index', { ascending: true }).limit(4);
+                    if (services && !sError) {
+                        services.forEach((s, i) => {
+                            const idx = i + 1;
+                            const tEl = document.getElementById(`service${idx}-title`);
+                            const dEl = document.getElementById(`service${idx}-desc`);
+                            const iEl = document.getElementById(`service${idx}-img`);
+                            if (tEl) tEl.innerText = s.title;
+                            if (dEl) dEl.innerText = s.description;
+                            if (iEl && s.image_url) iEl.src = s.image_url;
+                        });
+                    }
+    
+                    // Load Partners
+                    const { data: partners, error: pError } = await _supabase.from('partners').select('*').order('order_index', { ascending: true });
+                    if (partners && !pError) {
+                        const container = document.getElementById('partners-container');
+                        if (container) {
+                            container.innerHTML = partners.map(p => `
+                                <img src="${p.image_url}" alt="${p.name}" class="h-8 md:h-12 object-contain" title="${p.name}">
+                            `).join('');
+                        }
+                    }
+
+                    // Load Testimonials
+                    const { data: testimonials, error: tError } = await _supabase.from('testimonials').select('*').limit(3);
+                    if (testimonials && !tError) {
+                        const tGrid = document.getElementById('testimonials-grid');
+                        if (tGrid) {
+                            tGrid.innerHTML = testimonials.map(t => `
+                                <div class="bg-surface p-8 border border-on-surface/5 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300">
+                                    <div class="flex items-center gap-1 text-secondary mb-4">
+                                        ${'<span class="material-symbols-outlined text-sm">star</span>'.repeat(t.rating || 5)}
+                                    </div>
+                                    <p class="font-body-md text-on-surface-variant italic mb-6">"${t.content}"</p>
+                                    <div class="flex items-center gap-4 text-right" dir="rtl">
+                                        <div class="w-12 h-12 rounded-full bg-soft-alabaster flex items-center justify-center overflow-hidden border border-on-surface/10">
+                                            ${t.image_url ? `<img src="${t.image_url}" class="w-full h-full object-cover">` : `<span class="material-symbols-outlined text-primary">person</span>`}
+                                        </div>
+                                        <div>
+                                            <h4 class="font-bold text-primary">${t.name}</h4>
+                                            <p class="text-xs text-on-surface-variant">${t.role} - ${t.company}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('');
+                        }
+                    }
+                } catch (e) {
+                    console.error("Dynamic content load failed", e);
+                }
+            }
+    
+            window.addEventListener('load', updateContent);
+            window.addEventListener('storage', updateContent);
+    
+            // Contact Form Handling
+            const contactForm = document.getElementById('contact-form');
+            if (contactForm) {
+                contactForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const status = document.getElementById('contact-status');
+                    const btn = contactForm.querySelector('button');
+                    
+                    btn.disabled = true;
+                    btn.innerText = 'جاري الإرسال...';
+                    status.classList.remove('hidden', 'text-green-500', 'text-red-500');
+                    status.innerText = '';
+    
+                    const name = document.getElementById('msg-name').value;
+                    const phone = document.getElementById('msg-phone').value;
+                    const email = document.getElementById('msg-email').value;
+                    const message = document.getElementById('msg-content').value;
+    
+                    try {
+                        const { error } = await _supabase
+                            .from('contact_messages')
+                            .insert([{ name, phone, email, message }]);
+    
+                        if (error) throw error;
+    
+                        status.innerText = 'تم إرسال رسالتك بنجاح! شكراً لتواصلك معنا.';
+                        status.classList.add('text-green-500', 'block');
+                        contactForm.reset();
+                    } catch (err) {
+                        status.innerText = 'حدث خطأ أثناء الإرسال. يرجى المحاولة مرة أخرى.';
+                        status.classList.add('text-red-500', 'block');
+                    } finally {
+                        btn.disabled = false;
+                        btn.innerText = 'إرسال الرسالة';
+                    }
+                });
+            }
+
+            // Newsletter Form Handling
+            const newsletterForm = document.getElementById('newsletter-form');
+            if (newsletterForm) {
+                newsletterForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const status = document.getElementById('newsletter-status');
+                    const btn = newsletterForm.querySelector('button');
+                    const email = document.getElementById('newsletter-email').value;
+
+                    btn.disabled = true;
+                    btn.innerText = 'جاري...';
+                    status.classList.remove('hidden', 'text-green-400', 'text-red-400');
+
+                    try {
+                        const { error } = await _supabase
+                            .from('newsletter_subscribers')
+                            .insert([{ email }]);
+
+                        if (error) {
+                            if (error.code === '23505') {
+                                status.innerText = 'هذا البريد مشترك بالفعل.';
+                            } else {
+                                throw error;
+                            }
+                        } else {
+                            status.innerText = 'تم الاشتراك بنجاح! شكراً لك.';
+                            status.classList.add('text-green-400', 'block');
+                            newsletterForm.reset();
+                        }
+                    } catch (err) {
+                        status.innerText = 'حدث خطأ. يرجى المحاولة لاحقاً.';
+                        status.classList.add('text-red-400', 'block');
+                    } finally {
+                        btn.disabled = false;
+                        btn.innerText = 'اشترك الآن';
+                    }
+                });
+            }
+        </script>
+    </body></html>
