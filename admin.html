@@ -101,8 +101,16 @@
                         <input type="text" id="hero-cta-text">
                     </div>
                     <div>
-                        <label>رابط صورة الخلفية الكبيرة</label>
-                        <input type="text" id="hero-img">
+                        <label>صورة الخلفية</label>
+                        <div class="relative group h-32 bg-white/5 rounded-xl border border-dashed border-white/20 hover:border-white/40 transition flex items-center justify-center overflow-hidden">
+                            <input type="hidden" id="hero-img">
+                            <img id="preview-hero-img" src="" class="absolute inset-0 w-full h-full object-cover hidden">
+                            <div id="placeholder-hero-img" class="flex flex-col items-center gap-1 text-neutral-500">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                <span class="text-[10px]">رفع صورة</span>
+                            </div>
+                            <input type="file" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleModalFileUpload(this, 'hero-img')" accept="image/*">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -122,8 +130,16 @@
                 <textarea id="about-who-p1" rows="3"></textarea>
                 <label>النص التعريفي (الفقرة الثانية)</label>
                 <textarea id="about-who-p2" rows="3"></textarea>
-                <label>رابط صورة "من نحن"</label>
-                <input type="text" id="about-who-img">
+                <label>صورة "من نحن"</label>
+                <div class="relative group h-32 bg-white/5 rounded-xl border border-dashed border-white/20 hover:border-white/40 transition flex items-center justify-center overflow-hidden max-w-sm">
+                    <input type="hidden" id="about-who-img">
+                    <img id="preview-about-who-img" src="" class="absolute inset-0 w-full h-full object-cover hidden">
+                    <div id="placeholder-about-who-img" class="flex flex-col items-center gap-1 text-neutral-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                        <span class="text-[10px]">رفع صورة</span>
+                    </div>
+                    <input type="file" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleModalFileUpload(this, 'about-who-img')" accept="image/*">
+                </div>
 
                 <div class="flex justify-between items-center mb-6 mt-10">
                     <div class="section-title">فريق العمل</div>
@@ -172,8 +188,16 @@
                         <input type="text" id="services-approach-link">
                     </div>
                 </div>
-                <label>رابط الصورة</label>
-                <input type="text" id="services-approach-img">
+                <label>صورة النهج الاستشاري</label>
+                <div class="relative group h-32 bg-white/5 rounded-xl border border-dashed border-white/20 hover:border-white/40 transition flex items-center justify-center overflow-hidden max-w-sm">
+                    <input type="hidden" id="services-approach-img">
+                    <img id="preview-services-approach-img" src="" class="absolute inset-0 w-full h-full object-cover hidden">
+                    <div id="placeholder-services-approach-img" class="flex flex-col items-center gap-1 text-neutral-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                        <span class="text-[10px]">رفع صورة</span>
+                    </div>
+                    <input type="file" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleModalFileUpload(this, 'services-approach-img')" accept="image/*">
+                </div>
             </div>
 
             <!-- TAB: Partners -->
@@ -257,7 +281,16 @@
                 <div class="space-y-4">
                     <div><label>عنوان المتصفح (Meta Title)</label><input type="text" id="site-title"></div>
                     <div><label>وصف الموقع (Meta Description)</label><textarea id="meta-desc" class="w-full h-24 bg-[#1a1a1a] border border-neutral-800 p-3 rounded-lg"></textarea></div>
-                    <div><label>رابط الأيقونة (Favicon)</label><input type="text" id="favicon"></div>
+                    <div><label>أيقونة الموقع (Favicon)</label>
+                        <div class="relative group h-20 w-20 bg-white/5 rounded-xl border border-dashed border-white/20 hover:border-white/40 transition flex items-center justify-center overflow-hidden">
+                            <input type="hidden" id="favicon">
+                            <img id="preview-favicon" src="" class="absolute inset-0 w-full h-full object-contain hidden">
+                            <div id="placeholder-favicon" class="flex flex-col items-center gap-1 text-neutral-500">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                            </div>
+                            <input type="file" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleModalFileUpload(this, 'favicon')" accept="image/png,image/x-icon,image/svg+xml">
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -422,7 +455,17 @@
 
             Object.keys(siteData).forEach(key => {
                 const el = document.getElementById(key);
-                if (el) el.value = siteData[key];
+                if (el) {
+                    el.value = siteData[key];
+                    // Handle image previews for static fields
+                    const preview = document.getElementById(`preview-${key}`);
+                    const placeholder = document.getElementById(`placeholder-${key}`);
+                    if (preview && siteData[key]) {
+                        preview.src = siteData[key];
+                        preview.classList.remove('hidden');
+                        if (placeholder) placeholder.classList.add('hidden');
+                    }
+                }
             });
             updatePreview();
         }
@@ -611,6 +654,23 @@
                                             ${[1,2,3,4,5].map(v => `<option value="${v}" ${item[f] == v ? 'selected' : ''}>${v} نجوم</option>`).join('')}
                                         </select>
                                     </div>`;
+                                } else if (f.includes('image_url')) {
+                                    const fieldId = `field-${Math.random().toString(36).substr(2, 9)}`;
+                                    return `<div>
+                                        <label>${translateField(f)}</label>
+                                        <div class="relative group h-40 bg-white/5 rounded-2xl border border-dashed border-white/20 hover:border-white/40 transition flex items-center justify-center overflow-hidden">
+                                            <input type="hidden" name="${f}" id="${fieldId}" value="${item[f] || ''}">
+                                            <img id="preview-${fieldId}" src="${item[f] || ''}" class="absolute inset-0 w-full h-full object-cover ${item[f] ? '' : 'hidden'}">
+                                            <div id="placeholder-${fieldId}" class="flex flex-col items-center gap-2 text-neutral-500 ${item[f] ? 'hidden' : ''}">
+                                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                                <span class="text-xs">اضغط لرفع صورة</span>
+                                            </div>
+                                            <input type="file" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleModalFileUpload(this, '${fieldId}')" accept="image/*">
+                                            <div id="loading-${fieldId}" class="absolute inset-0 bg-black/50 hidden items-center justify-center">
+                                                <svg class="w-8 h-8 animate-spin text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                            </div>
+                                        </div>
+                                    </div>`;
                                 } else {
                                     return `<div><label>${translateField(f)}</label><input type="${f === 'order_index' ? 'number' : 'text'}" name="${f}" value="${item[f] || ''}"></div>`;
                                 }
@@ -675,7 +735,7 @@
                 description: 'الوصف',
                 role: 'المنصب',
                 bio: 'السيرة الذاتية',
-                image_url: 'رابط الصورة',
+                image_url: 'الصورة',
                 order_index: 'الترتيب',
                 client_name: 'اسم العميل',
                 company: 'الشركة',
@@ -764,6 +824,43 @@
                 const error = document.getElementById('login-error');
                 error.classList.remove('hidden');
                 setTimeout(() => error.classList.add('hidden'), 2000);
+            }
+        }
+
+        async function uploadFile(file) {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+            const { data, error } = await _supabase.storage.from('images').upload(fileName, file);
+            if (error) throw error;
+            return _supabase.storage.from('images').getPublicUrl(fileName).data.publicUrl;
+        }
+
+        async function handleModalFileUpload(input, targetId) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const loading = document.getElementById(`loading-${targetId}`);
+            const preview = document.getElementById(`preview-${targetId}`);
+            const placeholder = document.getElementById(`placeholder-${targetId}`);
+            
+            if (loading) loading.classList.remove('hidden');
+            if (loading) loading.classList.add('flex');
+
+            try {
+                const url = await uploadFile(file);
+                document.getElementById(targetId).value = url;
+                if (preview) {
+                    preview.src = url;
+                    preview.classList.remove('hidden');
+                }
+                if (placeholder) placeholder.classList.add('hidden');
+            } catch (e) {
+                alert('فشل الرفع: ' + e.message);
+            } finally {
+                if (loading) {
+                    loading.classList.add('hidden');
+                    loading.classList.remove('flex');
+                }
             }
         }
 
